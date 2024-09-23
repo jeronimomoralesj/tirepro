@@ -1,0 +1,36 @@
+/* Styling for the Dashboard component */
+.dashboard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh; /* Full height to center vertically */
+    background-color: #f0f0f0;
+  }
+  
+  .dashboard h1 {
+    font-size: 2rem;
+    color: #4a4a4a;
+  }
+  
+  .dashboard p {
+    font-size: 1.2rem;
+    color: #666;
+  }
+  
+  .dashboard-logout {
+    background-color: #6a1b9a;
+    color: #fff;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    margin-top: 1rem;
+  }
+  
+  .dashboard-logout:hover {
+    background-color: #4a148c;
+  }
+  
