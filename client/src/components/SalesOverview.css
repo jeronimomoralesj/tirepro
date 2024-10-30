@@ -1,0 +1,114 @@
+/* SalesOverview.css */
+
+.sales-overview-card {
+  width: 100%;
+  max-width: 600px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.sales-overview-title {
+  font-size: 1.25rem; /* Responsive font size */
+  font-weight: 600;
+  color: #1a202c;
+  margin-bottom: 20px;
+  text-align: center; /* Center the title for a balanced look on small screens */
+}
+
+.chart-container {
+  position: relative;
+  width: 80%; /* Make chart width responsive */
+  max-width: 300px; /* Limit max width */
+  height: auto;
+  margin: 0 auto;
+  aspect-ratio: 1; /* Maintain a square aspect ratio */
+}
+
+.chart-center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.sales-overview-legend {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* Center legend items for small screens */
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin: 5px 10px; /* Adjust spacing for responsiveness */
+  font-size: 0.875rem; /* Responsive font size */
+  cursor: pointer; /* Indicate clickability */
+}
+
+.legend-color {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.legend-value {
+  margin-left: 8px; /* Adjust spacing for consistency */
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Media queries for smaller screens */
+@media (max-width: 768px) {
+  .sales-overview-card {
+      padding: 16px;
+  }
+
+  .sales-overview-title {
+      font-size: 1.125rem;
+  }
+
+  .chart-container {
+      width: 70%;
+      max-width: 250px;
+  }
+
+  .legend-item {
+      font-size: 0.8rem;
+      margin: 3px 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sales-overview-title {
+      font-size: 1rem;
+  }
+
+  .chart-container {
+      width: 90%;
+      max-width: 200px;
+  }
+
+  .legend-item {
+      font-size: 0.75rem;
+      margin: 2px 4px;
+  }
+
+  .legend-color {
+      width: 10px;
+      height: 10px;
+  }
+
+  .legend-value {
+      font-size: 0.75rem;
+  }
+}

@@ -1,0 +1,36 @@
+const mongoose = require('mongoose');
+
+const TireDataSchema = new mongoose.Schema({
+  llanta: { type: Number, required: true },
+  vida: { type: String, required: true },
+  placa: { type: String, required: true },
+  kilometraje_actual: { type: Number, required: true },
+  frente: { type: String, required: true },
+  marca: { type: String, required: true },
+  diseno: { type: String, required: true },
+  banda: { type: String, required: true },
+  tipovhc: { type: String, required: true },
+  pos: { type: String, required: true },
+  original: { type: String, required: true },
+  profundidad_int: { type: Number, required: true },
+  profundidad_cen: { type: Number, required: true },
+  profundidad_ext: { type: Number, required: true },
+  costo: { type: Number, required: true },
+  kms: { type: Number, required: true },
+  cpk: { type: Number, required: true },
+  proy_kms: { type: Number, required: true },
+  proy_cpk: { type: Number, required: true },
+  fecha: { type: Date, required: true },
+  dimension: { type: String, required: true },
+  aplicacion: { type: String, required: true },
+  proact: { type: String, required: true },
+  eje: { type: String, required: true },
+  KMS_x_MM: { type: Number, required: true },
+  pro_mes: { type: Number, required: true },
+  costo_por_mes: { type: Number, required: true },
+  costo_remanente: { type: Number, required: true },
+  proyeccion_fecha: { type: Date, required: true },
+  user: { type: String, required: true },
+}, { collection: 'tire_data' });
+
+module.exports = mongoose.model('TireData', TireDataSchema);

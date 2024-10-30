@@ -1,0 +1,27 @@
+/* RevenueUpdates.css */
+
+
+
+.revenue-updates-card {
+    width: 100%;
+    max-width: 600px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: left;
+  }
+  
+  .revenue-updates-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a202c;
+    margin-bottom: 20px;
+  }
+  
+  .chart-container {
+    position: relative;
+    width: 100%;
+    height: 200px; /* Adjust height for larger chart */
+  }
+  

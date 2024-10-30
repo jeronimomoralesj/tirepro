@@ -1,0 +1,170 @@
+/* Sidebar.css */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .sidebar {
+    width: 260px;
+    background-color: #fff;
+    color: #707070;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Logo Section */
+  .logo-section {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+  }
+  
+  .logo img {
+    height: 50px;
+  }
+  
+  /* Menu Section */
+  .menu {
+    flex-grow: 1;
+  }
+  
+  .menu-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    text-decoration: none;
+  }
+  
+  .menu-item.active,
+  .menu-item:hover {
+    background-color: #f0f4ff;
+  }
+  
+  .menu-icon {
+    font-size: 18px;
+    color: #1a202c;
+    margin-right: 10px;
+  }
+  
+  .menu-text {
+    font-size: 14px;
+    color: #707070;
+  }
+  
+  /* Profile Section */
+  .profile-section {
+    margin-top: auto;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 20px;
+  }
+  
+  .profile {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .profile-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+  
+  .profile-info {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .profile-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a202c;
+  }
+  
+  .profile-role {
+    font-size: 12px;
+    color: #b0b0b0;
+  }
+  
+  .profile-actions {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .profile-action {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: #707070;
+    cursor: pointer;
+  }
+  
+  .profile-action i {
+    font-size: 16px;
+    margin-right: 5px;
+  }
+  
+  /* Responsive Sidebar */
+  @media (max-width: 768px) {
+    .logo-text{
+      display: none;
+    }
+    .logo img {
+      height: 40px;
+    }
+    .sidebar {
+      width: 80px;
+    }
+  
+    .menu-text,
+    .profile-info .profile-name,
+    .profile-info .profile-role {
+      display: none;
+    }
+  
+    .menu-icon {
+      margin-right: 0;
+    }
+  
+    .profile {
+      justify-content: center;
+    }
+  }
+  
+
+  /* Sidebar.css */
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  text-align: left;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo img {
+  width: 40px;
+  height: auto;
+  margin-right: 10px; /* Space between logo and text */
+}
+
+.logo-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1a202c;
+}
