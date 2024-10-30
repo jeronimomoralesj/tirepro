@@ -1,0 +1,298 @@
+/* Home.css */
+
+.home {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+  }
+  
+  /* Header Section */
+  .home-header {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .header-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1a202c;
+  }
+  
+  .generate-pdf-btn {
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    background-color: #4361ee;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .generate-pdf-btn:hover {
+    background-color: #357abd;
+  }
+  
+  /* Full-width Sales Card */
+  .sales-card {
+    width: 100%;
+    max-width: 1200px;
+    padding: 30px 40px;
+    background-image: url('https://images.pexels.com/photos/9999716/pexels-photo-9999716.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');
+    background-size: cover;
+    background-position: center;
+    border-radius: 12px;
+    color: #ffffff;
+    text-align: left;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+  }
+  
+  .sales-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 10px;
+  }
+  
+  .sales-subtitle {
+    font-size: 14px;
+    margin: 0 0 20px;
+  }
+  
+  .sales-stats {
+    display: flex;
+    gap: 15px;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  
+  .stat-box {
+    flex: 1;
+    min-width: 150px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .stat-value {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a202c;
+  }
+  
+  .stat-label {
+    font-size: 12px;
+    color: #6b7280;
+  }
+  
+  /* Insights Boxes */
+  .insights-container {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+    margin-bottom: 20px;
+  }
+  
+  .insight-box {
+    flex: 1;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .insight-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a202c;
+    margin-bottom: 10px;
+  }
+  
+  .insight-content {
+    font-size: 14px;
+    color: #6b7280;
+  }
+  
+  /* Cards Container Section */
+  .cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); /* Two-column layout on large screens */
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+  }
+  
+  /* Card Base Style for Individual Components */
+  .sales-overview-card,
+  .revenue-updates-card,
+  .payment-gateways-card,
+  .progress-bar-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: left;
+  }
+  
+  /* Responsive Design for Smaller Screens */
+  @media (max-width: 768px) {
+    .insights-container {
+      flex-direction: column;
+    }
+  
+    .sales-card {
+      padding: 20px;
+    }
+  
+    .sales-stats {
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+  
+    .stat-box {
+      width: 100%;
+      max-width: 300px;
+    }
+  
+    .header-title {
+      font-size: 20px;
+    }
+  
+    .generate-pdf-btn {
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+  
+    .cards-container {
+      grid-template-columns: 1fr; /* Stacks cards vertically on smaller screens */
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .home-header {
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+  
+    .sales-card {
+      padding: 15px;
+    }
+  
+    .sales-title {
+      font-size: 20px;
+    }
+  
+    .sales-subtitle {
+      font-size: 12px;
+    }
+  
+    .stat-value {
+      font-size: 18px;
+    }
+  
+    .stat-label {
+      font-size: 10px;
+    }
+  }
+  
+  .popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .popup-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    width: 300px;
+    max-height: 400px;
+    text-align: center;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .popup-table-container {
+    max-height: 250px;
+    overflow-y: auto;
+    margin-top: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+  
+  .popup-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .popup-table th,
+  .popup-table td {
+    padding: 8px;
+    text-align: center;
+    font-size: 14px;
+  }
+  
+  .popup-table th {
+    background-color: #333;
+    color: white;
+  }
+  
+  .popup-table tr:nth-child(even) {
+    background-color: #f8f9fa;
+  }
+  
+  .close-button {
+    margin-top: 15px;
+    padding: 8px 16px;
+    background-color: #4361ee;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+  }
+  
+  .close-button:hover {
+    background-color: #3b4ccc;
+  }
+  
+
+  /* Add to your CSS file */
+
+.reset-filters-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #ff4d4f;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+.reset-filters-btn:hover {
+  background-color: #ff6666;
+}

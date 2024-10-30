@@ -1,0 +1,41 @@
+.reencuache-card {
+  width: 100%;
+  max-width: 600px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  overflow-x: auto;
+}
+
+.reencuache-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a202c;
+  margin-bottom: 20px;
+}
+
+.reencuache-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.reencuache-table th, 
+.reencuache-table td {
+  padding: 12px;
+  text-align: center;
+  font-size: 14px;
+  border-bottom: 1px solid #ddd;
+}
+
+.reencuache-table th {
+  background-color: #4361ee;
+  color: white;
+  font-weight: bold;
+}
+
+.reencuache-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}

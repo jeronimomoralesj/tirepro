@@ -1,0 +1,137 @@
+/* Economic Table */
+.economic-table-container {
+  max-width: 600px; /* Updated to match the width of other components */
+  max-height: 500px;
+  overflow: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd;
+  margin: 20px;
+  scroll-behavior: smooth;
+}
+
+.economic-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.economic-table th,
+.economic-table td {
+  padding: 12px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.economic-table thead th {
+  background-color: #333;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.economic-index {
+  background-color: #f5f5f5;
+  font-weight: bold;
+}
+
+.cell-value {
+  color: white;
+  font-weight: bold;
+}
+
+.red-cell {
+  background-color: #f72585; /* Red */
+}
+
+.yellow-cell {
+  background-color: #ff9e00; /* Yellow */
+  color: #333;
+}
+
+.green-cell {
+  background-color: #509724; /* Green */
+}
+
+.economic-table tr:nth-child(even) {
+  background-color: #eaf4eb;
+}
+
+/* Detalles Llantas Table */
+.detalles-llantas-container {
+  max-width: 600px; /* Updated to match the width of other components */
+  max-height: 500px;
+  overflow-y: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd;
+  margin: 20px;
+  scroll-behavior: smooth;
+}
+
+.detalles-llantas-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Arial, sans-serif;
+}
+
+.detalles-llantas-table th,
+.detalles-llantas-table td {
+  padding: 12px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.detalles-llantas-table thead th {
+  background-color: #333;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.detalles-llantas-table tbody tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+.detalles-llantas-table tbody tr:hover {
+  background-color: #e8f5e9;
+}
+
+.date-past {
+  color: #e53935;
+  font-weight: bold;
+}
+
+.date-future {
+  color: #1e88e5;
+  font-weight: bold;
+}
+
+.detalles-llantas-table td {
+  border-bottom: 1px solid #ddd;
+}
+
+/* Scrollbar Styling */
+.economic-table-container::-webkit-scrollbar,
+.detalles-llantas-container::-webkit-scrollbar {
+  width: 10px;
+}
+
+.economic-table-container::-webkit-scrollbar-track,
+.detalles-llantas-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.economic-table-container::-webkit-scrollbar-thumb,
+.detalles-llantas-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.economic-table-container::-webkit-scrollbar-thumb:hover,
+.detalles-llantas-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

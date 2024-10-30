@@ -1,0 +1,12 @@
+/* SidebarLayout.css */
+.sidebar-layout {
+    display: flex;
+    height: 100vh;
+  }
+  
+  .sidebar-layout .content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  
