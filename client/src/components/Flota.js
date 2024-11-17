@@ -1,33 +1,32 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import './Home.css';
+import SemaforoPie from './SemaforoPie';
+import PromedioEje from './PromedioEje';
+import ReencuacheTotal from './ReencuacheTotal';
+import ProgressBar from './ProgressBar';
 import HorizontalBarChart from './HorizontalBarChart';
 import TipoVehiculo from './TipoVehiculo';
 import PorVida from './PorVida';
-import PromedioEje from './PromedioEje';
-import ProgressBar from './ProgressBar';
 import Inspecciones from './Inspecciones';
 
-function Flota() {
+const Flota = () => {
   const [tires, setTires] = useState([]);
-  const [selectedBrand, setSelectedBrand] = useState(null);
-  const [selectedVida, setSelectedVida] = useState(null);
   const [selectedEje, setSelectedEje] = useState(null);
-  const [selectedVehicleType, setSelectedVehicleType] = useState(null);
-  const [showExpiredOnly, setShowExpiredOnly] = useState(false);
+  const [selectedCondition, setSelectedCondition] = useState(null);
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [cambioInmediatoTires, setCambioInmediatoTires] = useState([]);
+  const [averageCPK, setAverageCPK] = useState(0);
+  const [averageProjectedCPK, setAverageProjectedCPK] = useState(0);
 
-  const [filteredMetrics, setFilteredMetrics] = useState({
+  const [metrics, setMetrics] = useState({
     expiredInspectionCount: 0,
     placaCount: 0,
     llantasCount: 0,
-    cpk: 0,
-    cpkProyectado: 0,
   });
 
-  // Check if any filter is active
-  const hasActiveFilters = selectedBrand || selectedVida || selectedEje || selectedVehicleType || showExpiredOnly;
-
+  // Fetch tire data on mount
   useEffect(() => {
     const fetchTireData = async () => {
       try {
@@ -37,14 +36,24 @@ function Flota() {
           const userId = decodedToken?.user?.id;
 
           if (!userId) {
-            console.error('User ID not found in token');
+            console.error("User ID not found in token");
             return;
           }
 
           const response = await axios.get(`http://localhost:5001/api/tires/user/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
-          setTires(response.data);
+          const tireData = response.data;
+          setTires(tireData);
+
+          // Separate "Cambio Inmediato" tires for popup display
+          const cambioInmediato = tireData.filter((tire) => {
+            const minDepth = Math.min(...tire.profundidad_int.map(p => p.value), 
+                                      ...tire.profundidad_cen.map(p => p.value), 
+                                      ...tire.profundidad_ext.map(p => p.value));
+            return minDepth <= 5;
+          });
+          setCambioInmediatoTires(cambioInmediato);
         }
       } catch (error) {
         console.error('Error fetching tire data:', error);
@@ -54,134 +63,187 @@ function Flota() {
     fetchTireData();
   }, []);
 
+  // Filter tires by selected "Eje" and "Condition"
   const filteredTires = useMemo(() => {
     return tires.filter((tire) => {
-      const isExpired = new Date(tire.proyeccion_fecha) < new Date();
-      return (
-        (!selectedBrand || tire.marca === selectedBrand) &&
-        (!selectedVida || tire.vida === selectedVida) &&
-        (!selectedEje || tire.eje === selectedEje) &&
-        (!selectedVehicleType || tire.tipovhc === selectedVehicleType) &&
-        (!showExpiredOnly || isExpired)
-      );
+      const matchesEje = selectedEje ? tire.eje === selectedEje : true;
+      const matchesCondition = selectedCondition
+        ? (() => {
+            const minDepth = Math.min(...tire.profundidad_int.map(p => p.value), 
+                                      ...tire.profundidad_cen.map(p => p.value), 
+                                      ...tire.profundidad_ext.map(p => p.value));
+            if (selectedCondition === 'buenEstado') return minDepth > 7;
+            if (selectedCondition === 'dias60') return minDepth > 6 && minDepth <= 7;
+            if (selectedCondition === 'dias30') return minDepth > 5 && minDepth <= 6;
+            if (selectedCondition === 'cambioInmediato') return minDepth <= 5;
+          })()
+        : true;
+      return matchesEje && matchesCondition;
     });
-  }, [tires, selectedBrand, selectedVida, selectedEje, selectedVehicleType, showExpiredOnly]);
+  }, [tires, selectedEje, selectedCondition]);
 
+  // Calculate summary metrics based on filtered data
   useEffect(() => {
     const calculateMetrics = () => {
+      // Calculate expired inspection count
       const today = new Date();
       const expiredInspectionCount = filteredTires.reduce((count, tire) => {
         const inspectionDate = new Date(tire.proyeccion_fecha);
         return inspectionDate < today ? count + 1 : count;
       }, 0);
 
+      // Calculate unique plates and tire count
       const uniquePlacas = new Set(filteredTires.map((tire) => tire.placa)).size;
       const llantasCount = filteredTires.length;
 
-      const totalCpk = filteredTires.reduce(
-        (sum, tire) => sum + (tire.costo / tire.kilometraje_actual),
-        0
-      );
-      const cpk = llantasCount ? (totalCpk / llantasCount).toFixed(2) : 0;
-
-      const totalCpkProyectado = filteredTires.reduce((sum, tire) => {
-        const projectedKms = tire.kilometraje_actual / (tire.original - tire.proact) * tire.original;
-        return sum + (tire.costo / projectedKms);
+      // Calculate average CPK
+      const totalCPKValues = filteredTires.reduce((sum, tire) => {
+        const latestCPKValue = tire.cpk?.[tire.cpk.length - 1]?.value || 0;
+        return sum + latestCPKValue;
       }, 0);
-      const cpkProyectado = llantasCount ? (totalCpkProyectado / llantasCount).toFixed(2) : 0;
+      setAverageCPK(filteredTires.length ? totalCPKValues / filteredTires.length : 0);
 
-      setFilteredMetrics({
+      // Calculate average Projected CPK
+      const totalProjectedCPKValues = filteredTires.reduce((sum, tire) => {
+        const latestCPKProyValue = tire.cpk_proy?.[tire.cpk_proy.length - 1]?.value || 0;
+        return sum + latestCPKProyValue;
+      }, 0);
+      setAverageProjectedCPK(filteredTires.length ? totalProjectedCPKValues / filteredTires.length : 0);
+
+      setMetrics({
         expiredInspectionCount,
         placaCount: uniquePlacas,
         llantasCount,
-        cpk,
-        cpkProyectado,
       });
     };
 
     calculateMetrics();
   }, [filteredTires]);
 
-  const handleBrandSelect = (brand) => setSelectedBrand(brand === selectedBrand ? null : brand);
-  const handleVidaSelect = (vida) => setSelectedVida(vida === selectedVida ? null : vida);
-  const handleEjeSelect = (eje) => setSelectedEje(eje === selectedEje ? null : eje);
-  const handleVehicleTypeSelect = (vehicleType) =>
-    setSelectedVehicleType(vehicleType === selectedVehicleType ? null : vehicleType);
-  const toggleExpiredFilter = () => setShowExpiredOnly((prev) => !prev);
-
-  const handleResetFilters = () => {
-    setSelectedBrand(null);
-    setSelectedVida(null);
+  // Reset filters function
+  const resetFilters = () => {
     setSelectedEje(null);
-    setSelectedVehicleType(null);
-    setShowExpiredOnly(false);
+    setSelectedCondition(null);
   };
+
+  // Toggle the popup visibility
+  const togglePopup = () => setIsPopupVisible(!isPopupVisible);
 
   return (
     <div className="home">
       <header className="home-header">
-        <button className="generate-pdf-btn">Generate PDF</button>
+        <button className="generate-pdf-btn">PDF</button>
+        <button className="generate-pdf-btn" onClick={togglePopup}>
+          <i className="bx bx-bell"></i>
+        </button>
       </header>
 
+      {/* Popup for "Cambio Inmediato" tires */}
+      {isPopupVisible && (
+        <div className="popup-overlay" onClick={togglePopup}>
+          <div className="popup-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Que debo pedir</h3>
+            {cambioInmediatoTires.length > 0 ? (
+              <div className="popup-table-container">
+                <table className="popup-table">
+                  <thead>
+                    <tr>
+                      <th>Placa</th>
+                      <th>Pos</th>
+                      <th>Llanta</th>
+                      <th>Vida</th>
+                      <th>Marca</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cambioInmediatoTires.map((tire, index) => (
+                      <tr key={index}>
+                        <td>{tire.placa}</td>
+                        <td>{tire.pos[0]?.value || 'Unknown'}</td>
+                        <td>{tire.llanta}</td>
+                        <td>{tire.marca}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p>No hay llantas en "Cambio Inmediato".</p>
+            )}
+            <button className="close-button" onClick={togglePopup}>Cerrar</button>
+          </div>
+        </div>
+      )}
+
+      {/* Summary Section */}
       <div className="sales-card">
         <h2 className="sales-title">Mi Flota</h2>
         <div className="sales-stats">
           <div className="stat-box">
-            <span className="stat-value">{filteredMetrics.expiredInspectionCount}</span>
+            <span className="stat-value">{metrics.expiredInspectionCount}</span>
             <br />
-            <span className="stat-label">Llantas con inspección vencida</span>
+            <span className="stat-label">Llantas con Inspección Vencida</span>
           </div>
           <div className="stat-box">
-            <span className="stat-value">{filteredMetrics.placaCount}</span>
+            <span className="stat-value">{metrics.placaCount}</span>
             <br />
             <span className="stat-label">Recuento de Placas</span>
           </div>
           <div className="stat-box">
-            <span className="stat-value">{filteredMetrics.llantasCount}</span>
+            <span className="stat-value">{metrics.llantasCount}</span>
             <br />
             <span className="stat-label">Cantidad de Llantas</span>
           </div>
           <div className="stat-box">
-            <span className="stat-value">{filteredMetrics.cpk}</span>
+            <span className="stat-value">${averageCPK.toFixed(2)}</span>
             <br />
             <span className="stat-label">CPK</span>
           </div>
           <div className="stat-box">
-            <span className="stat-value">{filteredMetrics.cpkProyectado}</span>
+            <span className="stat-value">${averageProjectedCPK.toFixed(2)}</span>
             <br />
             <span className="stat-label">CPK Proyectado</span>
           </div>
         </div>
       </div>
 
+      {/* Cards Container with Filtered Tires */}
       <div className="cards-container">
-        <HorizontalBarChart
+        <HorizontalBarChart 
           tires={filteredTires}
-          onSelectBrand={handleBrandSelect}
-          selectedBrand={selectedBrand}
+          onSelectEje={setSelectedEje}
+          selectedEje={selectedEje}
         />
         <TipoVehiculo
           tires={filteredTires}
-          onSelectVehicleType={handleVehicleTypeSelect}
-          selectedVehicleType={selectedVehicleType}
+          onSelectEje={setSelectedEje}
+          selectedEje={selectedEje}
         />
-        <PorVida tires={filteredTires} onSelectVida={handleVidaSelect} selectedVida={selectedVida} />
-        <PromedioEje tires={filteredTires} onSelectEje={handleEjeSelect} selectedEje={selectedEje} />
-        <ProgressBar />
-        <Inspecciones
+        <PorVida 
           tires={filteredTires}
-          showExpiredOnly={showExpiredOnly}
-          onToggleExpiredFilter={toggleExpiredFilter}
+          onSelectEje={setSelectedEje}
+          selectedEje={selectedEje}
+        />
+        <PromedioEje 
+          tires={filteredTires}
+          onSelectEje={setSelectedEje}
+          selectedEje={selectedEje}
+        />
+        <Inspecciones 
+          tires={filteredTires}
+          onSelectEje={setSelectedEje}
+          selectedEje={selectedEje}
         />
       </div>
 
-      {hasActiveFilters && (
-        <button className="reset-filters-btn" onClick={handleResetFilters}>
-          Delete Filters
+      {/* Reset Filters Button */}
+      {selectedEje || selectedCondition ? (
+        <button className="reset-filters-btn" onClick={resetFilters}>
+          Eliminar Filtros
         </button>
-      )}
+      ) : null}
     </div>
   );
-}
+};
 
 export default Flota;

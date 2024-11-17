@@ -1,24 +1,31 @@
-// Inspecciones.js
-import React from 'react';
+import React, { useMemo } from 'react';
 import './SimpleTable.css';
 
 const Inspecciones = ({ tires, showExpiredOnly, onToggleExpiredFilter }) => {
-  const filteredInspections = showExpiredOnly
-    ? tires.filter((tire) => new Date(tire.proyeccion_fecha) < new Date())
-    : tires;
+  // Memoize filtered inspections to avoid recalculating on each render
+  const filteredInspections = useMemo(() => (
+    showExpiredOnly
+      ? tires.filter((tire) => new Date(tire.proyeccion_fecha) < new Date())
+      : tires
+  ), [tires, showExpiredOnly]);
 
+  // Helper to format date in a readable format
   const formatDate = (isoDateString) => {
+    if (!isoDateString) return 'N/A';
     const date = new Date(isoDateString);
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
   };
 
   return (
     <div className="table-container">
       <h2>Inspecciones</h2>
       <button className="filter-expired-btn" onClick={onToggleExpiredFilter}>
-        {showExpiredOnly ? 'Show All Inspections' : 'Show Expired Inspections Only'}
+        {showExpiredOnly ? 'Todas' : 'Filtrar por vencidos'}
       </button>
-
       <table className="simple-table">
         <thead>
           <tr>
@@ -36,13 +43,13 @@ const Inspecciones = ({ tires, showExpiredOnly, onToggleExpiredFilter }) => {
                 <td>{tire.llanta}</td>
                 <td>{tire.marca}</td>
                 <td className={new Date(tire.proyeccion_fecha) < new Date() ? 'date-past' : 'date-future'}>
-                  {tire.proyeccion_fecha ? formatDate(tire.proyeccion_fecha) : 'N/A'}
+                  {formatDate(tire.proyeccion_fecha)}
                 </td>
               </tr>
             ))
           ) : (
             <tr className="no-data-row">
-              <td colSpan="4">No inspection data available</td>
+              <td colSpan="4">No data</td>
             </tr>
           )}
         </tbody>

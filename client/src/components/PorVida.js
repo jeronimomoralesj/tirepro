@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import './SalesOverview.css';
@@ -6,23 +6,22 @@ import './SalesOverview.css';
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const PorVida = ({ tires, onSelectVida, selectedVida }) => {
-  const [vidaCounts, setVidaCounts] = useState([]);
+  // Memoize `vidaCounts` calculation to avoid recalculating on each render
+  const vidaCounts = useMemo(() => {
+    const counts = tires.reduce((acc, tire) => {
+      const vida = Array.isArray(tire.vida) && tire.vida.length > 0 
+        ? tire.vida[tire.vida.length - 1].value // Use the latest `vida` value
+        : 'Unknown';
 
-  useEffect(() => {
-    const groupByVida = (tires) => {
-      const counts = tires.reduce((acc, tire) => {
-        const vida = tire.vida || 'Unknown';
-        acc[vida] = (acc[vida] || 0) + 1;
-        return acc;
-      }, {});
+      acc[vida] = (acc[vida] || 0) + 1;
+      return acc;
+    }, {});
 
-      return Object.entries(counts).map(([vida, count]) => ({ vida, count }));
-    };
-
-    setVidaCounts(groupByVida(tires));
+    return Object.entries(counts).map(([vida, count]) => ({ vida, count }));
   }, [tires]);
 
-  const data = {
+  // Chart data using `vidaCounts`
+  const data = useMemo(() => ({
     labels: vidaCounts.map((item) => item.vida),
     datasets: [
       {
@@ -32,7 +31,7 @@ const PorVida = ({ tires, onSelectVida, selectedVida }) => {
         cutout: '70%',
       },
     ],
-  };
+  }), [vidaCounts]);
 
   const options = {
     plugins: {
@@ -45,7 +44,7 @@ const PorVida = ({ tires, onSelectVida, selectedVida }) => {
       if (elements.length > 0) {
         const index = elements[0].index;
         const vida = data.labels[index];
-        onSelectVida(vida === selectedVida ? null : vida); // Toggle selection
+        onSelectVida(vida === selectedVida ? null : vida);
       }
     },
   };
@@ -61,7 +60,7 @@ const PorVida = ({ tires, onSelectVida, selectedVida }) => {
           <div
             className="legend-item"
             key={index}
-            onClick={() => onSelectVida(label === selectedVida ? null : label)} // Toggle selection
+            onClick={() => onSelectVida(label === selectedVida ? null : label)}
             style={{
               cursor: 'pointer',
               fontWeight: label === selectedVida ? 'bold' : 'normal',
@@ -71,7 +70,7 @@ const PorVida = ({ tires, onSelectVida, selectedVida }) => {
               className="legend-color"
               style={{
                 backgroundColor: data.datasets[0].backgroundColor[index],
-                opacity: label === selectedVida ? 1 : 0.6, // Highlight selected segment
+                opacity: label === selectedVida ? 1 : 0.6,
               }}
             ></span>
             <span>{label}</span>

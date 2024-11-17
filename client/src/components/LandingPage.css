@@ -1,0 +1,219 @@
+/* LandingPage.css */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .landingPage-container {
+    color: #1a202c;
+  }
+  
+  .landingPage-topBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 40px;
+    width: 100%;
+    background: #4cc9f0;
+    position: relative;
+    z-index: 10;
+  }
+  
+  .landingPage-logoSection {
+    flex: 1;
+  }
+  
+  .landingPage-logo {
+    height: 40px;
+  }
+  
+  .landingPage-navLinks {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    flex: 1;
+  }
+  
+  .landingPage-navLink {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #1a202c;
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+  
+  .landingPage-navLink:hover {
+    color: #0d00fd;
+  }
+  
+  .landingPage-authButtons {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+  }
+  
+  .landingPage-loginBtn {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 20px;
+    background: white;
+    color: black;
+    transition: background-color 0.3s;
+  }
+  
+  /* Gradient Background Section */
+  .landingPage-heroSection {
+    background: linear-gradient(180deg, #4cc9f0, #ffffff);
+    padding: 100px 40px 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 80vh;
+  }
+  
+  .landingPage-heroContent {
+    max-width: 600px;
+    margin-bottom: 40px;
+  }
+  
+  .landingPage-heroTitle {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #1a202c;
+    margin-bottom: 20px;
+    margin-top: -35px;
+  }
+  
+  .landingPage-heroSubtitle {
+    font-size: 1.2rem;
+    color: #707070;
+    margin-bottom: 30px;
+  }
+  
+  .landingPage-ctaButton {
+    background-color: #6c63ff;
+    color: #ffffff;
+    font-size: 1rem;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .landingPage-ctaButton:hover {
+    background-color: #5a54e8;
+  }
+  
+  /* Hero Image */
+  .landingPage-heroImage {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .landingPage-landingImage {
+    width: 100%;
+    height: auto;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Features Section */
+  .landingPage-featuresSection {
+    padding: 60px 20px;
+    display: flex;
+    justify-content: center;
+    background-color: #f9f9f9;
+  }
+  
+  .landingPage-featuresCard {
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    padding: 40px;
+    max-width: 800px;
+    width: 100%;
+    text-align: left;
+  }
+  
+  .landingPage-featuresTitle {
+    font-size: 2rem;
+    color: #1a202c;
+    margin-bottom: 20px;
+    font-weight: bold;
+  }
+  
+  .landingPage-featuresList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .landingPage-featuresListItem {
+    font-size: 1rem;
+    color: #4a4a4a;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .landingPage-featuresListItem strong {
+    color: #1a202c;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .landingPage-topBar {
+      padding: 10px 20px;
+    }
+  
+    .landingPage-heroTitle {
+      font-size: 2rem;
+    }
+  
+    .landingPage-heroSubtitle {
+      font-size: 1rem;
+      margin-bottom: 20px;
+    }
+  
+    .landingPage-ctaButton {
+      padding: 10px 20px;
+    }
+  
+    .landingPage-heroSection {
+      padding: 60px 20px;
+    }
+  
+    .landingPage-featuresCard {
+      padding: 20px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .landingPage-navLinks {
+      display: none;
+    }
+  
+    .landingPage-authButtons {
+      display: none;
+    }
+  
+    .landingPage-heroTitle {
+      font-size: 1.8rem;
+    }
+  
+    .landingPage-heroSubtitle {
+      font-size: 0.9rem;
+    }
+  }
+  

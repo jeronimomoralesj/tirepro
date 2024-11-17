@@ -1,13 +1,10 @@
-// client/src/components/ReencuacheTotal.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
-import { parse, isWithinInterval } from 'date-fns';
-import { es } from 'date-fns/locale';
+import {jwtDecode} from 'jwt-decode';
 import './PaymentGateway.css';
 
 const ReencuacheTotal = () => {
-  const [reencaucheByMonth, setReencaucheByMonth] = useState([]);
+  const [reencaucheHistory, setReencaucheHistory] = useState([]);
 
   useEffect(() => {
     const fetchReencaucheData = async () => {
@@ -22,12 +19,13 @@ const ReencuacheTotal = () => {
             return;
           }
 
-          const response = await axios.get(`http://localhost:5001/api/tires/user/${userId}`, {
+          const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
+
           const tires = response.data;
-          const cumulativeReencauche = calculateCumulativeReencauche(tires);
-          setReencaucheByMonth(cumulativeReencauche);
+          const recentReencaucheHistory = getRecentReencaucheEntries(tires);
+          setReencaucheHistory(recentReencaucheHistory);
         }
       } catch (error) {
         console.error('Error fetching tire data:', error);
@@ -37,52 +35,56 @@ const ReencuacheTotal = () => {
     fetchReencaucheData();
   }, []);
 
-  const calculateCumulativeReencauche = (tires) => {
-    const currentDate = new Date();
-    const monthsData = [];
-
-    const allReencaucheTires = tires.filter((tire) => tire.vida === 'Reencauche1');
-    let cumulativeCount = allReencaucheTires.length;
-
-    for (let i = 4; i >= 0; i--) {
-      const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-      const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() - i + 1, 0);
-
-      const monthlyCount = allReencaucheTires.filter((tire) => {
-        if (tire.fecha) {
-          const [day, month, year] = tire.fecha.split('/');
-          const tireDate = parse(`${year}-${month}-${day}`, 'yyyy-MM-dd', new Date());
-          return isWithinInterval(tireDate, { start: monthStart, end: monthEnd });
+  // Function to retrieve and count recent reencauche entries based on last `vida` entry
+  const getRecentReencaucheEntries = (tires) => {
+    const reencaucheEntries = tires
+      .flatMap(tire => {
+        const vidaHistory = tire.vida;
+        if (Array.isArray(vidaHistory) && vidaHistory.length > 0) {
+          const lastVidaEntry = vidaHistory[vidaHistory.length - 1];
+          if (["Reencauche", "Reencauche1", "Reencauche2", "Reencauche3"].includes(lastVidaEntry.value)) {
+            return [{
+              month: lastVidaEntry.month,
+              year: lastVidaEntry.year,
+            }];
+          }
         }
-        return false;
-      }).length;
-
-      monthsData.push({
-        name: monthStart.toLocaleString('es-ES', { month: 'long', year: 'numeric', locale: es }),
-        count: cumulativeCount,
+        return [];
       });
 
-      cumulativeCount -= monthlyCount;
-    }
+    // Group by month and year, counting occurrences
+    const monthlyCounts = reencaucheEntries.reduce((acc, entry) => {
+      const key = `${entry.month}-${entry.year}`;
+      if (!acc[key]) {
+        acc[key] = { month: entry.month, year: entry.year, count: 0 };
+      }
+      acc[key].count += 1;
+      return acc;
+    }, {});
 
-    return monthsData.reverse();
+    // Convert to array, sort by date, and take the last 5 entries
+    return Object.values(monthlyCounts)
+      .sort((a, b) => new Date(b.year, b.month - 1) - new Date(a.year, a.month - 1))
+      .slice(0, 5);
   };
 
   return (
     <div className="reencuache-card">
-      <h3 className="reencuache-title">Reencauche por Mes</h3>
+      <h3 className="reencuache-title">Reencauche Histórico (Últimos 5)</h3>
       <table className="reencuache-table">
         <thead>
           <tr>
             <th>Mes</th>
+            <th>Año</th>
             <th>Cantidad de Reencauche</th>
           </tr>
         </thead>
         <tbody>
-          {reencaucheByMonth.map((monthData, index) => (
+          {reencaucheHistory.map((entry, index) => (
             <tr key={index}>
-              <td>{monthData.name}</td>
-              <td>{monthData.count}</td>
+              <td>{new Date(entry.year, entry.month - 1).toLocaleString('es-ES', { month: 'long' })}</td>
+              <td>{entry.year}</td>
+              <td>{entry.count}</td>
             </tr>
           ))}
         </tbody>

@@ -1,29 +1,33 @@
+// models/tireData.js
 const mongoose = require('mongoose');
+
+const HistoricalValueSchema = new mongoose.Schema({
+  month: { type: Number, required: true },
+  year: { type: Number, required: true },
+  value: { type: mongoose.Schema.Types.Mixed, required: true } // Store as a string (e.g., "Nuevo", "Reencauche1")
+});
 
 const TireDataSchema = new mongoose.Schema({
   llanta: { type: Number, required: true },
-  vida: { type: String, required: true },
+  vida: { type: [HistoricalValueSchema], default: [] }, // Now an array of historical entries
   placa: { type: String, required: true },
-  kilometraje_actual: { type: Number, required: true },
+  kilometraje_actual: { type: [HistoricalValueSchema], default: [] },
   frente: { type: String, required: true },
   marca: { type: String, required: true },
   diseno: { type: String, required: true },
   banda: { type: String, required: true },
   tipovhc: { type: String, required: true },
-  pos: { type: String, required: true },
+  pos: { type: [HistoricalValueSchema], default: [] },
   original: { type: String, required: true },
-  profundidad_int: { type: Number, required: true },
-  profundidad_cen: { type: Number, required: true },
-  profundidad_ext: { type: Number, required: true },
+  profundidad_int: { type: [HistoricalValueSchema], default: [] },
+  profundidad_cen: { type: [HistoricalValueSchema], default: [] },
+  profundidad_ext: { type: [HistoricalValueSchema], default: [] },
   costo: { type: Number, required: true },
-  kms: { type: Number, required: true },
-  cpk: { type: Number, required: true },
-  proy_kms: { type: Number, required: true },
-  proy_cpk: { type: Number, required: true },
-  fecha: { type: Date, required: true },
+  kms: { type: [HistoricalValueSchema], default: [] },
+  cpk: { type: [HistoricalValueSchema], default: [] },
+  cpk_proy: { type: [HistoricalValueSchema], default: [] },
   dimension: { type: String, required: true },
-  aplicacion: { type: String, required: true },
-  proact: { type: String, required: true },
+  proact: { type: [HistoricalValueSchema], default: [] },
   eje: { type: String, required: true },
   KMS_x_MM: { type: Number, required: true },
   pro_mes: { type: Number, required: true },

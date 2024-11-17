@@ -135,3 +135,35 @@
 .detalles-llantas-container::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+
+.color-counts {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.color-count {
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
+.red-count {
+  margin-top: 5px;
+  background-color: #ff4d4f;
+  color: white;
+}
+
+.yellow-count {
+  margin-top: 5px;
+  background-color: #ffeb3b;
+  color: #1a202c;
+}
+
+.green-count {
+  margin-top: 5px;
+  background-color: #4caf50;
+  color: white;
+}

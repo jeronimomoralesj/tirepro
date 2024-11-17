@@ -125,7 +125,7 @@
   /* Cards Container Section */
   .cards-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); /* Two-column layout on large screens */
+    grid-template-columns: repeat(2, 1fr); /* Two-column layout on larger screens */
     gap: 20px;
     width: 100%;
     max-width: 1200px;

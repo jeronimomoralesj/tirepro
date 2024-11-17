@@ -16,7 +16,7 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5001/api/auth/register', formData);
+      const res = await axios.post('https://tirepro.onrender.com/api/auth/register', formData);
       alert(res.data.msg); // Show success message
     } catch (err) {
       console.error(err);
