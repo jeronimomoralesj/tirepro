@@ -21,7 +21,7 @@ const Acontecimientos = () => {
         if (!userId) throw new Error("User ID not found in token");
 
         // Fetch tire data from the backend for the user
-        const response = await axios.get(`http://localhost:5001/api/tires/user/${userId}`, {
+        const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const tiresData = response.data;
@@ -56,7 +56,7 @@ const Acontecimientos = () => {
 
   return (
     <div className="recomendaciones-container">
-      <h2 className="recomendaciones-title">Recomendaciones</h2>
+      <h2 className="recomendaciones-title">Acontecimientos</h2>
       <div className="recomendaciones-list">
         {recommendations.length > 0 ? (
           recommendations.map((rec, index) => (

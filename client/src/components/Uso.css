@@ -1,173 +1,170 @@
 /* General styling */
 .uso-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 20px;
-  }
-  
-  .uso-title {
-    font-size: 24px;
-    color: #333;
-    margin-bottom: 15px;
-    font-weight: bold;
-  }
-  
-  .search-bar {
-    display: flex;
-    align-items: center;
-    background-color: #f1f3f5;
-    padding: 10px 20px;
-    border-radius: 30px;
-    width: 100%;
-    max-width: 400px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  .search-icon {
-    color: #4361ee;
-    font-size: 18px;
-    margin-right: 10px;
-  }
-  
-  .search-input {
-    flex: 1;
-    border: none;
-    background: transparent;
-    outline: none;
-    font-size: 16px;
-    color: #333;
-  }
-  
-  .search-input::placeholder {
-    color: #aaa;
-  }
-  
-  .search-button {
-    background-color: #4361ee;
-    color: white;
-    border: none;
-    border-radius: 20px;
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  .search-button:hover {
-    background-color: #3b4ccc;
-  }
-  
-  .results-container {
-    margin-top: 20px;
-    width: 100%;
-    max-width: 600px;
-    overflow-x: auto;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border: 1px solid #ddd;
-  }
-  
-  .results-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .results-table th,
-  .results-table td {
-    padding: 12px;
-    text-align: center;
-    font-size: 14px;
-  }
-  
-  .results-table thead th {
-    background-color: #333;
-    color: white;
-  }
-  
-  .results-table tbody tr:nth-child(even) {
-    background-color: #f8f9fa;
-  }
-  
-  .error-message {
-    color: #e53935;
-    font-weight: bold;
-    margin-top: 10px;
-  }
-  
-  /* Tire History Map styling */
-  .history-map {
-    margin-top: 20px;
-    width: 100%;
-    max-width: 600px;
-    text-align: center;
-  }
-  
-  .history-title {
-    font-size: 18px;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 10px;
-  }
-  
-  /* Road map layout */
-  .road-map {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    margin: 20px auto;
-    width: 200px;
-  }
-  
-  .road-map::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    background: #333;
-    border-radius: 2px;
-    z-index: 1;
-  }
-  
-  .step {
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    margin: 15px 0;
-  }
-  
-  .checkpoint {
-    width: 16px;
-    height: 16px;
-    background-color: #333;
-    border-radius: 50%;
-    position: relative;
-    z-index: 2;
-    margin-bottom: 5px;
-  }
-  
-  .pinchada {
-    background-color: #e63946;
-  }
-  
-  .reencauchada {
-    background-color: #f4a261;
-  }
-  
-  .cambio-posicion {
-    background-color: #2a9d8f;
-  }
-  
-  .fin-vida {
-    background-color: #264653;
-  }
-  
-  .step-label {
-    font-size: 14px;
-    font-weight: bold;
-    color: #333;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px;
+}
+
+.uso-title {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background-color: #f1f3f5;
+  padding: 10px 20px;
+  border-radius: 30px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.search-icon {
+  color: #4361ee;
+  font-size: 18px;
+  margin-right: 10px;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 16px;
+  color: #333;
+}
+
+.search-input::placeholder {
+  color: #aaa;
+}
+
+.search-button {
+  background-color: #4361ee;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.search-button:hover {
+  background-color: #3b4ccc;
+}
+
+.results-container {
+  margin-top: 20px;
+  width: 100%;
+  max-width: 600px;
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.results-table th,
+.results-table td {
+  padding: 12px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.results-table thead th {
+  background-color: #333;
+  color: white;
+}
+
+.results-table tbody tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+.error-message {
+  color: #e53935;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+/* Tire History Map styling */
+.history-map {
+  margin-top: 20px;
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+}
+
+.history-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+/* Road map layout */
+.road-map {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  margin: 20px auto;
+  width: 200px;
+}
+
+/* Segment line for each step */
+.line-segment {
+  width: 4px;
+  height: 30px;
+  background-color: #333;
+  border-radius: 2px;
+  margin: 0 auto;
+  z-index: 1;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  position: relative;
+  margin: 10px 0;
+}
+
+.tire-icon {
+  font-size: 24px;
+  margin-bottom: 5px;
+  z-index: 2;
+}
+
+/* Color coding for each step */
+.pinchada {
+  color: #e63946;
+}
+
+.reencauchada {
+  color: #f4a261;
+}
+
+.cambio-posicion {
+  color: #2a9d8f;
+}
+
+.fin-vida {
+  color: #264653;
+}
+
+.step-label {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+  margin-top: 5px; /* Add margin to avoid overlap */
+}

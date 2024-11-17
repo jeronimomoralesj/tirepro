@@ -8,6 +8,8 @@ import ReencuacheTotal from './ReencuacheTotal';
 import ProgressBar from './ProgressBar';
 import Acontecimientos from './Acontecimientos';
 import Recomendaciones from './Recomendaciones';
+import MonthlyCPKChart from './MonthlyCPKChart';
+import PorVida from './PorVida';
 
 const Home = () => {
   const [tires, setTires] = useState([]);
@@ -15,11 +17,10 @@ const Home = () => {
   const [selectedCondition, setSelectedCondition] = useState(null);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [cambioInmediatoTires, setCambioInmediatoTires] = useState([]);
-
   const [totalCost, setTotalCost] = useState(0);
   const [averageCPK, setAverageCPK] = useState(0);
   const [averageProjectedCPK, setAverageProjectedCPK] = useState(0);
-  const [lastMonthInvestment, setLastMonthInvestment] = useState(0);
+  const [lastMonthInvestment, setLastMonthInvestment] = useState(2003); // Static for now
 
   // Fetch tire data on mount
   useEffect(() => {
@@ -43,7 +44,9 @@ const Home = () => {
 
           // Separate "Cambio Inmediato" tires for popup display
           const cambioInmediato = tireData.filter((tire) => {
-            const minDepth = Math.min(tire.profundidad_int, tire.profundidad_cen, tire.profundidad_ext);
+            const minDepth = Math.min(...tire.profundidad_int.map(p => p.value), 
+                                      ...tire.profundidad_cen.map(p => p.value), 
+                                      ...tire.profundidad_ext.map(p => p.value));
             return minDepth <= 5;
           });
           setCambioInmediatoTires(cambioInmediato);
@@ -62,7 +65,9 @@ const Home = () => {
       const matchesEje = selectedEje ? tire.eje === selectedEje : true;
       const matchesCondition = selectedCondition
         ? (() => {
-            const minDepth = Math.min(tire.profundidad_int, tire.profundidad_cen, tire.profundidad_ext);
+            const minDepth = Math.min(...tire.profundidad_int.map(p => p.value), 
+                                      ...tire.profundidad_cen.map(p => p.value), 
+                                      ...tire.profundidad_ext.map(p => p.value));
             if (selectedCondition === 'buenEstado') return minDepth > 7;
             if (selectedCondition === 'dias60') return minDepth > 6 && minDepth <= 7;
             if (selectedCondition === 'dias30') return minDepth > 5 && minDepth <= 6;
@@ -79,31 +84,19 @@ const Home = () => {
       const totalCost = filteredTires.reduce((sum, tire) => sum + tire.costo, 0);
       setTotalCost(totalCost);
 
-      const totalCPK = filteredTires.reduce((sum, tire) => sum + tire.costo / tire.kilometraje_actual, 0);
-      setAverageCPK(filteredTires.length ? totalCPK / filteredTires.length : 0);
-
-      const totalProjectedCPK = filteredTires.reduce((sum, tire) => {
-        const projectedKms = tire.kilometraje_actual / (tire.original - tire.proact) * tire.original;
-        return sum + tire.costo / projectedKms;
+      // Calculate average CPK
+      const totalCPKValues = filteredTires.reduce((sum, tire) => {
+        const latestCPKValue = tire.cpk?.[tire.cpk.length - 1]?.value || 0;
+        return sum + latestCPKValue;
       }, 0);
-      setAverageProjectedCPK(filteredTires.length ? totalProjectedCPK / filteredTires.length : 0);
+      setAverageCPK(filteredTires.length ? totalCPKValues / filteredTires.length : 0);
 
-      const currentDate = new Date();
-      const previousMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
-      const previousMonthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
-
-      const lastMonthInvestmentCalc = filteredTires
-        .filter((tire) => {
-          if (tire.fecha) {
-            const [year, month, day] = tire.fecha.split('-');
-            const tireDate = new Date(year, month - 1, day);
-            return tireDate >= previousMonthStart && tireDate <= previousMonthEnd;
-          }
-          return false;
-        })
-        .reduce((sum, tire) => sum + tire.costo, 0);
-
-      setLastMonthInvestment(lastMonthInvestmentCalc);
+      // Calculate average Projected CPK
+      const totalProjectedCPKValues = filteredTires.reduce((sum, tire) => {
+        const latestCPKProyValue = tire.cpk_proy?.[tire.cpk_proy.length - 1]?.value || 0;
+        return sum + latestCPKProyValue;
+      }, 0);
+      setAverageProjectedCPK(filteredTires.length ? totalProjectedCPKValues / filteredTires.length : 0);
     };
 
     calculateMetrics();
@@ -134,7 +127,7 @@ const Home = () => {
       {isPopupVisible && (
         <div className="popup-overlay" onClick={togglePopup}>
           <div className="popup-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Tires in "Cambio Inmediato"</h3>
+            <h3>Que debo pedir</h3>
             {cambioInmediatoTires.length > 0 ? (
               <div className="popup-table-container">
                 <table className="popup-table">
@@ -143,23 +136,26 @@ const Home = () => {
                       <th>Placa</th>
                       <th>Pos</th>
                       <th>Llanta</th>
+                      <th>Vida</th>
+                      <th>Marca</th>
                     </tr>
                   </thead>
                   <tbody>
                     {cambioInmediatoTires.map((tire, index) => (
                       <tr key={index}>
                         <td>{tire.placa}</td>
-                        <td>{tire.pos}</td>
+                        <td>{tire.pos[0]?.value || 'Unknown'}</td>
                         <td>{tire.llanta}</td>
+                        <td>{tire.marca}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             ) : (
-              <p>No tires in "Cambio Inmediato" state.</p>
+              <p>No hay llantas en "Cambio Inmediato".</p>
             )}
-            <button className="close-button" onClick={togglePopup}>Close</button>
+            <button className="close-button" onClick={togglePopup}>Cerrar</button>
           </div>
         </div>
       )}
@@ -193,8 +189,8 @@ const Home = () => {
 
       {/* Cards Container with Filtered Tires */}
       <div className="cards-container">
-      <Acontecimientos />
-      <Recomendaciones />
+        <Acontecimientos />
+        <Recomendaciones />
         <SemaforoPie
           tires={filteredTires}
           onSelectCondition={setSelectedCondition}
@@ -212,7 +208,7 @@ const Home = () => {
       {/* Reset Filters Button */}
       {isFilterActive && (
         <button className="reset-filters-btn" onClick={resetFilters}>
-          Reset Filters
+          Eliminar Filtros
         </button>
       )}
     </div>

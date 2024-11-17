@@ -1,8 +1,11 @@
+// Uso.js
 import React, { useState } from 'react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import { FaSearch } from 'react-icons/fa';
 import './Uso.css';
+import { PiTireBold } from "react-icons/pi";
+
 
 const Uso = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -25,29 +28,23 @@ const Uso = () => {
         return;
       }
 
-      // Fetch all tire data for the user
-      const response = await axios.get(`http://localhost:5001/api/tires/user/${userId}`, {
+      const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const tires = response.data;
 
-      // Try to find a matching `llanta`
       const foundByLlanta = tires.find((tire) => tire.llanta.toString() === searchTerm);
 
       if (foundByLlanta) {
-        // If a single matching llanta is found, display it
         setTireData([foundByLlanta]);
         setErrorMessage('');
       } else {
-        // If no matching llanta, try to find all tires with the same `placa`
         const foundByPlaca = tires.filter((tire) => tire.placa.toLowerCase() === searchTerm.toLowerCase());
 
         if (foundByPlaca.length > 0) {
-          // If matching `placa` is found, display all associated tires
           setTireData(foundByPlaca);
           setErrorMessage('');
         } else {
-          // If no results found for either `llanta` or `placa`
           setTireData([]);
           setErrorMessage('No se encontró llanta o placa');
         }
@@ -65,7 +62,7 @@ const Uso = () => {
         <FaSearch className="search-icon" />
         <input
           type="text"
-          placeholder="Enter Llanta ID or Placa"
+          placeholder="Llanta id o placa..."
           className="search-input"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -107,19 +104,22 @@ const Uso = () => {
                 <h3 className="history-title">Historial de la Llanta - {tire.llanta}</h3>
                 <div className="road-map">
                   <div className="step">
-                    <div className="checkpoint pinchada"></div>
+                  <PiTireBold className='tire-icon'/>
                     <span className="step-label">Pinchada</span>
                   </div>
+                  <div className="line-segment"></div>
                   <div className="step">
-                    <div className="checkpoint reencauchada"></div>
+                  <PiTireBold className='tire-icon'/>
                     <span className="step-label">Reencauchada</span>
                   </div>
+                  <div className="line-segment"></div>
                   <div className="step">
-                    <div className="checkpoint cambio-posicion"></div>
+                  <PiTireBold className='tire-icon'/>
                     <span className="step-label">Cambio de Posición</span>
                   </div>
+                  <div className="line-segment"></div>
                   <div className="step">
-                    <div className="checkpoint fin-vida"></div>
+                  <PiTireBold className='tire-icon'/>
                     <span className="step-label">Fin de Vida</span>
                   </div>
                 </div>

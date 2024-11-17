@@ -12,6 +12,7 @@ import Home from './components/Home';
 import Flota from './components/Flota';
 import Uso from './components/Uso';
 import Nueva from './components/Nueva';
+import Soporte from './components/Soporte';
 
 function App() {
   return (
@@ -57,6 +58,7 @@ function App() {
           <Route path="estado" element={<Estado />} />
           <Route path="uso" element={<Uso />} />
           <Route path="nueva" element={<Nueva />} />
+          <Route path="soporte" element={<Soporte />} />
           {/* Add other nested routes here */}
         </Route>
       </Routes>

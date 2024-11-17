@@ -10,13 +10,22 @@ const SemaforoPie = ({ tires, onSelectCondition, selectedCondition }) => {
 
   const classifyTires = (tires) => {
     const counts = { buenEstado: 0, dias30: 0, dias60: 0, cambioInmediato: 0 };
+
     tires.forEach((tire) => {
-      const minDepth = Math.min(tire.profundidad_int, tire.profundidad_cen, tire.profundidad_ext);
+      // Get the latest depth values
+      const latestProfundidadInt = tire.profundidad_int?.at(-1)?.value || 0;
+      const latestProfundidadCen = tire.profundidad_cen?.at(-1)?.value || 0;
+      const latestProfundidadExt = tire.profundidad_ext?.at(-1)?.value || 0;
+
+      const minDepth = Math.min(latestProfundidadInt, latestProfundidadCen, latestProfundidadExt);
+
+      // Classify based on the minimum depth value
       if (minDepth > 7) counts.buenEstado++;
       else if (minDepth > 6) counts.dias60++;
       else if (minDepth > 5) counts.dias30++;
       else counts.cambioInmediato++;
     });
+
     return counts;
   };
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import './SalesOverview.css';
@@ -6,23 +6,19 @@ import './SalesOverview.css';
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const TipoVehiculo = ({ tires, onSelectVehicleType, selectedVehicleType }) => {
-  const [vehicleCounts, setVehicleCounts] = useState([]);
+  // Memoize the vehicle type counts to improve performance
+  const vehicleCounts = useMemo(() => {
+    const counts = tires.reduce((acc, tire) => {
+      const vehicleType = tire.tipovhc || 'Unknown';
+      acc[vehicleType] = (acc[vehicleType] || 0) + 1;
+      return acc;
+    }, {});
 
-  useEffect(() => {
-    const groupByVehicleType = (tires) => {
-      const counts = tires.reduce((acc, tire) => {
-        const vehicleType = tire.tipovhc || 'Unknown';
-        acc[vehicleType] = (acc[vehicleType] || 0) + 1;
-        return acc;
-      }, {});
-
-      return Object.entries(counts).map(([type, count]) => ({ type, count }));
-    };
-
-    setVehicleCounts(groupByVehicleType(tires));
+    return Object.entries(counts).map(([type, count]) => ({ type, count }));
   }, [tires]);
 
-  const data = {
+  // Memoize chart data to prevent unnecessary recalculations
+  const data = useMemo(() => ({
     labels: vehicleCounts.map((item) => item.type),
     datasets: [
       {
@@ -32,7 +28,7 @@ const TipoVehiculo = ({ tires, onSelectVehicleType, selectedVehicleType }) => {
         cutout: '70%',
       },
     ],
-  };
+  }), [vehicleCounts]);
 
   const options = {
     plugins: {
@@ -61,9 +57,11 @@ const TipoVehiculo = ({ tires, onSelectVehicleType, selectedVehicleType }) => {
           <div
             className="legend-item"
             key={index}
+            onClick={() => onSelectVehicleType(label === selectedVehicleType ? null : label)}
             style={{
               fontWeight: label === selectedVehicleType ? 'bold' : 'normal',
               color: label === selectedVehicleType ? '#4a90e2' : '#000',
+              cursor: 'pointer',
             }}
           >
             <span

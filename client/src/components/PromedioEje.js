@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
@@ -7,31 +7,31 @@ import './RevenueUpdates.css';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, ChartDataLabels);
 
 const PromedioEje = ({ tires, onSelectEje, selectedEje }) => {
-  const [averageDepthData, setAverageDepthData] = useState([]);
+  // Use memoization to calculate average depths by "eje" only when `tires` changes
+  const averageDepthData = useMemo(() => {
+    const ejeGroups = {};
 
-  useEffect(() => {
-    const calculateAverageDepthByEje = (tires) => {
-      const ejeGroups = {};
+    tires.forEach((tire) => {
+      const eje = tire.eje || '';
 
-      tires.forEach((tire) => {
-        const eje = tire.eje || 'Unknown';
-        const proact = parseFloat(tire.proact) || 0;
+      // Get the latest `proact` value, assuming `proact` is sorted or use the last entry as latest
+      const latestProactEntry = tire.proact?.length
+        ? tire.proact[tire.proact.length - 1].value
+        : 0; // Default to 0 if `proact` is empty or undefined
 
-        if (!ejeGroups[eje]) {
-          ejeGroups[eje] = { totalProact: 0, count: 0 };
-        }
+      if (!ejeGroups[eje]) {
+        ejeGroups[eje] = { totalProact: 0, count: 0 };
+      }
 
-        ejeGroups[eje].totalProact += proact;
-        ejeGroups[eje].count += 1;
-      });
+      ejeGroups[eje].totalProact += latestProactEntry;
+      ejeGroups[eje].count += 1;
+    });
 
-      return Object.entries(ejeGroups).map(([eje, data]) => ({
-        eje,
-        averageProact: data.count ? (data.totalProact / data.count).toFixed(2) : 0,
-      }));
-    };
-
-    setAverageDepthData(calculateAverageDepthByEje(tires));
+    // Calculate the average `proact` for each `eje`
+    return Object.entries(ejeGroups).map(([eje, data]) => ({
+      eje,
+      averageProact: data.count ? (data.totalProact / data.count).toFixed(2) : 0,
+    }));
   }, [tires]);
 
   const data = {

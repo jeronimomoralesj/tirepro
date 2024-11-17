@@ -1,21 +1,24 @@
 .horizontal-bar-chart-card {
-    width: 100%;
-    max-width: 600px;
-    background-color: #ffffff;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    text-align: left;
-  }
-  
-  .horizontal-bar-chart-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1a202c;
-    margin-bottom: 20px;
-  }
-  
-  .chart-container {
-    height: 250px;
-  }
-  
+  width: 100%;
+  max-width: 600px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  overflow: hidden;
+}
+
+.horizontal-bar-chart-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a202c;
+  margin-bottom: 20px;
+}
+
+.chart-container {
+  height: auto;
+  max-height: 400px; /* Set max-height for scrollable area */
+  overflow-y: auto; /* Enable vertical scroll */
+  padding-right: 10px; /* Adjust padding to accommodate scrollbar */
+}
