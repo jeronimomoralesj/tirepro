@@ -60,7 +60,7 @@ const loginUser = async (req, res) => {
 // Get user by ID controller
 const getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.userId).select('name role');
+    const user = await User.findById(req.params.userId).select('name role email company companyId');
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
