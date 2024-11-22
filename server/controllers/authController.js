@@ -64,7 +64,7 @@ const getUserById = async (req, res) => {
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
-    res.status(200).json({ name: user.name, role: user.role });
+    res.status(200).json({ name: user.name, role: user.role, email: user.email, company: user.company, companyId: user.companyId });
   } catch (error) {
     console.error('Error fetching user:', error.message);
     res.status(500).json({ msg: 'Server error' });
