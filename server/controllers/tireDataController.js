@@ -113,5 +113,57 @@ const transformToHistoricalArray = (value) => {
   }];
 };
 
+
+
+// Update historics
+
+const updateTireField = async (req, res) => {
+  try {
+    const { tireUpdates } = req.body; // Array of updates: { tireId, field, newValue }
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1;
+    const currentYear = currentDate.getFullYear();
+
+    for (const update of tireUpdates) {
+      const { tireId, field, newValue } = update;
+
+      // Fetch the tire document
+      const tire = await TireData.findById(tireId);
+      if (!tire) {
+        console.error(`Tire with ID ${tireId} not found.`);
+        continue;
+      }
+
+      // Validate that the field exists and is a historical array
+      if (!Array.isArray(tire[field])) {
+        console.error(`Field "${field}" is not a valid historical array in tire with ID ${tireId}.`);
+        continue;
+      }
+
+      // Check if the last entry matches the current month/year
+      const lastEntry = tire[field][tire[field].length - 1];
+      if (lastEntry && lastEntry.month === currentMonth && lastEntry.year === currentYear) {
+        // Update the last entry's value
+        lastEntry.value = newValue;
+      } else {
+        // Add a new entry for the current month/year
+        tire[field].push({
+          month: currentMonth,
+          year: currentYear,
+          value: newValue,
+        });
+      }
+
+      // Save the updated tire
+      await tire.save();
+    }
+
+    res.status(200).json({ msg: 'Tire field values updated successfully.' });
+  } catch (error) {
+    console.error("Error updating tire field values:", error);
+    res.status(500).json({ msg: 'Server error', error: error.message });
+  }
+};
+
 // Export the controller functions
-module.exports = { getTireDataByUser, uploadTireData };
+module.exports = { getTireDataByUser, uploadTireData, updateTireField };
