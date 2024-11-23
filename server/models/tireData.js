@@ -34,6 +34,7 @@ const TireDataSchema = new mongoose.Schema({
   costo_por_mes: { type: Number, required: true },
   costo_remanente: { type: Number, required: true },
   proyeccion_fecha: { type: Date, required: true },
+  ultima_inspeccion: { type: Date, required: true },
   user: { type: String, required: true },
 }, { collection: 'tire_data' });
 

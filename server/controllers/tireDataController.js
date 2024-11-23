@@ -88,6 +88,7 @@ const uploadTireData = async (req, res) => {
         pro_mes: 0,
         costo_por_mes: 0,
         costo_remanente: 0,
+        ultima_inspeccion: new Date(),
         proyeccion_fecha: new Date(),
         user: userId,
       };
@@ -165,5 +166,39 @@ const updateTireField = async (req, res) => {
   }
 };
 
+
+// Update the inspeccion
+
+const updateInspectionDate = async (req, res) => {
+  try {
+    const { tireId } = req.body;
+
+    if (!tireId) {
+      return res.status(400).json({ msg: 'Tire ID is required.' });
+    }
+
+    const currentDate = new Date();
+
+    // Update ultima_inspeccion field
+    const updatedTire = await TireData.findOneAndUpdate(
+      { _id: tireId },
+      { $set: { ultima_inspeccion: currentDate } },
+      { new: true }
+    );
+
+    if (!updatedTire) {
+      return res.status(404).json({ msg: 'Tire not found.' });
+    }
+
+    res.status(200).json({
+      msg: 'Inspection date updated successfully.',
+      tire: updatedTire,
+    });
+  } catch (error) {
+    console.error('Error updating inspection date:', error);
+    res.status(500).json({ msg: 'Server error.' });
+  }
+};
+
 // Export the controller functions
-module.exports = { getTireDataByUser, uploadTireData, updateTireField };
+module.exports = { getTireDataByUser, uploadTireData, updateTireField, updateInspectionDate };
