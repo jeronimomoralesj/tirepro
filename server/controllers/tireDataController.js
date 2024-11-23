@@ -171,34 +171,34 @@ const updateTireField = async (req, res) => {
 
 const updateInspectionDate = async (req, res) => {
   try {
-    const { tireId } = req.body;
+    const { tireIds } = req.body; // Expecting an array of tire IDs
 
-    if (!tireId) {
-      return res.status(400).json({ msg: 'Tire ID is required.' });
+    if (!tireIds || !Array.isArray(tireIds) || tireIds.length === 0) {
+      return res.status(400).json({ msg: 'Tire IDs are required and must be an array.' });
     }
 
     const currentDate = new Date();
 
-    // Update ultima_inspeccion field
-    const updatedTire = await TireData.findOneAndUpdate(
-      { _id: tireId },
-      { $set: { ultima_inspeccion: currentDate } },
-      { new: true }
+    // Update `ultima_inspeccion` for all specified tire IDs
+    const updatedTires = await TireData.updateMany(
+      { _id: { $in: tireIds } },
+      { $set: { ultima_inspeccion: currentDate } }
     );
 
-    if (!updatedTire) {
-      return res.status(404).json({ msg: 'Tire not found.' });
+    if (updatedTires.matchedCount === 0) {
+      return res.status(404).json({ msg: 'No tires found for the provided IDs.' });
     }
 
     res.status(200).json({
-      msg: 'Inspection date updated successfully.',
-      tire: updatedTire,
+      msg: 'Inspection dates updated successfully.',
+      updatedCount: updatedTires.modifiedCount,
     });
   } catch (error) {
-    console.error('Error updating inspection date:', error);
+    console.error('Error updating inspection dates:', error);
     res.status(500).json({ msg: 'Server error.' });
   }
 };
+
 
 // Export the controller functions
 module.exports = { getTireDataByUser, uploadTireData, updateTireField, updateInspectionDate };
