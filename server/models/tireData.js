@@ -8,7 +8,7 @@ const HistoricalValueSchema = new mongoose.Schema({
 });
 
 const TireDataSchema = new mongoose.Schema({
-  llanta: { type: Number, required: true },
+  llanta: { type: Number, required: false },
   vida: { type: [HistoricalValueSchema], default: [] }, // Now an array of historical entries
   placa: { type: String, required: true },
   kilometraje_actual: { type: [HistoricalValueSchema], default: [] },

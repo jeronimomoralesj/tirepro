@@ -1,58 +1,104 @@
-// Uso.js
 import React, { useState } from 'react';
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
-import { FaSearch } from 'react-icons/fa';
 import './Uso.css';
-import { PiTireBold } from "react-icons/pi";
-
+import { FaSearch } from 'react-icons/fa';
+import { PiTireBold } from 'react-icons/pi';
 
 const Uso = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [tireData, setTireData] = useState([]);
+  const [selectedTire, setSelectedTire] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleSearch = async () => {
     try {
+      setSelectedTire(null); // Reset selected tire to allow new searches
       const token = localStorage.getItem('token');
       if (!token) {
         setErrorMessage('Usuario no identificado');
         return;
       }
-
-      const decodedToken = jwtDecode(token);
+  
+      const decodedToken = JSON.parse(atob(token.split('.')[1]));
       const userId = decodedToken?.user?.id;
-
+  
       if (!userId) {
         setErrorMessage('No se encuentra ID de usuario');
         return;
       }
-
-      const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const tires = response.data;
-
-      const foundByLlanta = tires.find((tire) => tire.llanta.toString() === searchTerm);
-
-      if (foundByLlanta) {
-        setTireData([foundByLlanta]);
+  
+      let response;
+      const searchByLlanta = !isNaN(searchTerm); // Determine if searching by llanta (numeric input)
+  
+      if (searchByLlanta) {
+        // Search by llanta
+        response = await axios.get(`http://localhost:5001/api/events/user/${userId}`, {
+          params: { llanta: searchTerm },
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } else {
+        // Fallback to search by placa
+        response = await axios.get(`http://localhost:5001/api/events/user/${userId}`, {
+          params: { placa: searchTerm },
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+  
+      const fetchedEvents = response?.data;
+  
+      if (Array.isArray(fetchedEvents) && fetchedEvents.length > 0) {
+        setTireData(fetchedEvents);
         setErrorMessage('');
       } else {
-        const foundByPlaca = tires.filter((tire) => tire.placa.toLowerCase() === searchTerm.toLowerCase());
-
-        if (foundByPlaca.length > 0) {
-          setTireData(foundByPlaca);
-          setErrorMessage('');
-        } else {
-          setTireData([]);
-          setErrorMessage('No se encontró llanta o placa');
-        }
+        setErrorMessage('No se encontró llanta o placa');
+        setTireData([]);
       }
     } catch (error) {
-      console.error('Error fetching tire data:', error);
+      console.error('Error fetching events:', error);
       setErrorMessage('Error fetching data');
+      setTireData([]);
     }
+  };
+  
+  
+  
+
+  const renderTimeline = (tire) => {
+    const allEvents = [
+      ...tire.vida.map((entry) => ({
+        date: new Date(entry.year, entry.month - 1, entry.day),
+        type: 'Vida',
+        value: entry.value,
+      })),
+      ...tire.pos.map((entry) => ({
+        date: new Date(entry.year, entry.month - 1, entry.day),
+        type: 'Posición',
+        value: entry.value,
+      })),
+      ...tire.otherevents.map((entry) => ({
+        date: new Date(entry.year, entry.month - 1, entry.day),
+        type: 'Otro Evento',
+        value: entry.value,
+      })),
+    ];
+
+    // Sort all events by date
+    allEvents.sort((a, b) => a.date - b.date);
+
+    return (
+      <div className="road-map">
+        {allEvents.map((event, index) => (
+          <div key={index} className="step">
+            <PiTireBold className="tire-icon" />
+            <span className="step-label">
+              {event.type}: {event.value} <br />
+              {event.date.toLocaleDateString()}
+            </span>
+            {index < allEvents.length - 1 && <div className="line-segment"></div>}
+          </div>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -62,7 +108,7 @@ const Uso = () => {
         <FaSearch className="search-icon" />
         <input
           type="text"
-          placeholder="Llanta id o placa..."
+          placeholder="Llanta ID o Placa..."
           className="search-input"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -76,56 +122,41 @@ const Uso = () => {
 
       {tireData.length > 0 && (
         <div className="results-container">
-          <table className="results-table">
-            <thead>
-              <tr>
-                <th>Llanta</th>
-                <th>Marca</th>
-                <th>Pos</th>
-                <th>Placa</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tireData.map((tire, index) => (
-                <tr key={index}>
-                  <td>{tire.llanta}</td>
-                  <td>{tire.marca}</td>
-                  <td>{tire.pos}</td>
-                  <td>{tire.placa}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Tire History Maps */}
-          <div className="history-maps-container">
-            {tireData.map((tire, index) => (
-              <div className="history-map" key={index}>
-                <h3 className="history-title">Historial de la Llanta - {tire.llanta}</h3>
-                <div className="road-map">
-                  <div className="step">
-                  <PiTireBold className='tire-icon'/>
-                    <span className="step-label">Pinchada</span>
-                  </div>
-                  <div className="line-segment"></div>
-                  <div className="step">
-                  <PiTireBold className='tire-icon'/>
-                    <span className="step-label">Reencauchada</span>
-                  </div>
-                  <div className="line-segment"></div>
-                  <div className="step">
-                  <PiTireBold className='tire-icon'/>
-                    <span className="step-label">Cambio de Posición</span>
-                  </div>
-                  <div className="line-segment"></div>
-                  <div className="step">
-                  <PiTireBold className='tire-icon'/>
-                    <span className="step-label">Fin de Vida</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          {selectedTire ? (
+            <>
+              <h3 className="history-title">Historial de la Llanta - {selectedTire.llanta} en Placa: {selectedTire.placa}</h3>
+              {renderTimeline(selectedTire)}
+            </>
+          ) : (
+            <>
+              <h3 className="filtered-tires-title">Resultados:</h3>
+              <table className="results-table">
+                <thead>
+                  <tr>
+                    <th>Llanta</th>
+                    <th>Placa</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tireData.map((tire, index) => (
+                    <tr key={index}>
+                      <td>{tire.llanta}</td>
+                      <td>{tire.placa}</td>
+                      <td>
+                        <button
+                          className="view-button"
+                          onClick={() => setSelectedTire(tire)}
+                        >
+                          Ver Historial
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
         </div>
       )}
     </div>

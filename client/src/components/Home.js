@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
+import {jwtDecode} from 'jwt-decode';
 import './Home.css';
 import SemaforoPie from './SemaforoPie';
 import PromedioEje from './PromedioEje';
@@ -81,22 +81,33 @@ const Home = () => {
   // Calculate summary metrics based on filtered data
   useEffect(() => {
     const calculateMetrics = () => {
+      let validTiresCount = 0;
+      let totalCPK = 0;
+      let totalProjectedCPK = 0;
+
       const totalCost = filteredTires.reduce((sum, tire) => sum + tire.costo, 0);
       setTotalCost(totalCost);
 
-      // Calculate average CPK
-      const totalCPKValues = filteredTires.reduce((sum, tire) => {
-        const latestCPKValue = tire.cpk?.[tire.cpk.length - 1]?.value || 0;
-        return sum + latestCPKValue;
-      }, 0);
-      setAverageCPK(filteredTires.length ? totalCPKValues / filteredTires.length : 0);
+      filteredTires.forEach((tire) => {
+        const lastKms = tire.kms?.[tire.kms.length - 1]?.value || 0;
+        const lastProact = tire.proact?.[tire.proact.length - 1]?.value || 0;
 
-      // Calculate average Projected CPK
-      const totalProjectedCPKValues = filteredTires.reduce((sum, tire) => {
-        const latestCPKProyValue = tire.cpk_proy?.[tire.cpk_proy.length - 1]?.value || 0;
-        return sum + latestCPKProyValue;
-      }, 0);
-      setAverageProjectedCPK(filteredTires.length ? totalProjectedCPKValues / filteredTires.length : 0);
+        if (lastProact < 0 || lastProact > 50) {
+          return; // Skip invalid `proact` values
+        }
+
+        const cpk = lastKms > 0 ? tire.costo / lastKms : 0;
+        totalCPK += cpk;
+
+        const projectedKms = lastProact < 16 ? (lastKms / (16 - lastProact)) * 16 : 0;
+        const cpkProy = projectedKms > 0 ? tire.costo / projectedKms : 0;
+        totalProjectedCPK += cpkProy;
+
+        validTiresCount++;
+      });
+
+      setAverageCPK(validTiresCount ? totalCPK / validTiresCount : 0);
+      setAverageProjectedCPK(validTiresCount ? totalProjectedCPK / validTiresCount : 0);
     };
 
     calculateMetrics();

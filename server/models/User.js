@@ -8,7 +8,7 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   company: { type: String, required: true },
   role: { type: String, default: 'regular' },
-  companyId: { type: String, required: true },
+  companyId: { type: String, required: false },
 });
 
 // Method to check password validity
