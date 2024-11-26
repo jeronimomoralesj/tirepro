@@ -109,6 +109,7 @@
   font-weight: bold;
   color: #333;
   margin-bottom: 10px;
+  padding: 20px;
 }
 
 /* Road map layout */
@@ -167,4 +168,18 @@
   font-weight: bold;
   color: #333;
   margin-top: 5px; /* Add margin to avoid overlap */
+}
+
+.view-button {
+  background-color: #4361ee;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.view-button:hover {
+  background-color: #3b4ccc;
 }

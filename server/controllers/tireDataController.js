@@ -64,7 +64,7 @@ const uploadTireData = async (req, res) => {
 
       return {
         llanta: row['llanta'] || 0,
-        vida: transformToHistoricalArray(vida), // Handle `vida` as a historical array with the initial value
+        vida: transformToHistoricalArray(vida),
         placa: row['placa'] || 'Unknown',
         kilometraje_actual: transformToHistoricalArray(kilometrajeActual),
         frente: row['frente'] || 'Unknown',
@@ -79,8 +79,8 @@ const uploadTireData = async (req, res) => {
         profundidad_ext: transformToHistoricalArray(row['profundidad_ext']),
         costo: costo,
         kms: transformToHistoricalArray(row['kms']),
-        cpk: [{ month: currentMonth, year: currentYear, value: cpkValue }], // CPK entry with current month/year
-        cpk_proy: [{ month: currentMonth, year: currentYear, value: cpkProyValue }], // Projected CPK entry with current month/year
+        cpk: [{ month: currentMonth, year: currentYear, value: cpkValue }],
+        cpk_proy: [{ month: currentMonth, year: currentYear, value: cpkProyValue }],
         dimension: row['dimension'] || 'Unknown',
         proact: transformToHistoricalArray(proact),
         eje: row['eje'] || 'Unknown',
@@ -88,21 +88,22 @@ const uploadTireData = async (req, res) => {
         pro_mes: 0,
         costo_por_mes: 0,
         costo_remanente: 0,
-        ultima_inspeccion: new Date(),
-        proyeccion_fecha: new Date(),
+        ultima_inspeccion: currentDate,
+        proyeccion_fecha: currentDate,
         user: userId,
       };
     });
 
     // Insert processed data into the database
-    await TireData.insertMany(tireDataEntries);
+    const createdTires = await TireData.insertMany(tireDataEntries);
 
-    res.status(200).json({ msg: 'Tire data uploaded successfully' });
+    res.status(200).json({ msg: 'Tire data uploaded successfully', tires: createdTires });
   } catch (error) {
     console.error("Error uploading tire data:", error);
     res.status(500).json({ msg: 'Server error', error: error.message });
   }
 };
+
 
 // Helper function to transform individual values into historical array format
 const transformToHistoricalArray = (value) => {
