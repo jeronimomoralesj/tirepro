@@ -9,7 +9,7 @@ const HistoricalValueSchema = new mongoose.Schema({
 
 const TireDataSchema = new mongoose.Schema({
   llanta: { type: Number, required: false },
-  vida: { type: [HistoricalValueSchema], default: [] }, // Now an array of historical entries
+  vida: { type: [HistoricalValueSchema], default: [] },
   placa: { type: String, required: true },
   kilometraje_actual: { type: [HistoricalValueSchema], default: [] },
   frente: { type: String, required: true },
@@ -18,7 +18,7 @@ const TireDataSchema = new mongoose.Schema({
   banda: { type: String, required: true },
   tipovhc: { type: String, required: true },
   pos: { type: [HistoricalValueSchema], default: [] },
-  original: { type: String, required: true },
+  original: { type: String, required: true, default: 'N/A' }, // Default value
   profundidad_int: { type: [HistoricalValueSchema], default: [] },
   profundidad_cen: { type: [HistoricalValueSchema], default: [] },
   profundidad_ext: { type: [HistoricalValueSchema], default: [] },
@@ -29,13 +29,14 @@ const TireDataSchema = new mongoose.Schema({
   dimension: { type: String, required: true },
   proact: { type: [HistoricalValueSchema], default: [] },
   eje: { type: String, required: true },
-  KMS_x_MM: { type: Number, required: true },
-  pro_mes: { type: Number, required: true },
-  costo_por_mes: { type: Number, required: true },
-  costo_remanente: { type: Number, required: true },
-  proyeccion_fecha: { type: Date, required: true },
-  ultima_inspeccion: { type: Date, required: true },
+  KMS_x_MM: { type: Number, required: true, default: 0 }, // Default value
+  pro_mes: { type: Number, required: true, default: 0 }, // Default value
+  costo_por_mes: { type: Number, required: true, default: 0 }, // Default value
+  costo_remanente: { type: Number, required: true, default: 0 }, // Default value
+  proyeccion_fecha: { type: Date, required: true, default: Date.now }, // Default value
+  ultima_inspeccion: { type: Date, required: true, default: Date.now },
   user: { type: String, required: true },
 }, { collection: 'tire_data' });
+
 
 module.exports = mongoose.model('TireData', TireDataSchema);
