@@ -9,79 +9,67 @@ const Nueva = () => {
   const [filteredTires, setFilteredTires] = useState([]);
   const [loading, setLoading] = useState(false);
   const [proactUpdates, setProactUpdates] = useState({});
+  const [individualTire, setIndividualTire] = useState({
+    llanta: '',
+    vida: '',
+    placa: '',
+    kilometraje_actual: '',
+    frente: '',
+    marca: '',
+    diseno: '',
+    banda: '',
+    tipovhc: '',
+    pos: '',
+    proact: '',
+    eje: '',
+    profundidad_int: '',
+    profundidad_cen: '',
+    profundidad_ext: '',
+    costo: '',
+    kms: '',
+    dimension: '',
+  });
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
   };
 
   const handleFileUpload = async () => {
-  if (!file) {
-    alert("Please select a file to upload");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append('file', file);
-
-  const token = localStorage.getItem('token');
-  const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
-
-  if (!userId) {
-    alert("User ID not found");
-    return;
-  }
-
-  formData.append('user', userId);
-
-  try {
-    const uploadResponse = await axios.post('https://tirepro.onrender.com/api/tires/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-
-    const tires = uploadResponse.data.tires;
-
-    if (!Array.isArray(tires)) {
-      throw new Error('Unexpected response format: tires data is not an array');
+    if (!file) {
+      alert("Please select a file to upload");
+      return;
     }
 
-    // Map tires to events format, including `placa`
-    const currentDate = new Date();
-    const day = currentDate.getDate();
-    const month = currentDate.getMonth() + 1;
-    const year = currentDate.getFullYear();
+    const formData = new FormData();
+    formData.append('file', file);
 
-    const events = tires.map((tire) => ({
-      llanta: tire.llanta,
-      vida: tire.vida.map((entry) => ({
-        day: entry.day || day,
-        month: entry.month || month,
-        year: entry.year || year,
-        value: entry.value,
-      })),
-      pos: tire.pos.map((entry) => ({
-        day: entry.day || day,
-        month: entry.month || month,
-        year: entry.year || year,
-        value: entry.value,
-      })),
-      otherevents: [], // Start as empty
-      user: userId,
-      placa: tire.placa, // Add `placa` to the event
-    }));
+    const token = localStorage.getItem('token');
+    const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
 
-    // Send events to the backend
-    await axios.post('https://tirepro.onrender.com/api/events/create-many', { events }, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    if (!userId) {
+      alert("User ID not found");
+      return;
+    }
 
-    alert("File uploaded and events created successfully!");
-  } catch (error) {
-    console.error("Error uploading file or creating events:", error);
-    alert("Error uploading file or creating events");
-  }
-};
+    formData.append('user', userId);
 
-  
+    try {
+      const uploadResponse = await axios.post('https://tirepro.onrender.com/api/tires/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
+      });
+
+      const tires = uploadResponse.data.tires;
+
+      if (!Array.isArray(tires)) {
+        throw new Error('Unexpected response format: tires data is not an array');
+      }
+
+      alert("File uploaded successfully!");
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      alert("Error uploading file");
+    }
+  };
 
   const handlePlacaSearch = async () => {
     if (!placa.trim()) {
@@ -155,6 +143,138 @@ const Nueva = () => {
     }
   };
 
+  const handleIndividualTireChange = (field, value) => {
+    setIndividualTire((prevState) => ({
+      ...prevState,
+      [field]: value,
+    }));
+  };
+
+  const handleSingleTireUpload = async () => {
+    const token = localStorage.getItem('token');
+    const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
+  
+    if (!userId) {
+      alert("User ID not found");
+      return;
+    }
+  
+    try {
+      const currentDate = new Date();
+      const newTire = {
+        llanta: individualTire.llanta || 0,
+        vida: [
+          {
+            month: currentDate.getMonth() + 1,
+            year: currentDate.getFullYear(),
+            value: individualTire.vida || 'N/A',
+          },
+        ],
+        placa: individualTire.placa || 'Unknown',
+        kilometraje_actual: [
+          {
+            month: currentDate.getMonth() + 1,
+            year: currentDate.getFullYear(),
+            value: parseFloat(individualTire.kilometraje_actual) || 0,
+          },
+        ],
+        frente: individualTire.frente || 'N/A',
+        marca: individualTire.marca || 'N/A',
+        diseno: individualTire.diseno || 'N/A',
+        banda: individualTire.banda || 'N/A',
+        tipovhc: individualTire.tipovhc || 'N/A',
+        pos: [
+          {
+            month: currentDate.getMonth() + 1,
+            year: currentDate.getFullYear(),
+            value: parseFloat(individualTire.pos) || 0,
+          },
+        ],
+        original: individualTire.original || 'N/A',
+        profundidad_int: [
+          {
+            month: currentDate.getMonth() + 1,
+            year: currentDate.getFullYear(),
+            value: parseFloat(individualTire.profundidad_int) || 0,
+          },
+        ],
+        profundidad_cen: [
+          {
+            month: currentDate.getMonth() + 1,
+            year: currentDate.getFullYear(),
+            value: parseFloat(individualTire.profundidad_cen) || 0,
+          },
+        ],
+        profundidad_ext: [
+          {
+            month: currentDate.getMonth() + 1,
+            year: currentDate.getFullYear(),
+            value: parseFloat(individualTire.profundidad_ext) || 0,
+          },
+        ],
+        costo: parseFloat(individualTire.costo) || 0,
+        kms: [
+          {
+            month: currentDate.getMonth() + 1,
+            year: currentDate.getFullYear(),
+            value: parseFloat(individualTire.kms) || 0,
+          },
+        ],
+        dimension: individualTire.dimension || 'N/A',
+        proact: [
+          {
+            month: currentDate.getMonth() + 1,
+            year: currentDate.getFullYear(),
+            value: parseFloat(individualTire.proact) || 0,
+          },
+        ],
+        eje: individualTire.eje || 'N/A',
+        KMS_x_MM: parseFloat(individualTire.KMS_x_MM) || 0,
+        pro_mes: parseFloat(individualTire.pro_mes) || 0,
+        costo_por_mes: parseFloat(individualTire.costo_por_mes) || 0,
+        costo_remanente: parseFloat(individualTire.costo_remanente) || 0,
+        proyeccion_fecha: currentDate,
+        ultima_inspeccion: currentDate,
+        user: userId,
+      };
+  
+      const response = await axios.post(
+        'https://tirepro.onrender.com/api/tires',
+        newTire,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+  
+      alert('Tire uploaded successfully!');
+      setIndividualTire({
+        llanta: '',
+        vida: '',
+        placa: '',
+        kilometraje_actual: '',
+        frente: '',
+        marca: '',
+        diseno: '',
+        banda: '',
+        tipovhc: '',
+        pos: '',
+        proact: '',
+        eje: '',
+        profundidad_int: '',
+        profundidad_cen: '',
+        profundidad_ext: '',
+        costo: '',
+        kms: '',
+        dimension: '',
+      });
+    } catch (error) {
+      console.error("Error uploading single tire:", error);
+      alert("Error uploading single tire");
+    }
+  };
+  
+  
+
   return (
     <div className="nueva-container">
       <h2 className="nueva-title">Agregar Nueva Entrada</h2>
@@ -166,46 +286,21 @@ const Nueva = () => {
       </div>
       <button className="upload-button" onClick={handleFileUpload}>Upload File</button>
 
-      {/* Search by Placa Section */}
-      <div className="search-section">
-        <label htmlFor="placa-input" className="search-label">Buscar por Placa:</label>
-        <input
-          type="text"
-          id="placa-input"
-          value={placa}
-          onChange={(e) => setPlaca(e.target.value)}
-          className="placa-input"
-          placeholder="Ingresa la placa"
-        />
-        <button className="search-button" onClick={handlePlacaSearch}>Buscar</button>
+      {/* Individual Tire Upload Section */}
+      <div className="single-tire-section">
+        <h3>Agregar Una Llanta</h3>
+        {Object.keys(individualTire).map((key) => (
+          <input
+            key={key}
+            type="text"
+            value={individualTire[key]}
+            placeholder={`Ingresar ${key.replace('_', ' ')}`}
+            onChange={(e) => handleIndividualTireChange(key, e.target.value)}
+            className="single-tire-input"
+          />
+        ))}
+        <button className="single-upload-button" onClick={handleSingleTireUpload}>Subir Llanta</button>
       </div>
-
-      {/* Loading Indicator */}
-      {loading && <div className="loading-indicator">Cargando...</div>}
-
-      {/* Display Filtered Tires */}
-      {filteredTires.length > 0 && (
-        <div className="filtered-tires-container">
-          <h3 className="filtered-tires-title">Resultados:</h3>
-          {filteredTires.map((tire) => (
-            <div key={tire._id} className="tire-card">
-              <p><strong>Placa:</strong> {tire.placa}</p>
-              <p><strong>Llanta:</strong> {tire.llanta}</p>
-              <p><strong>Marca:</strong> {tire.marca}</p>
-              <input
-                type="number"
-                className="proact-input"
-                placeholder="Proact"
-                value={proactUpdates[tire._id] || ''}
-                onChange={(e) => handleProactChange(tire._id, Number(e.target.value))}
-                min="0"
-                max="50"
-              />
-            </div>
-          ))}
-          <button className="save-button" onClick={handleSaveProact}>Guardar Cambios</button>
-        </div>
-      )}
     </div>
   );
 };
