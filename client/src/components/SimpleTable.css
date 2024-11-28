@@ -1,90 +1,121 @@
-/* Inspecciones.css */
+/* Main Container */
+.inspecciones-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
 
+/* Summary Section */
+.summary-container {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 40%;
+}
+
+.summary-card h3 {
+  font-size: 1.2em;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.summary-card p {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #4a90e2;
+  margin: 0;
+}
+
+/* Table Section */
 .table-container {
-    width: 100%;
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-  }
-  
-  .table-container h2 {
-    font-size: 1.5em;
-    font-weight: 600;
-    color: #1a202c;
-    margin-bottom: 15px;
-  }
-  
-  .simple-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: 'Poppins', sans-serif;
-    color: #333;
-  }
-  
-  .simple-table th, .simple-table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid #e0e0e0;
-  }
-  
-  .simple-table th {
-    background-color: #f7f7f7;
-    font-weight: 600;
-    color: #1a202c;
-  }
-  
-  .simple-table tr:hover {
-    background-color: #f9f9f9;
-  }
-  
-  .simple-table .date-past {
-    color: #e53e3e; /* Red color for past dates */
-    font-weight: 600;
-  }
-  
-  .simple-table .date-future {
-    color: #3182ce; /* Blue color for future dates */
-    font-weight: 600;
-  }
-  
-  .no-data-row td {
-    text-align: center;
-    padding: 20px 0;
-    color: #a0aec0;
-  }
-  
-  /* Scrollable table for large data sets */
-  .table-container {
-    max-height: 400px;
-    overflow-y: auto;
-    scrollbar-width: thin; /* Firefox */
-    scrollbar-color: #cbd5e0 #f7f7f7; /* Firefox */
-  }
-  
-  .table-container::-webkit-scrollbar {
-    width: 8px;
-  }
-  
-  .table-container::-webkit-scrollbar-track {
-    background: #f7f7f7;
-  }
-  
-  .table-container::-webkit-scrollbar-thumb {
-    background-color: #cbd5e0;
-    border-radius: 20px;
-    border: 3px solid #f7f7f7;
-  }
-  
-  .filter-expired-btn{
-    margin-bottom: 10px;
-    padding: 5px 15px;
-    border-radius: 5px;
-    border: none;
-    background: #4a90e2;
-    color: white;
-    cursor: pointer;
-  }
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7f7f7;
+}
+
+.table-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f7f7f7;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background-color: #cbd5e0;
+  border-radius: 20px;
+  border: 3px solid #f7f7f7;
+}
+
+/* Table */
+.simple-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Poppins', sans-serif;
+  color: #333;
+}
+
+.simple-table th,
+.simple-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.simple-table th {
+  background-color: #f7f7f7;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.simple-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+.simple-table .date-past {
+  color: #e53e3e; /* Red color for past dates */
+  font-weight: 600;
+}
+
+.simple-table .date-future {
+  color: #3182ce; /* Blue color for future dates */
+  font-weight: 600;
+}
+
+/* Filter Button */
+.filter-expired-btn {
+  margin-bottom: 10px;
+  padding: 8px 15px;
+  border-radius: 5px;
+  border: none;
+  background: #4a90e2;
+  color: white;
+  cursor: pointer;
+}
+
+.filter-expired-btn:hover {
+  background: #3b7fd6;
+}
+
+/* No Data Row */
+.no-data-row td {
+  text-align: center;
+  padding: 20px 0;
+  color: #a0aec0;
+}

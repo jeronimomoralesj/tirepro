@@ -32,13 +32,13 @@ const Uso = () => {
   
       if (searchByLlanta) {
         // Search by llanta
-        response = await axios.get(`http://localhost:5001/api/events/user/${userId}`, {
+        response = await axios.get(`https://tirepro.onrender.com/api/events/user/${userId}`, {
           params: { llanta: searchTerm },
           headers: { Authorization: `Bearer ${token}` },
         });
       } else {
         // Fallback to search by placa
-        response = await axios.get(`http://localhost:5001/api/events/user/${userId}`, {
+        response = await axios.get(`https://tirepro.onrender.com/api/events/user/${userId}`, {
           params: { placa: searchTerm },
           headers: { Authorization: `Bearer ${token}` },
         });

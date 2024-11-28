@@ -20,10 +20,10 @@ const MonthlyCPKChart = () => {
         console.log(`Attempting to update CPK data for user ${userId}`);
 
         // Trigger update in backend
-        await axios.post('http://localhost:5001/api/historics/update', { user: userId });
+        await axios.post('https://tirepro.onrender.com/api/historics/update', { user: userId });
 
         // Fetch updated CPK data
-        const response = await axios.get(`http://localhost:5001/api/historics/${userId}`);
+        const response = await axios.get(`https://tirepro.onrender.com/api/historics/${userId}`);
         const sortedData = response.data.cpk_mes
           .sort((a, b) => new Date(b.date) - new Date(a.date))
           .slice(0, 5)

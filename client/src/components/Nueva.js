@@ -34,7 +34,7 @@ const Nueva = () => {
   formData.append('user', userId);
 
   try {
-    const uploadResponse = await axios.post('http://localhost:5001/api/tires/upload', formData, {
+    const uploadResponse = await axios.post('https://tirepro.onrender.com/api/tires/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
 
@@ -70,7 +70,7 @@ const Nueva = () => {
     }));
 
     // Send events to the backend
-    await axios.post('http://localhost:5001/api/events/create-many', { events }, {
+    await axios.post('https://tirepro.onrender.com/api/events/create-many', { events }, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -100,7 +100,7 @@ const Nueva = () => {
     }
 
     try {
-      const response = await axios.get(`http://localhost:5001/api/tires/user/${userId}`, {
+      const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -138,14 +138,14 @@ const Nueva = () => {
 
     try {
       await axios.put(
-        'http://localhost:5001/api/tires/update-field',
+        'https://tirepro.onrender.com/api/tires/update-field',
         { tireUpdates: updates },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      alert('Proact values updated successfully.');
+      alert(`Proact values updated successfully.`);
       setProactUpdates({});
       setFilteredTires([]);
       setPlaca('');

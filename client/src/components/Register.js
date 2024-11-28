@@ -23,7 +23,7 @@ const Register = () => {
 
     try {
       const res = await axios.post(
-        'http://localhost:5001/api/auth/register',
+        'https://tirepro.onrender.com/api/auth/register',
         formData
       );
       setMessage(res.data.msg || 'Registration successful!');

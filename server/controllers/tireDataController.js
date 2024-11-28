@@ -200,6 +200,67 @@ const updateInspectionDate = async (req, res) => {
   }
 };
 
+//For individual users
+const createTire = async (req, res) => {
+  try {
+    const tireData = req.body;
+    const currentDate = new Date();
+
+    const newTire = {
+      ...tireData,
+      vida: [{
+        month: currentDate.getMonth() + 1,
+        year: currentDate.getFullYear(),
+        value: tireData.vida || 'N/A',
+      }],
+      kilometraje_actual: [{
+        month: currentDate.getMonth() + 1,
+        year: currentDate.getFullYear(),
+        value: tireData.kilometraje_actual || 0,
+      }],
+      pos: [{
+        month: currentDate.getMonth() + 1,
+        year: currentDate.getFullYear(),
+        value: tireData.pos || 0,
+      }],
+      proact: [{
+        month: currentDate.getMonth() + 1,
+        year: currentDate.getFullYear(),
+        value: tireData.proact || 0,
+      }],
+      profundidad_int: [{
+        month: currentDate.getMonth() + 1,
+        year: currentDate.getFullYear(),
+        value: tireData.profundidad_int || 0,
+      }],
+      profundidad_cen: [{
+        month: currentDate.getMonth() + 1,
+        year: currentDate.getFullYear(),
+        value: tireData.profundidad_cen || 0,
+      }],
+      profundidad_ext: [{
+        month: currentDate.getMonth() + 1,
+        year: currentDate.getFullYear(),
+        value: tireData.profundidad_ext || 0,
+      }],
+      kms: [{
+        month: currentDate.getMonth() + 1,
+        year: currentDate.getFullYear(),
+        value: tireData.kms || 0,
+      }],
+      user: tireData.user,
+      ultima_inspeccion: currentDate,
+    };
+
+    const createdTire = await TireData.create(newTire);
+    res.status(201).json({ msg: 'Tire created successfully', tire: createdTire });
+  } catch (error) {
+    console.error('Error creating tire:', error);
+    res.status(500).json({ msg: 'Server error', error: error.message });
+  }
+};
+
+
 
 // Export the controller functions
-module.exports = { getTireDataByUser, uploadTireData, updateTireField, updateInspectionDate };
+module.exports = { getTireDataByUser, uploadTireData, updateTireField, updateInspectionDate, createTire };
