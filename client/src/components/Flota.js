@@ -40,7 +40,7 @@ const Flota = () => {
             return;
           }
 
-          const response = await axios.get(`http://localhost:5001/api/tires/user/${userId}`, {
+          const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           const tireData = response.data;
