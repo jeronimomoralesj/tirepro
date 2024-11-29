@@ -1,4 +1,5 @@
 const TireData = require('../models/tireData');
+const Event = require('../models/event'); // Ensure Event model is correctly imported
 const xlsx = require('xlsx');
 
 // Function to fetch tire data by user
@@ -18,14 +19,25 @@ const getTireDataByUser = async (req, res) => {
   }
 };
 
-// Function to calculate CPK and projected CPK based on formulas
+// Function to calculate CPK and projected CPK
 const calculateCPK = (costo, kilometraje) => (kilometraje ? costo / kilometraje : 0);
 const calculateProjectedCPK = (costo, kilometrajeActual, proact) => {
   const projectedKms = proact < 18 ? (kilometrajeActual / (18 - proact)) * 18 : 0;
   return calculateCPK(costo, projectedKms);
 };
 
-// Function to upload tire data from an Excel file
+// Helper function to transform individual values into historical array format
+const transformToHistoricalArrayWithDay = (value) => {
+  const currentDate = new Date();
+  return [{
+    day: currentDate.getDate(),
+    month: currentDate.getMonth() + 1,
+    year: currentDate.getFullYear(),
+    value: typeof value === 'number' || typeof value === 'string' ? value : parseFloat(value) || 0,
+  }];
+};
+
+// Function to upload tire data and create events
 const uploadTireData = async (req, res) => {
   try {
     const file = req.file;
@@ -49,114 +61,114 @@ const uploadTireData = async (req, res) => {
     const jsonData = xlsx.utils.sheet_to_json(worksheet);
 
     const currentDate = new Date();
+    const currentDay = currentDate.getDate();
     const currentMonth = currentDate.getMonth() + 1;
     const currentYear = currentDate.getFullYear();
 
-    const tireDataEntries = jsonData.map(row => {
-      const costo = parseFloat(row['costo']) || 0;
-      const kilometrajeActual = parseFloat(row['kilometraje_actual']) || 0;
-      const proact = parseFloat(row['proact']) || 0;
-      const vida = row['vida'] || 'Unknown';
+    const normalizeText = (text) => (text || 'unknown').toLowerCase();
 
-      // Calculate CPK and Projected CPK using the formulas
-      const cpkValue = calculateCPK(costo, kilometrajeActual);
-      const cpkProyValue = calculateProjectedCPK(costo, kilometrajeActual, proact);
+    const tireDataEntries = jsonData.map(row => ({
+      llanta: row['llanta'] || 0,
+      vida: transformToHistoricalArrayWithDay(row['vida'] || 'unknown'),
+      placa: normalizeText(row['placa']),
+      kilometraje_actual: transformToHistoricalArrayWithDay(row['kilometraje_actual']),
+      frente: normalizeText(row['frente']),
+      marca: normalizeText(row['marca']),
+      diseno: normalizeText(row['diseno']),
+      banda: normalizeText(row['banda']),
+      tipovhc: normalizeText(row['tipovhc']),
+      pos: transformToHistoricalArrayWithDay(row['pos']),
+      original: normalizeText(row['original']),
+      profundidad_int: transformToHistoricalArrayWithDay(row['profundidad_int']),
+      profundidad_cen: transformToHistoricalArrayWithDay(row['profundidad_cen']),
+      profundidad_ext: transformToHistoricalArrayWithDay(row['profundidad_ext']),
+      costo: parseFloat(row['costo']) || 0,
+      kms: transformToHistoricalArrayWithDay(row['kms']),
+      cpk: [{
+        day: currentDay,
+        month: currentMonth,
+        year: currentYear,
+        value: parseFloat(row['costo']) / (parseFloat(row['kilometraje_actual']) || 1),
+      }],
+      dimension: normalizeText(row['dimension']),
+      proact: transformToHistoricalArrayWithDay(row['proact']),
+      eje: normalizeText(row['eje']),
+      user: userId,
+    }));
 
-      return {
-        llanta: row['llanta'] || 0,
-        vida: transformToHistoricalArray(vida),
-        placa: row['placa'] || 'Unknown',
-        kilometraje_actual: transformToHistoricalArray(kilometrajeActual),
-        frente: row['frente'] || 'Unknown',
-        marca: row['marca'] || 'Unknown',
-        diseno: row['diseno'] || 'Unknown',
-        banda: row['banda'] || 'Unknown',
-        tipovhc: row['tipovhc'] || 'Unknown',
-        pos: transformToHistoricalArray(row['pos']),
-        original: row['original'] || 'Unknown',
-        profundidad_int: transformToHistoricalArray(row['profundidad_int']),
-        profundidad_cen: transformToHistoricalArray(row['profundidad_cen']),
-        profundidad_ext: transformToHistoricalArray(row['profundidad_ext']),
-        costo: costo,
-        kms: transformToHistoricalArray(row['kms']),
-        cpk: [{ month: currentMonth, year: currentYear, value: cpkValue }],
-        cpk_proy: [{ month: currentMonth, year: currentYear, value: cpkProyValue }],
-        dimension: row['dimension'] || 'Unknown',
-        proact: transformToHistoricalArray(proact),
-        eje: row['eje'] || 'Unknown',
-        KMS_x_MM: parseFloat(row['kms_x_mm']) || 0,
-        pro_mes: 0,
-        costo_por_mes: 0,
-        costo_remanente: 0,
-        ultima_inspeccion: currentDate,
-        proyeccion_fecha: currentDate,
-        user: userId,
-      };
-    });
+    const llantaValues = tireDataEntries.map(tire => tire.llanta);
 
-    // Insert processed data into the database
+    // Check for duplicate llanta values for the same user
+    const existingTires = await TireData.find({ user: userId, llanta: { $in: llantaValues } });
+    const existingLlantaValues = existingTires.map(tire => tire.llanta);
+
+    if (existingLlantaValues.length > 0) {
+      const duplicates = tireDataEntries.filter(tire => existingLlantaValues.includes(tire.llanta));
+      return res.status(400).json({
+        msg: `${duplicates.length} de ${tireDataEntries.length} llantas tienen un id existente, asegurate de no repetir:`,
+        duplicates: duplicates.map(tire => tire.llanta),
+      });
+    }
+
+    // Insert tire data
     const createdTires = await TireData.insertMany(tireDataEntries);
 
-    res.status(200).json({ msg: 'Tire data uploaded successfully', tires: createdTires });
+    // Prepare and insert events
+    const events = createdTires.map(tire => ({
+      llanta: tire.llanta,
+      vida: tire.vida.map((entry) => ({
+        day: entry.day || currentDay,
+        month: entry.month || currentMonth,
+        year: entry.year || currentYear,
+        value: entry.value,
+      })),
+      pos: tire.pos.map((entry) => ({
+        day: entry.day || currentDay,
+        month: entry.month || currentMonth,
+        year: entry.year || currentYear,
+        value: entry.value,
+      })),
+      otherevents: [],
+      user: tire.user,
+      placa: tire.placa,
+    }));
+
+    const createdEvents = await Event.insertMany(events);
+
+    res.status(200).json({
+      msg: 'Tire data and events uploaded successfully.',
+      tires: createdTires,
+      events: createdEvents,
+    });
   } catch (error) {
-    console.error("Error uploading tire data:", error);
+    console.error("Error uploading tire data and creating events:", error);
     res.status(500).json({ msg: 'Server error', error: error.message });
   }
 };
 
 
-// Helper function to transform individual values into historical array format
-const transformToHistoricalArray = (value) => {
-  const currentDate = new Date();
-  return [{
-    month: currentDate.getMonth() + 1,
-    year: currentDate.getFullYear(),
-    value: typeof value === 'number' || typeof value === 'string' ? value : parseFloat(value) || 0,
-  }];
-};
-
-
-
-// Update historics
-
+// Update historical fields
 const updateTireField = async (req, res) => {
   try {
-    const { tireUpdates } = req.body; // Array of updates: { tireId, field, newValue }
+    const { tireUpdates } = req.body;
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth() + 1;
     const currentYear = currentDate.getFullYear();
 
     for (const update of tireUpdates) {
       const { tireId, field, newValue } = update;
-
-      // Fetch the tire document
       const tire = await TireData.findById(tireId);
-      if (!tire) {
-        console.error(`Tire with ID ${tireId} not found.`);
-        continue;
-      }
+      if (!tire) continue;
 
-      // Validate that the field exists and is a historical array
-      if (!Array.isArray(tire[field])) {
-        console.error(`Field "${field}" is not a valid historical array in tire with ID ${tireId}.`);
-        continue;
-      }
+      if (!Array.isArray(tire[field])) continue;
 
-      // Check if the last entry matches the current month/year
       const lastEntry = tire[field][tire[field].length - 1];
       if (lastEntry && lastEntry.month === currentMonth && lastEntry.year === currentYear) {
-        // Update the last entry's value
         lastEntry.value = newValue;
       } else {
-        // Add a new entry for the current month/year
-        tire[field].push({
-          month: currentMonth,
-          year: currentYear,
-          value: newValue,
-        });
+        tire[field].push({ month: currentMonth, year: currentYear, value: newValue });
       }
 
-      // Save the updated tire
       await tire.save();
     }
 
@@ -167,100 +179,124 @@ const updateTireField = async (req, res) => {
   }
 };
 
-
-// Update the inspeccion
-
+// Update inspection date and kilometraje_actual
 const updateInspectionDate = async (req, res) => {
   try {
-    const { tireIds } = req.body; // Expecting an array of tire IDs
+    const { tireIds, kilometrajeActual } = req.body; // Get tire IDs and the new kilometraje_actual
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1; // JavaScript months are zero-indexed
+    const currentYear = currentDate.getFullYear();
 
-    if (!tireIds || !Array.isArray(tireIds) || tireIds.length === 0) {
-      return res.status(400).json({ msg: 'Tire IDs are required and must be an array.' });
+    if (!kilometrajeActual || isNaN(kilometrajeActual)) {
+      return res.status(400).json({ msg: "Invalid kilometraje_actual provided." });
     }
 
-    const currentDate = new Date();
+    const tires = await TireData.find({ _id: { $in: tireIds } });
 
-    // Update `ultima_inspeccion` for all specified tire IDs
-    const updatedTires = await TireData.updateMany(
-      { _id: { $in: tireIds } },
-      { $set: { ultima_inspeccion: currentDate } }
-    );
+    if (!tires || tires.length === 0) {
+      return res.status(404).json({ msg: "No tires found for the provided IDs." });
+    }
 
-    if (updatedTires.matchedCount === 0) {
-      return res.status(404).json({ msg: 'No tires found for the provided IDs.' });
+    // Update each tire
+    for (const tire of tires) {
+      const lastKilometrajeEntry = tire.kilometraje_actual[tire.kilometraje_actual.length - 1];
+      const lastKmsEntry = tire.kms[tire.kms.length - 1];
+
+      // Calculate the difference between the new and old kilometraje_actual
+      const lastKilometrajeValue = lastKilometrajeEntry?.value || 0;
+      const kmsDifference = Math.max(0, kilometrajeActual - lastKilometrajeValue);
+
+      // Update kilometraje_actual historical field
+      if (lastKilometrajeEntry?.month === currentMonth && lastKilometrajeEntry?.year === currentYear) {
+        lastKilometrajeEntry.value = kilometrajeActual; // Update the existing entry for the current month
+      } else {
+        tire.kilometraje_actual.push({
+          month: currentMonth,
+          year: currentYear,
+          value: kilometrajeActual,
+        });
+      }
+
+      // Update kms historical field
+      if (lastKmsEntry?.month === currentMonth && lastKmsEntry?.year === currentYear) {
+        lastKmsEntry.value += kmsDifference; // Add the new difference to the existing value
+      } else {
+        tire.kms.push({
+          month: currentMonth,
+          year: currentYear,
+          value: kmsDifference,
+        });
+      }
+
+      // Update the inspection date
+      tire.ultima_inspeccion = currentDate;
+
+      // Save changes to the tire document
+      await tire.save();
     }
 
     res.status(200).json({
-      msg: 'Inspection dates updated successfully.',
-      updatedCount: updatedTires.modifiedCount,
+      msg: "Inspeccion exitosa.",
+      updatedCount: tires.length,
     });
   } catch (error) {
-    console.error('Error updating inspection dates:', error);
-    res.status(500).json({ msg: 'Server error.' });
+    console.error("Error, intentar de nuevo: ", error);
+    res.status(500).json({ msg: "Server error.", error: error.message });
   }
 };
 
-//For individual users
+
+// Create tire for individual users
 const createTire = async (req, res) => {
   try {
     const tireData = req.body;
     const currentDate = new Date();
 
+    const normalizeHistoricalValue = (value) => ({
+      month: currentDate.getMonth() + 1,
+      year: currentDate.getFullYear(),
+      value: typeof value === 'object' && value.value ? value.value : value || 0,
+    });
+
+    // Check for duplicate llanta
+    const existingTire = await TireData.findOne({
+      user: tireData.user,
+      llanta: tireData.llanta,
+    });
+
+    if (existingTire) {
+      return res.status(400).json({
+        msg: `Ya existe una llanta con id: ${tireData.llanta}.`,
+      });
+    }
+
     const newTire = {
       ...tireData,
-      vida: [{
-        month: currentDate.getMonth() + 1,
-        year: currentDate.getFullYear(),
-        value: tireData.vida || 'N/A',
-      }],
-      kilometraje_actual: [{
-        month: currentDate.getMonth() + 1,
-        year: currentDate.getFullYear(),
-        value: tireData.kilometraje_actual || 0,
-      }],
-      pos: [{
-        month: currentDate.getMonth() + 1,
-        year: currentDate.getFullYear(),
-        value: tireData.pos || 0,
-      }],
-      proact: [{
-        month: currentDate.getMonth() + 1,
-        year: currentDate.getFullYear(),
-        value: tireData.proact || 0,
-      }],
-      profundidad_int: [{
-        month: currentDate.getMonth() + 1,
-        year: currentDate.getFullYear(),
-        value: tireData.profundidad_int || 0,
-      }],
-      profundidad_cen: [{
-        month: currentDate.getMonth() + 1,
-        year: currentDate.getFullYear(),
-        value: tireData.profundidad_cen || 0,
-      }],
-      profundidad_ext: [{
-        month: currentDate.getMonth() + 1,
-        year: currentDate.getFullYear(),
-        value: tireData.profundidad_ext || 0,
-      }],
-      kms: [{
-        month: currentDate.getMonth() + 1,
-        year: currentDate.getFullYear(),
-        value: tireData.kms || 0,
-      }],
+      vida: [normalizeHistoricalValue(tireData.vida || 'N/A')],
+      kilometraje_actual: [normalizeHistoricalValue(tireData.kilometraje_actual || 0)],
+      pos: [normalizeHistoricalValue(tireData.pos || 0)],
+      proact: [normalizeHistoricalValue(tireData.proact || 0)],
+      profundidad_int: [normalizeHistoricalValue(tireData.profundidad_int || 0)],
+      profundidad_cen: [normalizeHistoricalValue(tireData.profundidad_cen || 0)],
+      profundidad_ext: [normalizeHistoricalValue(tireData.profundidad_ext || 0)],
+      kms: [normalizeHistoricalValue(tireData.kms || 0)],
       user: tireData.user,
       ultima_inspeccion: currentDate,
     };
 
     const createdTire = await TireData.create(newTire);
-    res.status(201).json({ msg: 'Tire created successfully', tire: createdTire });
+    res.status(201).json({ msg: 'LLanta creada..', tire: createdTire });
   } catch (error) {
-    console.error('Error creating tire:', error);
-    res.status(500).json({ msg: 'Server error', error: error.message });
+    console.error('Error:', error);
+    res.status(500).json({ msg: 'error servidor', error: error.message });
   }
 };
 
 
-
-// Export the controller functions
-module.exports = { getTireDataByUser, uploadTireData, updateTireField, updateInspectionDate, createTire };
+module.exports = {
+  getTireDataByUser,
+  uploadTireData,
+  updateTireField,
+  updateInspectionDate,
+  createTire,
+};

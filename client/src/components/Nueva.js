@@ -5,10 +5,10 @@ import './Nueva.css';
 const Nueva = () => {
   const [file, setFile] = useState(null);
   const [placa, setPlaca] = useState('');
-  const [tireData, setTireData] = useState([]);
   const [filteredTires, setFilteredTires] = useState([]);
   const [loading, setLoading] = useState(false);
   const [proactUpdates, setProactUpdates] = useState({});
+  const [kilometrajeActual, setKilometrajeActual] = useState('');
   const [individualTire, setIndividualTire] = useState({
     llanta: '',
     vida: '',
@@ -30,10 +30,12 @@ const Nueva = () => {
     dimension: '',
   });
 
+  // Handle file input change
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
   };
 
+  // Upload Excel file and create tires with events
   const handleFileUpload = async () => {
     if (!file) {
       alert("Please select a file to upload");
@@ -54,23 +56,27 @@ const Nueva = () => {
     formData.append('user', userId);
 
     try {
-      const uploadResponse = await axios.post('https://tirepro.onrender.com/api/tires/upload', formData, {
+      const response = await axios.post('http://localhost:5001/api/tires/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
       });
 
-      const tires = uploadResponse.data.tires;
+      const { tires, events } = response.data;
 
-      if (!Array.isArray(tires)) {
-        throw new Error('Unexpected response format: tires data is not an array');
-      }
-
-      alert("File uploaded successfully!");
+      alert(
+        `File uploaded successfully: ${tires.length} tires added, ${events.length} events created.`
+      );
     } catch (error) {
-      console.error("Error uploading file:", error);
-      alert("Error uploading file");
+      if (error.response?.status === 400) {
+        const { msg, duplicates } = error.response.data;
+        alert(`${msg}\nDuplicates: ${duplicates.join(', ')}`);
+      } else {
+        console.error("Error uploading file and creating events:", error);
+        alert("Error uploading file and creating events.");
+      }
     }
   };
 
+  // Search tires by "placa"
   const handlePlacaSearch = async () => {
     if (!placa.trim()) {
       alert('Please enter a valid placa.');
@@ -88,7 +94,7 @@ const Nueva = () => {
     }
 
     try {
-      const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
+      const response = await axios.get(`http://localhost:5001/api/tires/user/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -103,19 +109,14 @@ const Nueva = () => {
     }
   };
 
-  const handleProactChange = (tireId, value) => {
-    if (value < 0 || value > 50) {
-      alert('Value must be between 0 and 50');
+  // Save updates: Proact, kilometraje_actual, and inspection date
+  const handleSaveUpdates = async () => {
+    if (!kilometrajeActual || isNaN(kilometrajeActual)) {
+      alert("Please enter a valid kilometraje_actual value.");
       return;
     }
 
-    setProactUpdates((prevState) => ({
-      ...prevState,
-      [tireId]: value,
-    }));
-  };
-
-  const handleSaveProact = async () => {
+    const tireIds = filteredTires.map((tire) => tire._id); // Get all tire IDs for the placa
     const updates = filteredTires.map((tire) => ({
       tireId: tire._id,
       field: 'proact',
@@ -125,128 +126,82 @@ const Nueva = () => {
     const token = localStorage.getItem('token');
 
     try {
+      // Update kilometraje_actual, kms, and inspection date
       await axios.put(
-        'https://tirepro.onrender.com/api/tires/update-field',
-        { tireUpdates: updates },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        'http://localhost:5001/api/tires/update-inspection-date',
+        { tireIds, kilometrajeActual },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert(`Proact values updated successfully.`);
+      // Update Proact values
+      if (updates.length > 0) {
+        await axios.put(
+          'http://localhost:5001/api/tires/update-field',
+          { tireUpdates: updates },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+
+      alert("Kilometraje_actual, kms, inspection dates, and Proact values updated successfully!");
+      setKilometrajeActual('');
       setProactUpdates({});
       setFilteredTires([]);
       setPlaca('');
     } catch (error) {
-      console.error('Error updating Proact values:', error);
-      alert('Error updating Proact values.');
+      console.error("Error updating inspection date or Proact values:", error);
+      alert("Error updating inspection date or Proact values.");
     }
   };
 
+  // Handle individual tire input change
   const handleIndividualTireChange = (field, value) => {
     setIndividualTire((prevState) => ({
       ...prevState,
-      [field]: value,
+      [field]: field === 'placa' || field === 'frente' || field === 'marca' || field === 'dimension' || field === 'diseno' || field === 'banda' || field === 'eje'
+        ? value.toLowerCase() // Convert specific text fields to lowercase
+        : value,
     }));
   };
 
+  // Upload individual tire
   const handleSingleTireUpload = async () => {
     const token = localStorage.getItem('token');
     const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
-  
+
     if (!userId) {
       alert("User ID not found");
       return;
     }
-  
+
     try {
-      const currentDate = new Date();
-      const newTire = {
-        llanta: individualTire.llanta || 0,
-        vida: [
-          {
-            month: currentDate.getMonth() + 1,
-            year: currentDate.getFullYear(),
-            value: individualTire.vida || 'N/A',
-          },
-        ],
-        placa: individualTire.placa || 'Unknown',
-        kilometraje_actual: [
-          {
-            month: currentDate.getMonth() + 1,
-            year: currentDate.getFullYear(),
-            value: parseFloat(individualTire.kilometraje_actual) || 0,
-          },
-        ],
-        frente: individualTire.frente || 'N/A',
-        marca: individualTire.marca || 'N/A',
-        diseno: individualTire.diseno || 'N/A',
-        banda: individualTire.banda || 'N/A',
-        tipovhc: individualTire.tipovhc || 'N/A',
-        pos: [
-          {
-            month: currentDate.getMonth() + 1,
-            year: currentDate.getFullYear(),
-            value: parseFloat(individualTire.pos) || 0,
-          },
-        ],
-        original: individualTire.original || 'N/A',
-        profundidad_int: [
-          {
-            month: currentDate.getMonth() + 1,
-            year: currentDate.getFullYear(),
-            value: parseFloat(individualTire.profundidad_int) || 0,
-          },
-        ],
-        profundidad_cen: [
-          {
-            month: currentDate.getMonth() + 1,
-            year: currentDate.getFullYear(),
-            value: parseFloat(individualTire.profundidad_cen) || 0,
-          },
-        ],
-        profundidad_ext: [
-          {
-            month: currentDate.getMonth() + 1,
-            year: currentDate.getFullYear(),
-            value: parseFloat(individualTire.profundidad_ext) || 0,
-          },
-        ],
-        costo: parseFloat(individualTire.costo) || 0,
-        kms: [
-          {
-            month: currentDate.getMonth() + 1,
-            year: currentDate.getFullYear(),
-            value: parseFloat(individualTire.kms) || 0,
-          },
-        ],
-        dimension: individualTire.dimension || 'N/A',
-        proact: [
-          {
-            month: currentDate.getMonth() + 1,
-            year: currentDate.getFullYear(),
-            value: parseFloat(individualTire.proact) || 0,
-          },
-        ],
-        eje: individualTire.eje || 'N/A',
-        KMS_x_MM: parseFloat(individualTire.KMS_x_MM) || 0,
-        pro_mes: parseFloat(individualTire.pro_mes) || 0,
-        costo_por_mes: parseFloat(individualTire.costo_por_mes) || 0,
-        costo_remanente: parseFloat(individualTire.costo_remanente) || 0,
-        proyeccion_fecha: currentDate,
-        ultima_inspeccion: currentDate,
-        user: userId,
-      };
-  
-      const response = await axios.post(
-        'https://tirepro.onrender.com/api/tires',
+      const newTire = { ...individualTire, user: userId };
+
+      const tireResponse = await axios.post(
+        'http://localhost:5001/api/tires',
         newTire,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-  
-      alert('Tire uploaded successfully!');
+
+      const createdTire = tireResponse.data.tire;
+
+      const event = {
+        llanta: createdTire.llanta,
+        vida: createdTire.vida,
+        pos: createdTire.pos,
+        otherevents: [],
+        user: createdTire.user,
+        placa: createdTire.placa.toLowerCase(),
+      };
+
+      await axios.post(
+        'http://localhost:5001/api/events/create-many',
+        { events: [event] },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      alert('Tire and associated event uploaded successfully!');
       setIndividualTire({
         llanta: '',
         vida: '',
@@ -268,39 +223,89 @@ const Nueva = () => {
         dimension: '',
       });
     } catch (error) {
-      console.error("Error uploading single tire:", error);
-      alert("Error uploading single tire");
+      console.error("Error uploading single tire and event:", error);
+      alert("Error uploading single tire and event");
     }
   };
-  
-  
 
   return (
     <div className="nueva-container">
-      <h2 className="nueva-title">Agregar Nueva Entrada</h2>
+      <h2 className="nueva-title">Tire Management System</h2>
 
       {/* File Upload Section */}
       <div className="upload-section">
-        <label htmlFor="file-upload" className="upload-label">Subir Archivo Excel:</label>
+        <label htmlFor="file-upload" className="upload-label">Upload Excel File:</label>
         <input type="file" id="file-upload" onChange={handleFileChange} className="file-input" accept=".xlsx, .xls, .csv" />
       </div>
       <button className="upload-button" onClick={handleFileUpload}>Upload File</button>
 
       {/* Individual Tire Upload Section */}
       <div className="single-tire-section">
-        <h3>Agregar Una Llanta</h3>
+        <h3>Add Individual Tire</h3>
         {Object.keys(individualTire).map((key) => (
           <input
             key={key}
             type="text"
             value={individualTire[key]}
-            placeholder={`Ingresar ${key.replace('_', ' ')}`}
+            placeholder={`Enter ${key.replace('_', ' ')}`}
             onChange={(e) => handleIndividualTireChange(key, e.target.value)}
             className="single-tire-input"
           />
         ))}
-        <button className="single-upload-button" onClick={handleSingleTireUpload}>Subir Llanta</button>
+        <button className="single-upload-button" onClick={handleSingleTireUpload}>Upload Tire</button>
       </div>
+
+      {/* Search by Placa Section */}
+      <div className="search-section">
+        <label htmlFor="placa-input" className="search-label">Search by Placa:</label>
+        <input
+          type="text"
+          id="placa-input"
+          value={placa}
+          onChange={(e) => setPlaca(e.target.value.toLowerCase())}
+          className="placa-input"
+          placeholder="Enter placa"
+        />
+        <button className="search-button" onClick={handlePlacaSearch}>Search</button>
+      </div>
+
+      {/* Display Filtered Tires */}
+      {filteredTires.length > 0 && (
+        <div className="filtered-tires-container">
+          <h3>Results:</h3>
+          <div className="kilometraje-section">
+            <label htmlFor="kilometraje-input" className="kilometraje-label">Kilometraje Actual:</label>
+            <input
+              type="number"
+              id="kilometraje-input"
+              value={kilometrajeActual}
+              onChange={(e) => setKilometrajeActual(e.target.value)}
+              className="kilometraje-input"
+              placeholder="Enter new kilometraje_actual"
+            />
+          </div>
+          {filteredTires.map((tire) => (
+            <div key={tire._id} className="tire-card">
+              <p><strong>Placa:</strong> {tire.placa}</p>
+              <p><strong>Llanta:</strong> {tire.llanta}</p>
+              <p><strong>Marca:</strong> {tire.marca}</p>
+              <input
+                type="number"
+                className="proact-input"
+                placeholder="Proact"
+                value={proactUpdates[tire._id] || ''}
+                onChange={(e) => setProactUpdates((prevState) => ({
+                  ...prevState,
+                  [tire._id]: Number(e.target.value),
+                }))}
+                min="0"
+                max="50"
+              />
+            </div>
+          ))}
+          <button className="save-button" onClick={handleSaveUpdates}>Save Updates</button>
+        </div>
+      )}
     </div>
   );
 };
