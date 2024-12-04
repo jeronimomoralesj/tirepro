@@ -9,7 +9,7 @@ const getTireDataByUser = async (req, res) => {
     const tireData = await TireData.find({ user: userId });
 
     if (!tireData || tireData.length === 0) {
-      return res.status(404).json({ msg: 'No tire data found for this user' });
+      return res.status(200).json([]); // Return an empty array if no data is found
     }
 
     res.json(tireData);
@@ -18,6 +18,7 @@ const getTireDataByUser = async (req, res) => {
     res.status(500).json({ msg: 'Server error' });
   }
 };
+
 
 // Function to calculate CPK and projected CPK
 const calculateCPK = (costo, kilometraje) => (kilometraje ? costo / kilometraje : 0);
@@ -67,6 +68,7 @@ const uploadTireData = async (req, res) => {
 
     const normalizeText = (text) => (text || 'unknown').toLowerCase();
 
+    // Transform Excel data into tire data objects
     const tireDataEntries = jsonData.map(row => ({
       llanta: row['llanta'] || 0,
       vida: transformToHistoricalArrayWithDay(row['vida'] || 'unknown'),
@@ -96,6 +98,39 @@ const uploadTireData = async (req, res) => {
       user: userId,
     }));
 
+    // Fetch existing tires for the user
+    const existingTires = await TireData.find({ user: userId });
+
+    // Check for duplicates by `llanta`
+    const duplicateLlantaEntries = tireDataEntries.filter(newTire =>
+      existingTires.some(existingTire => existingTire.llanta === newTire.llanta)
+    );
+
+    if (duplicateLlantaEntries.length > 0) {
+      return res.status(400).json({
+        msg: 'Duplicate llantas found. Please resolve these before uploading.',
+        duplicates: duplicateLlantaEntries.map(tire => tire.llanta),
+      });
+    }
+
+    // Check for duplicates by `placa` and `pos`
+    const duplicatePosEntries = tireDataEntries.filter(newTire =>
+      existingTires.some(existingTire => {
+        const latestPos = existingTire.pos?.at(-1)?.value || null; // Get the latest position value
+        return (
+          existingTire.placa === newTire.placa && // Match `placa`
+          latestPos === newTire.pos?.[0]?.value  // Match `pos`
+        );
+      })
+    );
+
+    if (duplicatePosEntries.length > 0) {
+      return res.status(400).json({
+        msg: 'Duplicate placa and pos found. Please resolve these before uploading.',
+        duplicates: duplicatePosEntries.map(tire => ({ placa: tire.placa, pos: tire.pos?.[0]?.value })),
+      });
+    }
+
     // Insert tire data
     const createdTires = await TireData.insertMany(tireDataEntries);
 
@@ -105,7 +140,7 @@ const uploadTireData = async (req, res) => {
       vida: tire.vida.map((entry) => ({
         day: entry.day || currentDay,
         month: entry.month || currentMonth,
-        year: entry.year || currentYear,
+        year: currentYear,
         value: entry.value,
       })),
       pos: tire.pos.map((entry) => ({
@@ -131,6 +166,10 @@ const uploadTireData = async (req, res) => {
     res.status(500).json({ msg: 'Server error', error: error.message });
   }
 };
+
+
+
+
 
 
 
