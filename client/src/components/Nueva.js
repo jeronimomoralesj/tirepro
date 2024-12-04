@@ -9,7 +9,7 @@ const Nueva = () => {
 
   return (
     <div className="nueva-container">
-      <h2 className="nueva-title">Tire Management System</h2>
+      <h2 className="nueva-title">Agregar</h2>
 
       <div className="button-container">
         <button
