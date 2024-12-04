@@ -1,0 +1,99 @@
+.horizontal-bar-chart-card {
+  width: 100%;
+  max-width: 800px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(14, 78, 104, 0.1);
+  text-align: left;
+  margin: 0 auto; /* Center the card */
+}
+
+.horizontal-bar-chart-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.chart-container {
+  height: 400px;
+  margin-bottom: 20px;
+}
+
+.proact-result {
+  font-size: 14px;
+  color: #4a5568;
+}
+
+.proact-result h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.proact-result ul {
+  padding-left: 20px;
+  list-style-type: none;
+}
+
+.proact-result li {
+  margin: 5px 0;
+}
+
+.data-selection {
+  margin-bottom: 20px;
+  font-size: 14px;
+  position: relative;
+}
+
+.data-selection-btn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 12px 24px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+  width: 100%;
+  text-align: center;
+}
+
+.data-selection-btn:hover {
+  background-color: #45a049;
+  transform: scale(1.05);
+}
+
+.dropdown-menu {
+  background-color: #ffffff;
+  position: absolute;
+  top: 45px;
+  left: 0;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.dropdown-item {
+  margin-bottom: 15px;
+}
+
+.dropdown-item label {
+  margin-left: 10px;
+  font-size: 14px;
+}
+
+.dropdown-item input {
+  cursor: pointer;
+  transform: scale(1.2);
+}
+
+.no-data-message {
+  color: red;
+  font-size: 1.2em;
+}

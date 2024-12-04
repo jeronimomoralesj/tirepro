@@ -7,6 +7,7 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   text-align: left;
   overflow: hidden;
+  margin: 0 auto; /* Centering the card */
 }
 
 .horizontal-bar-chart-title {
@@ -17,8 +18,31 @@
 }
 
 .chart-container {
-  height: auto;
-  max-height: 400px; /* Set max-height for scrollable area */
-  overflow-y: auto; /* Enable vertical scroll */
-  padding-right: 10px; /* Adjust padding to accommodate scrollbar */
+  height: 400px;
+  margin-bottom: 20px; /* Spacing below the chart */
+}
+
+.proact-result {
+  font-size: 14px;
+  color: #4a5568;
+}
+
+.proact-result h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.proact-result ul {
+  padding-left: 20px;
+  list-style-type: none;
+}
+
+.proact-result li {
+  margin: 5px 0;
+}
+
+.no-data-message {
+  color: red;
+  font-size: 1.2em;
 }

@@ -1,13 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import './Home.css';
 import SemaforoPie from './SemaforoPie';
 import PromedioEje from './PromedioEje';
-import ReencuacheTotal from './ReencuacheTotal';
-import ProgressBar from './ProgressBar';
-import HorizontalBarChart from './HorizontalBarChart';
-import TipoVehiculo from './TipoVehiculo';
 import PorVida from './PorVida';
 import Inspecciones from './Inspecciones';
 import SemaforoTabla from './SemaforoTabla';
@@ -22,6 +18,7 @@ const Estado = () => {
   const [cambioInmediatoTires, setCambioInmediatoTires] = useState([]);
   const [averageCPK, setAverageCPK] = useState(0);
   const [averageProjectedCPK, setAverageProjectedCPK] = useState(0);
+  const [selectedTire, setSelectedTire] = useState(null);
 
   const [metrics, setMetrics] = useState({
     expiredInspectionCount: 0,
@@ -52,9 +49,9 @@ const Estado = () => {
           // Identify "Cambio Inmediato" tires based on latest depth values
           const cambioInmediato = tireData.filter((tire) => {
             const minDepth = Math.min(
-              tire.profundidad_int.at(-1)?.value || 0,
-              tire.profundidad_cen.at(-1)?.value || 0,
-              tire.profundidad_ext.at(-1)?.value || 0
+              ...tire.profundidad_int.map((p) => p.value),
+              ...tire.profundidad_cen.map((p) => p.value),
+              ...tire.profundidad_ext.map((p) => p.value)
             );
             return minDepth <= 5;
           });
@@ -72,47 +69,47 @@ const Estado = () => {
   const filteredTires = useMemo(() => {
     return tires.filter((tire) => {
       const minDepth = Math.min(
-        tire.profundidad_int.at(-1)?.value || 0,
-        tire.profundidad_cen.at(-1)?.value || 0,
-        tire.profundidad_ext.at(-1)?.value || 0
+        ...tire.profundidad_int.map((p) => p.value),
+        ...tire.profundidad_cen.map((p) => p.value),
+        ...tire.profundidad_ext.map((p) => p.value)
       );
-
-      const matchesEje = selectedEje ? tire.eje === selectedEje : true;
-      const matchesCondition = selectedCondition
-        ? (selectedCondition === 'buenEstado' && minDepth > 7) ||
-          (selectedCondition === 'dias60' && minDepth > 6 && minDepth <= 7) ||
-          (selectedCondition === 'dias30' && minDepth > 5 && minDepth <= 6) ||
-          (selectedCondition === 'cambioInmediato' && minDepth <= 5)
-        : true;
-      const matchesVida = selectedVida ? tire.vida.at(-1)?.value === selectedVida : true;
-
-      return matchesEje && matchesCondition && matchesVida;
+      return minDepth > 0; // Example filter, customize as needed
     });
-  }, [tires, selectedEje, selectedCondition, selectedVida]);
+  }, [tires]);
 
-  // Calculate summary metrics based on filtered data
+  // Calculate summary metrics including CPK and CPK Proyectado
   useEffect(() => {
     const calculateMetrics = () => {
-      const today = new Date();
-      const expiredInspectionCount = filteredTires.reduce((count, tire) => {
-        const inspectionDate = new Date(tire.proyeccion_fecha);
-        return inspectionDate < today ? count + 1 : count;
-      }, 0);
+      let validTiresCount = 0;
+      let totalCPK = 0;
+      let totalProjectedCPK = 0;
 
-      const uniquePlacas = new Set(filteredTires.map((tire) => tire.placa)).size;
-      const llantasCount = filteredTires.length;
+      const expiredInspectionCount = tires.filter((tire) => {
+        const lastInspectionDate = new Date(tire.ultima_inspeccion);
+        return lastInspectionDate < new Date();
+      }).length;
 
-      const totalCPKValues = filteredTires.reduce((sum, tire) => {
-        const latestCPKValue = tire.cpk.at(-1)?.value || 0;
-        return sum + latestCPKValue;
-      }, 0);
-      setAverageCPK(filteredTires.length ? totalCPKValues / filteredTires.length : 0);
+      const uniquePlacas = new Set(tires.map((tire) => tire.placa)).size;
+      const llantasCount = tires.length;
 
-      const totalProjectedCPKValues = filteredTires.reduce((sum, tire) => {
-        const latestCPKProyValue = tire.cpk_proy.at(-1)?.value || 0;
-        return sum + latestCPKProyValue;
-      }, 0);
-      setAverageProjectedCPK(filteredTires.length ? totalProjectedCPKValues / filteredTires.length : 0);
+      tires.forEach((tire) => {
+        const lastKms = tire.kms?.[tire.kms.length - 1]?.value || 0;
+        const lastProact = tire.proact?.[tire.proact.length - 1]?.value || 0;
+
+        if (lastProact < 0 || lastProact > 50) return; // Skip invalid `proact` values
+
+        const cpk = lastKms > 0 ? tire.costo / lastKms : 0;
+        totalCPK += cpk;
+
+        const projectedKms = lastProact < 16 ? (lastKms / (16 - lastProact)) * 16 : 0;
+        const cpkProy = projectedKms > 0 ? tire.costo / projectedKms : 0;
+        totalProjectedCPK += cpkProy;
+
+        validTiresCount++;
+      });
+
+      setAverageCPK(validTiresCount ? totalCPK / validTiresCount : 0);
+      setAverageProjectedCPK(validTiresCount ? totalProjectedCPK / validTiresCount : 0);
 
       setMetrics({
         expiredInspectionCount,
@@ -122,7 +119,7 @@ const Estado = () => {
     };
 
     calculateMetrics();
-  }, [filteredTires]);
+  }, [tires]);
 
   // Reset filters function
   const resetFilters = () => {
@@ -131,21 +128,18 @@ const Estado = () => {
     setSelectedVida(null);
   };
 
-  // Toggle the popup visibility
-  const togglePopup = () => setIsPopupVisible(!isPopupVisible);
-
   return (
     <div className="home">
       <header className="home-header">
         <button className="generate-pdf-btn">PDF</button>
-        <button className="generate-pdf-btn" onClick={togglePopup}>
+        <button className="generate-pdf-btn" onClick={() => setIsPopupVisible(!isPopupVisible)}>
           <i className="bx bx-bell"></i>
         </button>
       </header>
 
       {/* Popup for "Cambio Inmediato" tires */}
       {isPopupVisible && (
-        <div className="popup-overlay" onClick={togglePopup}>
+        <div className="popup-overlay" onClick={() => setIsPopupVisible(false)}>
           <div className="popup-content" onClick={(e) => e.stopPropagation()}>
             <h3>Que debo pedir</h3>
             {cambioInmediatoTires.length > 0 ? (
@@ -176,7 +170,7 @@ const Estado = () => {
             ) : (
               <p>No hay llantas en "Cambio Inmediato".</p>
             )}
-            <button className="close-button" onClick={togglePopup}>Cerrar</button>
+            <button className="close-button" onClick={() => setIsPopupVisible(false)}>Cerrar</button>
           </div>
         </div>
       )}
@@ -188,7 +182,7 @@ const Estado = () => {
           <div className="stat-box">
             <span className="stat-value">{metrics.expiredInspectionCount}</span>
             <br />
-            <span className="stat-label">Llantas con Inspección Vencida</span>
+            <span className="stat-label">Inspecciones Vencidas</span>
           </div>
           <div className="stat-box">
             <span className="stat-value">{metrics.placaCount}</span>
@@ -215,12 +209,19 @@ const Estado = () => {
 
       {/* Cards Container with Filtered Tires */}
       <div className="cards-container">
-        <SemaforoTabla 
+        <SemaforoTabla
           filteredTires={filteredTires}
-          onTireSelect={(placa, pos) => console.log(`Selected tire: ${placa} - ${pos}`)}
-          selectedTire={null}
+          onTireSelect={(placa, pos) => {
+            const selected = tires.find(
+              (tire) =>
+                tire.placa === placa &&
+                tire.pos?.at(-1)?.value === pos
+            );
+            setSelectedTire(selected);
+          }}
+          selectedTire={selectedTire}
         />
-        <DetallesLlantas filteredTires={filteredTires} />
+        <DetallesLlantas tires={filteredTires} />
         <PorVida 
           tires={filteredTires}
           onSelectVida={setSelectedVida}

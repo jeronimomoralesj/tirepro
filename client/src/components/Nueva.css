@@ -1,154 +1,123 @@
-/* Container Styling */
+/* General Layout */
 .nueva-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  max-width: 800px;
+  margin: 0 auto;
   padding: 20px;
-
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .nueva-title {
   font-size: 24px;
   font-weight: bold;
-  color: #333;
   margin-bottom: 20px;
+  color: #333;
 }
 
-/* Section Buttons */
-.section-buttons {
+/* Button Navigation */
+.button-container {
   display: flex;
-  gap: 10px;
+  justify-content: space-between;
   margin-bottom: 20px;
 }
 
 .section-button {
+  flex: 1;
+  margin: 0 5px;
   padding: 10px 20px;
   font-size: 16px;
   font-weight: bold;
-  color: #fff;
-  background-color: #4361ee;
-  border: none;
+  color: #333;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.section-button.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #0056b3;
 }
 
 .section-button:hover {
-  background-color: #3a4cce;
+  background-color: #007bff;
+  color: white;
 }
 
-/* Individual Sections */
-.carga-masiva-section,
-.inspeccion-section,
-.evento-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: #ffffff;
+/* Section Content */
+.section {
+  margin-top: 20px;
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 600px;
-  margin-bottom: 20px;
-}
-
-.carga-masiva-section h3,
-.inspeccion-section h3,
-.evento-section h3 {
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 15px;
-  color: #333;
-}
-
-/* File Input */
-.file-input {
-  margin: 10px 0;
-  padding: 5px 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  width: 100%;
-}
-
-/* Action Buttons */
-.action-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  font-weight: bold;
-  color: #fff;
-  background-color: #28a745;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-top: 15px;
-  transition: background-color 0.3s ease;
-}
-
-.action-button:hover {
-  background-color: #218838;
-}
-
-/* Search Input */
-.placa-input {
-  padding: 10px;
-  font-size: 16px;
-  width: 100%;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  margin-bottom: 15px;
-}
-
-/* Filtered Tires */
-.filtered-tires {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  width: 100%;
-}
-
-.tire-card {
-  padding: 15px;
-  background: #f8f9fa;
+  background-color: white;
   border: 1px solid #ddd;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-.tire-card p {
-  margin: 0;
+.section h3 {
+  font-size: 20px;
+  margin-bottom: 15px;
+  color: #444;
+}
+
+/* File Upload Section */
+.upload-section {
+  margin-top: 15px;
+}
+
+.upload-label {
+  display: block;
   font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 5px;
   color: #555;
 }
 
-.proact-input {
+.file-input {
+  display: block;
+  width: 100%;
   padding: 8px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  width: 100%;
-}
-
-/* Event Section */
-.event-type-select,
-.event-value-input,
-.event-id-input {
-  padding: 10px;
-  font-size: 16px;
-  width: 100%;
   border: 1px solid #ccc;
   border-radius: 5px;
   margin-bottom: 15px;
 }
 
-.add-event-button {
+.upload-button {
   padding: 10px 20px;
   font-size: 16px;
   font-weight: bold;
-  color: #fff;
+  color: white;
+  background-color: #138496;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.upload-button:hover {
+  background-color: #138494;
+}
+
+/* Individual Tire Section */
+.single-tire-section input.single-tire-input {
+  width: 100%;
+  padding: 8px;
+  margin: 8px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.single-upload-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
   background-color: #007bff;
   border: none;
   border-radius: 5px;
@@ -156,36 +125,96 @@
   transition: background-color 0.3s ease;
 }
 
-.add-event-button:hover {
+.single-upload-button:hover {
   background-color: #0056b3;
 }
 
-/* Loading Indicator */
-.loading-indicator {
+/* Search Section */
+.search-section {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.search-label {
+  font-size: 14px;
+  font-weight: bold;
+  color: #555;
+}
+
+.placa-input,
+.kilometraje-input {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.search-button {
+  padding: 10px 20px;
   font-size: 16px;
-  color: #666;
+  font-weight: bold;
+  color: white;
+  background-color: #138496;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.search-button:hover {
+  background-color: #138496;
+}
+
+/* Filtered Tires Section */
+.filtered-tires-container {
+  margin-top: 20px;
+}
+
+.filtered-tires-container h3 {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.tire-card {
+  padding: 15px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f7f7f7;
+  text-align: left;
+}
+
+.tire-card p {
+  margin: 5px 0;
+}
+
+.proact-input {
+  width: 100%;
+  padding: 8px;
   margin-top: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .carga-masiva-section,
-  .inspeccion-section,
-  .evento-section {
-    padding: 15px;
-    width: 90%;
-  }
-
-  .placa-input,
-  .file-input,
-  .event-type-select,
-  .event-value-input,
-  .event-id-input {
-    font-size: 14px;
-  }
-
-  .action-button,
-  .add-event-button {
-    font-size: 14px;
-  }
+.save-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  background-color: #17a2b8;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
+
+.save-button:hover {
+  background-color: #138496;
+}
+
+

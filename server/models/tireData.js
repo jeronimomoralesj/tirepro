@@ -2,6 +2,7 @@
 const mongoose = require('mongoose');
 
 const HistoricalValueSchema = new mongoose.Schema({
+  day: { type: Number, required: true },
   month: { type: Number, required: true },
   year: { type: Number, required: true },
   value: { type: mongoose.Schema.Types.Mixed, required: true } // Store as a string (e.g., "Nuevo", "Reencauche1")
