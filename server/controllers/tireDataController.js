@@ -96,20 +96,6 @@ const uploadTireData = async (req, res) => {
       user: userId,
     }));
 
-    const llantaValues = tireDataEntries.map(tire => tire.llanta);
-
-    // Check for duplicate llanta values for the same user
-    const existingTires = await TireData.find({ user: userId, llanta: { $in: llantaValues } });
-    const existingLlantaValues = existingTires.map(tire => tire.llanta);
-
-    if (existingLlantaValues.length > 0) {
-      const duplicates = tireDataEntries.filter(tire => existingLlantaValues.includes(tire.llanta));
-      return res.status(400).json({
-        msg: `${duplicates.length} de ${tireDataEntries.length} llantas tienen un id existente, asegurate de no repetir:`,
-        duplicates: duplicates.map(tire => tire.llanta),
-      });
-    }
-
     // Insert tire data
     const createdTires = await TireData.insertMany(tireDataEntries);
 
@@ -147,11 +133,13 @@ const uploadTireData = async (req, res) => {
 };
 
 
+
 // Update historical fields
 const updateTireField = async (req, res) => {
   try {
     const { tireUpdates } = req.body;
     const currentDate = new Date();
+    const currentDay = currentDate.getDate();
     const currentMonth = currentDate.getMonth() + 1;
     const currentYear = currentDate.getFullYear();
 
@@ -162,12 +150,8 @@ const updateTireField = async (req, res) => {
 
       if (!Array.isArray(tire[field])) continue;
 
-      const lastEntry = tire[field][tire[field].length - 1];
-      if (lastEntry && lastEntry.month === currentMonth && lastEntry.year === currentYear) {
-        lastEntry.value = newValue;
-      } else {
-        tire[field].push({ month: currentMonth, year: currentYear, value: newValue });
-      }
+      // Always push a new entry, even if the day, month, and year match
+      tire[field].push({ day: currentDay, month: currentMonth, year: currentYear, value: newValue });
 
       await tire.save();
     }
@@ -179,11 +163,14 @@ const updateTireField = async (req, res) => {
   }
 };
 
+
+
 // Update inspection date and kilometraje_actual
 const updateInspectionDate = async (req, res) => {
   try {
     const { tireIds, kilometrajeActual } = req.body; // Get tire IDs and the new kilometraje_actual
     const currentDate = new Date();
+    const currentDay = currentDate.getDate();
     const currentMonth = currentDate.getMonth() + 1; // JavaScript months are zero-indexed
     const currentYear = currentDate.getFullYear();
 
@@ -202,15 +189,15 @@ const updateInspectionDate = async (req, res) => {
       const lastKilometrajeEntry = tire.kilometraje_actual[tire.kilometraje_actual.length - 1];
       const lastKmsEntry = tire.kms[tire.kms.length - 1];
 
-      // Calculate the difference between the new and old kilometraje_actual
       const lastKilometrajeValue = lastKilometrajeEntry?.value || 0;
       const kmsDifference = Math.max(0, kilometrajeActual - lastKilometrajeValue);
 
       // Update kilometraje_actual historical field
-      if (lastKilometrajeEntry?.month === currentMonth && lastKilometrajeEntry?.year === currentYear) {
-        lastKilometrajeEntry.value = kilometrajeActual; // Update the existing entry for the current month
+      if (lastKilometrajeEntry?.day === currentDay && lastKilometrajeEntry?.month === currentMonth && lastKilometrajeEntry?.year === currentYear) {
+        lastKilometrajeEntry.value = kilometrajeActual;
       } else {
         tire.kilometraje_actual.push({
+          day: currentDay,
           month: currentMonth,
           year: currentYear,
           value: kilometrajeActual,
@@ -218,20 +205,19 @@ const updateInspectionDate = async (req, res) => {
       }
 
       // Update kms historical field
-      if (lastKmsEntry?.month === currentMonth && lastKmsEntry?.year === currentYear) {
-        lastKmsEntry.value += kmsDifference; // Add the new difference to the existing value
+      if (lastKmsEntry?.day === currentDay && lastKmsEntry?.month === currentMonth && lastKmsEntry?.year === currentYear) {
+        lastKmsEntry.value += kmsDifference;
       } else {
         tire.kms.push({
+          day: currentDay,
           month: currentMonth,
           year: currentYear,
           value: kmsDifference,
         });
       }
 
-      // Update the inspection date
       tire.ultima_inspeccion = currentDate;
 
-      // Save changes to the tire document
       await tire.save();
     }
 
@@ -244,6 +230,7 @@ const updateInspectionDate = async (req, res) => {
     res.status(500).json({ msg: "Server error.", error: error.message });
   }
 };
+
 
 
 // Create tire for individual users

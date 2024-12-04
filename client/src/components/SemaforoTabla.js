@@ -17,13 +17,13 @@ const SemaforoTabla = ({ filteredTires, onTireSelect, selectedTire }) => {
 
     filteredTires.forEach((tire) => {
       const { placa } = tire;
-      const pos = tire.pos.at(-1)?.value || 'Unknown'; // Latest position value
-      const proact = tire.proact.at(-1)?.value || 0; // Latest proact value
+      const pos = tire.pos?.at(-1)?.value || 'Unknown'; // Get latest position
+      const proact = tire.proact?.at(-1)?.value || 0; // Get latest proact value
 
       placas.add(placa);
       positions.add(pos);
 
-      // Count colors based on latest proact values
+      // Count colors based on the latest proact values
       if (proact <= 5) redCount++;
       else if (proact > 5 && proact <= 10) yellowCount++;
       else greenCount++;
@@ -31,7 +31,7 @@ const SemaforoTabla = ({ filteredTires, onTireSelect, selectedTire }) => {
       if (!groupedData[placa]) {
         groupedData[placa] = {};
       }
-      groupedData[placa][pos] = proact;
+      groupedData[placa][pos] = proact; // Map proact values by position for each placa
     });
 
     setTableData(groupedData);

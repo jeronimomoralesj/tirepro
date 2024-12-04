@@ -10,6 +10,7 @@ import Acontecimientos from './Acontecimientos';
 import Recomendaciones from './Recomendaciones';
 import MonthlyCPKChart from './MonthlyCPKChart';
 import PorVida from './PorVida';
+import HistoricChart from './HistoricChart';
 
 const Home = () => {
   const [tires, setTires] = useState([]);
@@ -213,7 +214,10 @@ const Home = () => {
           selectedEje={selectedEje}
         />
         <ReencuacheTotal />
-        <ProgressBar progress={75} />
+        <ProgressBar />
+        <HistoricChart 
+        tires = {filteredTires}
+        />
       </div>
 
       {/* Reset Filters Button */}

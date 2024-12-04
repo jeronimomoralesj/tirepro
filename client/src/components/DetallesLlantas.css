@@ -1,74 +1,50 @@
 .detalles-llantas-container {
-    max-width: 800px; /* Matches width of economic table */
-    max-height: 500px; /* Matches height of economic table */
-    overflow: auto; /* Enables scrolling */
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border: 1px solid #ddd;
-    margin: 20px;
-    scroll-behavior: smooth; /* Smooth scrolling */
-  }
-  
-  .detalles-llantas-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: Arial, sans-serif;
-  }
-  
-  .detalles-llantas-table th,
-  .detalles-llantas-table td {
-    padding: 12px;
-    text-align: center;
-    font-size: 14px;
-  }
-  
-  .detalles-llantas-table thead th {
-    background-color: #333;
-    color: white;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-  }
-  
-  .detalles-llantas-table tbody tr:nth-child(even) {
-    background-color: #f8f9fa; /* Light background for even rows */
-  }
-  
-  .detalles-llantas-table tbody tr:hover {
-    background-color: #e8f5e9; /* Hover effect for better readability */
-  }
-  
-  /* Date styling for past and future dates */
-  .date-past {
-    color: #e53935; /* Red for past dates */
-    font-weight: bold;
-  }
-  
-  .date-future {
-    color: #1e88e5; /* Blue for future dates */
-    font-weight: bold;
-  }
-  
-  .detalles-llantas-table td {
-    border-bottom: 1px solid #ddd;
-  }
-  
-  /* Scrollbar styling to match economic table */
-  .detalles-llantas-container::-webkit-scrollbar {
-    width: 10px; /* Width of the vertical scrollbar */
-  }
-  
-  .detalles-llantas-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-  }
-  
-  .detalles-llantas-container::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 10px;
-  }
-  
-  .detalles-llantas-container::-webkit-scrollbar-thumb:hover {
-    background: #555;
-  }
-  
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 20px 0;
+}
+
+.detalles-llantas-container h2 {
+  text-align: center;
+  margin-bottom: 15px;
+  color: #333;
+  font-family: Arial, sans-serif;
+}
+
+.detalles-llantas-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+}
+
+.detalles-llantas-table th,
+.detalles-llantas-table td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+.detalles-llantas-table th {
+  background-color: #4a90e2;
+  color: white;
+  text-transform: uppercase;
+}
+
+.detalles-llantas-table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.detalles-llantas-table tr:hover {
+  background-color: #e1f5fe;
+}
+
+.detalles-llantas-table td {
+  color: #555;
+}
+
+.detalles-llantas-table td:last-child {
+  font-weight: bold;
+}
