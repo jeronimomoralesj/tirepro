@@ -48,7 +48,7 @@ const CargaMasiva = () => {
   
       try {
         const existingTiresResponse = await axios.get(
-          `http://localhost:5001/api/tires/user/${userId}`,
+          `https://tirepro.onrender.com/api/tires/user/${userId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         existingTires = existingTiresResponse.data;
@@ -62,7 +62,7 @@ const CargaMasiva = () => {
   
       // Skip conflict detection if no existing tires
       const response = await axios.post(
-        'http://localhost:5001/api/tires/upload',
+        'https://tirepro.onrender.com/api/tires/upload',
         formData,
         {
           headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },

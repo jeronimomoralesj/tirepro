@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Uso.css';
 import { FaSearch } from 'react-icons/fa';
@@ -9,43 +9,43 @@ const Uso = () => {
   const [tireData, setTireData] = useState([]);
   const [selectedTire, setSelectedTire] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [proactValues, setProactValues] = useState([]);
 
   const handleSearch = async () => {
     try {
-      setSelectedTire(null); // Reset selected tire to allow new searches
+      setSelectedTire(null);
+      setProactValues([]);
       const token = localStorage.getItem('token');
       if (!token) {
         setErrorMessage('Usuario no identificado');
         return;
       }
-  
+
       const decodedToken = JSON.parse(atob(token.split('.')[1]));
       const userId = decodedToken?.user?.id;
-  
+
       if (!userId) {
         setErrorMessage('No se encuentra ID de usuario');
         return;
       }
-  
+
       let response;
-      const searchByLlanta = !isNaN(searchTerm); // Determine if searching by llanta (numeric input)
-  
+      const searchByLlanta = !isNaN(searchTerm);
+
       if (searchByLlanta) {
-        // Search by llanta
         response = await axios.get(`https://tirepro.onrender.com/api/events/user/${userId}`, {
           params: { llanta: searchTerm },
           headers: { Authorization: `Bearer ${token}` },
         });
       } else {
-        // Fallback to search by placa
         response = await axios.get(`https://tirepro.onrender.com/api/events/user/${userId}`, {
           params: { placa: searchTerm },
           headers: { Authorization: `Bearer ${token}` },
         });
       }
-  
+
       const fetchedEvents = response?.data;
-  
+
       if (Array.isArray(fetchedEvents) && fetchedEvents.length > 0) {
         setTireData(fetchedEvents);
         setErrorMessage('');
@@ -59,9 +59,34 @@ const Uso = () => {
       setTireData([]);
     }
   };
-  
-  
-  
+
+  const fetchProactValues = async (llantaId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const userId = JSON.parse(atob(token.split('.')[1])).user.id;
+
+      const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const tires = response?.data || [];
+      const matchingTire = tires.find((tire) => tire.llanta === llantaId);
+
+      if (matchingTire && matchingTire.proact) {
+        setProactValues(matchingTire.proact);
+      } else {
+        setProactValues([]);
+      }
+    } catch (error) {
+      console.error('Error fetching proact values:', error);
+      setProactValues([]);
+    }
+  };
+
+  const handleViewHistory = (tire) => {
+    setSelectedTire(tire);
+    fetchProactValues(tire.llanta);
+  };
 
   const renderTimeline = (tire) => {
     const allEvents = [
@@ -82,7 +107,6 @@ const Uso = () => {
       })),
     ];
 
-    // Sort all events by date
     allEvents.sort((a, b) => a.date - b.date);
 
     return (
@@ -97,6 +121,34 @@ const Uso = () => {
             {index < allEvents.length - 1 && <div className="line-segment"></div>}
           </div>
         ))}
+      </div>
+    );
+  };
+
+  const renderProactValues = () => {
+    if (proactValues.length === 0) {
+      return <p>No hay datos de Proact disponibles.</p>;
+    }
+
+    return (
+      <div className="proact-section">
+        <h4>Historial de Inspecciones:</h4>
+        <table className="proact-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Proact</th>
+            </tr>
+          </thead>
+          <tbody>
+            {proactValues.map((entry, index) => (
+              <tr key={index}>
+                <td>{`${entry.day}/${entry.month}/${entry.year}`}</td>
+                <td>{entry.value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     );
   };
@@ -124,8 +176,11 @@ const Uso = () => {
         <div className="results-container">
           {selectedTire ? (
             <>
-              <h3 className="history-title">Historial de la Llanta - {selectedTire.llanta} en Placa: {selectedTire.placa}</h3>
+              <h3 className="history-title">
+                Historial eventos Llanta - {selectedTire.llanta} en Placa: {selectedTire.placa}
+              </h3>
               {renderTimeline(selectedTire)}
+              {renderProactValues()}
             </>
           ) : (
             <>
@@ -144,10 +199,7 @@ const Uso = () => {
                       <td>{tire.llanta}</td>
                       <td>{tire.placa}</td>
                       <td>
-                        <button
-                          className="view-button"
-                          onClick={() => setSelectedTire(tire)}
-                        >
+                        <button className="view-button" onClick={() => handleViewHistory(tire)}>
                           Ver Historial
                         </button>
                       </td>

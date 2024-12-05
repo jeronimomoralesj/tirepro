@@ -90,7 +90,7 @@ const CargaIndividual = () => {
 
       // Make the POST request
       const response = await axios.post(
-        'http://localhost:5001/api/tires',
+        'https://tirepro.onrender.com/api/tires',
         newTire,
         {
           headers: { Authorization: `Bearer ${token}` },

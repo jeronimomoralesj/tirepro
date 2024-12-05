@@ -9,7 +9,7 @@ const generateToken = (user) => {
       },
     },
     process.env.JWT_SECRET, // Use secret from .env
-    { expiresIn: '1h' } // Token expiration time
+    { expiresIn: '6h' } // Token expiration time
   );
 };
 
