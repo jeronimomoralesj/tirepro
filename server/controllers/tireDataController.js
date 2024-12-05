@@ -168,11 +168,6 @@ const uploadTireData = async (req, res) => {
 };
 
 
-
-
-
-
-
 // Update historical fields
 const updateTireField = async (req, res) => {
   try {
@@ -279,6 +274,7 @@ const createTire = async (req, res) => {
     const currentDate = new Date();
 
     const normalizeHistoricalValue = (value) => ({
+      day: currentDate.getDate(),
       month: currentDate.getMonth() + 1,
       year: currentDate.getFullYear(),
       value: typeof value === 'object' && value.value ? value.value : value || 0,
@@ -296,6 +292,7 @@ const createTire = async (req, res) => {
       });
     }
 
+    // Transform historical fields
     const newTire = {
       ...tireData,
       vida: [normalizeHistoricalValue(tireData.vida || 'N/A')],
@@ -306,17 +303,29 @@ const createTire = async (req, res) => {
       profundidad_cen: [normalizeHistoricalValue(tireData.profundidad_cen || 0)],
       profundidad_ext: [normalizeHistoricalValue(tireData.profundidad_ext || 0)],
       kms: [normalizeHistoricalValue(tireData.kms || 0)],
-      user: tireData.user,
       ultima_inspeccion: currentDate,
     };
 
+    // Create and save the tire
     const createdTire = await TireData.create(newTire);
-    res.status(201).json({ msg: 'LLanta creada..', tire: createdTire });
+
+    // Create an event for the tire
+    const newEvent = {
+      llanta: createdTire.llanta,
+      vida: createdTire.vida,
+      pos: createdTire.pos,
+      otherevents: [],
+      user: createdTire.user,
+      placa: createdTire.placa,
+    };
+    await Event.create(newEvent);
+
+    res.status(201).json({ msg: 'Llanta creada correctamente.', tire: createdTire });
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ msg: 'error servidor', error: error.message });
+    res.status(500).json({ msg: 'Error en el servidor.', error: error.message });
   }
 };
+
 
 
 module.exports = {
