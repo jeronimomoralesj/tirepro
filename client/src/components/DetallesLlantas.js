@@ -86,6 +86,7 @@ const DetallesLlantas = ({ tires }) => {
                   <td>{latestKms}</td>
                   <td>{cpk}</td>
                   <td>{cpkProy}</td>
+                  <td>{latestProact}</td>
                   <td>{latestInt}</td>
                   <td>{latestExt}</td>
                   <td>{latestCent}</td>

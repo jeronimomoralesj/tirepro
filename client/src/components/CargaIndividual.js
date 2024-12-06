@@ -28,28 +28,32 @@ const CargaIndividual = () => {
   const handleIndividualTireChange = (field, value) => {
     setIndividualTire((prevState) => ({
       ...prevState,
-      [field]: field === 'llanta' || 
-               field === 'kilometraje_actual' || 
-               field === 'pos' || 
-               field === 'profundidad_int' || 
-               field === 'profundidad_cen' || 
-               field === 'profundidad_ext' || 
-               field === 'costo' || 
-               field === 'kms'
+      [field]: ['llanta', 'kilometraje_actual', 'pos', 'profundidad_int', 'profundidad_cen', 'profundidad_ext', 'costo', 'kms'].includes(field)
         ? value.replace(/\D/g, '') // Only allow numbers
         : value.toLowerCase(), // Convert text fields to lowercase
     }));
   };
 
-  // Transform value to historical format (no array wrapping)
-  const transformToHistoricalValue = (value) => {
-    const currentDate = new Date();
-    return {
-      day: currentDate.getDate(),
-      month: currentDate.getMonth() + 1,
-      year: currentDate.getFullYear(),
-      value: typeof value === 'string' ? value.trim() : value || 0,
-    };
+  // Validate the form before submission
+  const validateForm = () => {
+    const numericFields = [
+      'llanta',
+      'kilometraje_actual',
+      'pos',
+      'profundidad_int',
+      'profundidad_cen',
+      'profundidad_ext',
+      'costo',
+      'kms',
+    ];
+    for (const field of numericFields) {
+      const value = individualTire[field];
+      if (!value || isNaN(Number(value))) {
+        alert(`El campo "${field.replace('_', ' ')}" debe ser un número válido.`);
+        return false;
+      }
+    }
+    return true;
   };
 
   // Upload individual tire
@@ -58,12 +62,50 @@ const CargaIndividual = () => {
     const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
 
     if (!userId) {
-      alert("Usuario no identificado.");
+      alert('Usuario no identificado.');
       return;
+    }
+
+    // Validate the form
+    if (!validateForm()) {
+      return; // Stop submission if validation fails
     }
 
     try {
       setLoading(true);
+
+      // Fetch existing tires to check for conflicts
+      const existingTiresResponse = await axios.get(
+        `https://tirepro.onrender.com/api/tires/user/${userId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const existingTires = existingTiresResponse.data;
+
+      // Check for duplicate llanta ID
+      const duplicateLlanta = existingTires.some(
+        (existingTire) => existingTire.llanta === individualTire.llanta
+      );
+      if (duplicateLlanta) {
+        alert(`Ya existe una llanta con el ID: ${individualTire.llanta}`);
+        setLoading(false);
+        return;
+      }
+
+      // Check for duplicate placa and position
+      const duplicatePos = existingTires.some((existingTire) => {
+        const latestPos = existingTire.pos?.[existingTire.pos.length - 1]?.value || null;
+        return (
+          existingTire.placa === individualTire.placa.toLowerCase() &&
+          latestPos === Number(individualTire.pos)
+        );
+      });
+      if (duplicatePos) {
+        alert(
+          `Conflicto detectado: Ya existe una llanta en la placa '${individualTire.placa}' y posición '${individualTire.pos}'.`
+        );
+        setLoading(false);
+        return;
+      }
 
       // Automatically calculate `proact` as the smallest value of the three profundidades
       const profundidades = [
@@ -73,23 +115,59 @@ const CargaIndividual = () => {
       ];
       const proact = Math.min(...profundidades);
 
-      // Prepare the new tire data with historical formatting
+      // Prepare the new tire data
       const newTire = {
         ...individualTire,
         user: userId,
-        vida: transformToHistoricalValue(individualTire.vida || 'nuevo'),
-        kilometraje_actual: transformToHistoricalValue(individualTire.kilometraje_actual),
-        pos: transformToHistoricalValue(individualTire.pos),
-        profundidad_int: transformToHistoricalValue(individualTire.profundidad_int),
-        profundidad_cen: transformToHistoricalValue(individualTire.profundidad_cen),
-        profundidad_ext: transformToHistoricalValue(individualTire.profundidad_ext),
-        kms: transformToHistoricalValue(individualTire.kms),
-        proact: transformToHistoricalValue(proact), // Add calculated `proact`
+        vida: {
+          day: new Date().getDate(),
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear(),
+          value: individualTire.vida || 'nuevo',
+        },
+        kilometraje_actual: {
+          day: new Date().getDate(),
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear(),
+          value: Number(individualTire.kilometraje_actual) || 0,
+        },
+        pos: {
+          day: new Date().getDate(),
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear(),
+          value: Number(individualTire.pos) || 0,
+        },
+        profundidad_int: {
+          day: new Date().getDate(),
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear(),
+          value: Number(individualTire.profundidad_int) || 0,
+        },
+        profundidad_cen: {
+          day: new Date().getDate(),
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear(),
+          value: Number(individualTire.profundidad_cen) || 0,
+        },
+        profundidad_ext: {
+          day: new Date().getDate(),
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear(),
+          value: Number(individualTire.profundidad_ext) || 0,
+        },
+        kms: {
+          day: new Date().getDate(),
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear(),
+          value: Number(individualTire.kms) || 0,
+        },
+        proact,
         ultima_inspeccion: new Date(),
+        costo: Number(individualTire.costo) || 0, // Ensure `costo` is a number
       };
 
       // Make the POST request
-      const response = await axios.post(
+      await axios.post(
         'https://tirepro.onrender.com/api/tires',
         newTire,
         {
@@ -118,8 +196,8 @@ const CargaIndividual = () => {
         dimension: '',
       });
     } catch (error) {
-      console.error("Error al cargar la llanta:", error);
-      const errorMessage = error.response?.data?.msg || "Error al intentar cargar la llanta.";
+      console.error('Error al cargar la llanta:', error);
+      const errorMessage = error.response?.data?.msg || 'Error al intentar cargar la llanta.';
       alert(errorMessage);
     } finally {
       setLoading(false);
@@ -134,16 +212,18 @@ const CargaIndividual = () => {
         return (
           <input
             key={key}
-            type={key === 'llanta' || 
-                  key === 'kilometraje_actual' || 
-                  key === 'pos' || 
-                  key === 'profundidad_int' || 
-                  key === 'profundidad_cen' || 
-                  key === 'profundidad_ext' || 
-                  key === 'costo' || 
-                  key === 'kms' 
-                  ? 'number' 
-                  : 'text'} // Set input type
+            type={
+              key === 'llanta' ||
+              key === 'kilometraje_actual' ||
+              key === 'pos' ||
+              key === 'profundidad_int' ||
+              key === 'profundidad_cen' ||
+              key === 'profundidad_ext' ||
+              key === 'costo' ||
+              key === 'kms'
+                ? 'number' // Use number input type for numeric fields
+                : 'text' // Use text input type for other fields
+            }
             value={individualTire[key]}
             placeholder={`Ingresar ${key.replace('_', ' ')}`}
             onChange={(e) => handleIndividualTireChange(key, e.target.value)}

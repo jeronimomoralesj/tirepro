@@ -1,28 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from 'chart.js';
 
 // Register chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 const HistoricChart = ({ tires }) => {
-  const [lastNinetyPoints, setLastNinetyPoints] = useState([]);
+  const [lastFiftyDaysData, setLastFiftyDaysData] = useState([]);
   const [selectedData, setSelectedData] = useState(['proact']); // Default selection is 'proact'
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  // Process historical data and average values for each day
   const processHistoricData = (tires, field) => {
     const groupedData = {};
 
-    // Group data by day, month, and year
     tires.forEach((tire) => {
       if (tire[field]) {
         tire[field].forEach((entry) => {
           const key = `${entry.day}-${entry.month}-${entry.year}`;
           if (!groupedData[key]) {
-            groupedData[key] = {
-              sum: 0,
-              count: 0,
-            };
+            groupedData[key] = { sum: 0, count: 0 };
           }
           groupedData[key].sum += Number(entry.value) || 0;
           groupedData[key].count += 1;
@@ -30,7 +37,6 @@ const HistoricChart = ({ tires }) => {
       }
     });
 
-    // Calculate average for each group and sort data
     const averagedData = Object.entries(groupedData)
       .map(([key, { sum, count }]) => {
         const [day, month, year] = key.split('-').map(Number);
@@ -38,40 +44,36 @@ const HistoricChart = ({ tires }) => {
           day,
           month,
           year,
-          value: count > 0 ? sum / count : 0,
+          value: count > 0 ? sum / count : null,
         };
       })
+      .filter((data) => data.value !== null) // Skip dates without data
       .sort((a, b) => {
         const dateA = new Date(a.year, a.month - 1, a.day);
         const dateB = new Date(b.year, b.month - 1, b.day);
-        return dateB - dateA; // Sort in descending order
+        return dateB - dateA; // Sort descending
       });
 
-    return averagedData.slice(0, 90); // Return the last 90 points
+    return averagedData.slice(-50); // Limit to the last 50 days
   };
 
-  const getSpacedPoints = (data, count = 3) => {
-    if (data.length <= count) return data;
-    const step = Math.floor(data.length / count);
-    return Array.from({ length: count }, (_, i) => data[i * step]);
-  };
-
+  // Fetch processed data whenever tires or selected fields change
   useEffect(() => {
     const processedData = selectedData.map((field) => processHistoricData(tires, field));
-    setLastNinetyPoints(processedData);
+    setLastFiftyDaysData(processedData);
   }, [tires, selectedData]);
 
   const chartData = {
-    labels: lastNinetyPoints[0]?.map((data) => `${data.day}/${data.month}/${data.year}`) || [],
+    labels: lastFiftyDaysData[0]?.map((data) => `${data.day}/${data.month}/${data.year}`) || [],
     datasets: selectedData.map((dataField, index) => ({
       label: dataField.charAt(0).toUpperCase() + dataField.slice(1),
-      data: lastNinetyPoints[index]?.map((data) => data.value) || [],
+      data: lastFiftyDaysData[index]?.map((data) => data.value) || [],
       borderColor: `rgb(${index * 50 + 50}, ${index * 60 + 100}, ${index * 70 + 150})`,
       backgroundColor: `rgba(${index * 50 + 50}, ${index * 60 + 100}, ${index * 70 + 150}, 0.2)`,
       fill: true,
-      tension: 0.4, // Curvy line
+      tension: 0.4,
       borderWidth: 2,
-      pointRadius: 0, // Remove points on the line
+      pointRadius: 0,
     })),
   };
 
@@ -86,13 +88,16 @@ const HistoricChart = ({ tires }) => {
     });
   };
 
-  const spacedPoints = lastNinetyPoints.map((dataset) => getSpacedPoints(dataset));
+  // Helper to get spaced points for summary display
+  const spacedPoints = lastFiftyDaysData.map((dataset) =>
+    dataset.filter((_, index) => index % Math.ceil(dataset.length / 3) === 0)
+  );
 
   return (
     <div className="horizontal-bar-chart-card">
-      <h2 className="horizontal-bar-chart-title">Datos Históricos (Últimos 90 Puntos - Promedio por Día)</h2>
+      <h2 className="horizontal-bar-chart-title">Datos Históricos (Últimos 50 Días - Promedio por Día)</h2>
 
-      {/* Button to toggle data selection dropdown */}
+      {/* Dropdown to toggle data fields */}
       <div className="data-selection">
         <button className="data-selection-btn" onClick={toggleDropdown}>
           Escoger Elementos
@@ -114,7 +119,7 @@ const HistoricChart = ({ tires }) => {
         )}
       </div>
 
-      {/* Display Chart */}
+      {/* Display Line Chart */}
       <div className="chart-container">
         <Line data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
       </div>
