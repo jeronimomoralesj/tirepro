@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import Turnstile from '@marsidev/react-turnstile';
+import { jwtDecode } from 'jwt-decode';
 import './Login.css';
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
-  const [isLoading, setIsLoading] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState(''); // Store CAPTCHA token
+  const [isLoading, setIsLoading] = useState(false); // Loading state
   const navigate = useNavigate();
 
   const handleChange = (e) =>
@@ -15,35 +14,33 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!captchaToken) {
-      alert('Please complete the CAPTCHA.');
-      return;
-    }
-
-    setIsLoading(true);
+    setIsLoading(true); // Start loading
     try {
-      const res = await axios.post('https://tirepro.onrender.com/api/auth/login', {
-        ...formData,
-        captchaToken, // Include CAPTCHA token
-      });
+      const res = await axios.post('https://tirepro.onrender.com/api/auth/login', formData);
       const token = res.data.token;
-      localStorage.setItem('token', token);
+      localStorage.setItem('token', token); // Save token to local storage
 
-      // Decode token to get user ID and fetch role
-      const userId = jwtDecode(token).user.id;
+      // Decode token to get user ID
+      const decodedToken = jwtDecode(token);
+      const userId = decodedToken.user.id;
+
+      // Fetch user role based on ID
       const userRes = await axios.get(`https://tirepro.onrender.com/api/auth/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       const userRole = userRes.data.role;
-      if (userRole === 'admin') navigate('/home');
-      else navigate('/nueva');
+
+      // Navigate based on role
+      if (userRole === 'admin') {
+        navigate('/home'); // Redirect to home if admin
+      } else {
+        navigate('/nueva'); // Redirect to nueva if regular user
+      }
     } catch (err) {
       console.error('Error during login:', err);
       alert('Error during login. Please try again.');
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Stop loading
     }
   };
 
@@ -51,7 +48,7 @@ const Login = () => {
     <div className="login-container">
       <div className="login-card">
         <h2 className="login-title">Bienvenido</h2>
-        {isLoading ? (
+        {isLoading ? ( // Show spinner if loading
           <div className="loading-spinner"></div>
         ) : (
           <form onSubmit={handleSubmit}>
@@ -70,11 +67,6 @@ const Login = () => {
               onChange={handleChange}
               required
               className="login-input"
-            />
-            <Turnstile
-              siteKey="your-turnstile-site-key" // Replace with your Cloudflare Turnstile site key
-              onSuccess={(token) => setCaptchaToken(token)}
-              onError={() => alert('CAPTCHA verification failed.')}
             />
             <button type="submit" className="login-button">
               Iniciar sesión
