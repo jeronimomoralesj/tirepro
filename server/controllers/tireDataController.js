@@ -66,11 +66,20 @@ const uploadTireData = async (req, res) => {
     const currentMonth = currentDate.getMonth() + 1;
     const currentYear = currentDate.getFullYear();
 
-    const normalizeText = (text) => (text || 'unknown').toLowerCase();
+    // Updated normalizeText function to handle non-string values
+    const normalizeText = (text) => {
+      if (typeof text === 'string') {
+        return text.toLowerCase();
+      }
+      if (typeof text === 'number') {
+        return text.toString().toLowerCase();
+      }
+      return 'unknown';
+    };
 
     // Transform Excel data into tire data objects
     const tireDataEntries = jsonData.map(row => ({
-      llanta: normalizeText(row['llanta']),
+      llanta: row['llanta'] || 0,
       vida: transformToHistoricalArrayWithDay(normalizeText(row['vida'] || 'unknown')),
       placa: normalizeText(row['placa']),
       kilometraje_actual: transformToHistoricalArrayWithDay(row['kilometraje_actual']),
