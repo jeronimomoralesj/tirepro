@@ -3,6 +3,7 @@ import './Nueva.css';
 import CargaMasiva from './CargaMasiva';
 import CargaIndividual from './CargaIndividual';
 import AgregarInspeccion from './AgregarInspeccion';
+import AgregarEvento from './AgregarEvento';
 
 const Nueva = () => {
   const [activeSection, setActiveSection] = useState('');
@@ -30,11 +31,18 @@ const Nueva = () => {
         >
           Inspección
         </button>
+        <button
+          className={`section-button ${activeSection === 'evento' ? 'active' : ''}`}
+          onClick={() => setActiveSection('evento')}
+        >
+          Evento
+        </button>
       </div>
 
       {activeSection === 'masiva' && <CargaMasiva />}
       {activeSection === 'individual' && <CargaIndividual />}
       {activeSection === 'inspeccion' && <AgregarInspeccion />}
+      {activeSection === 'evento' && <AgregarEvento />}
     </div>
   );
 };
