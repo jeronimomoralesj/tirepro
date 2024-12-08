@@ -49,6 +49,7 @@ const DetallesLlantas = ({ tires }) => {
             <th>Dimensión</th>
             <th>Banda</th>
             <th>Costo</th>
+            <th>Vida</th>
             <th>Posición</th>
             <th>Kilómetros</th>
             <th>CPK</th>
@@ -69,6 +70,7 @@ const DetallesLlantas = ({ tires }) => {
               const latestInt = tire.profundidad_int?.at(-1)?.value || 'N/A';
               const latestExt = tire.profundidad_ext?.at(-1)?.value || 'N/A';
               const latestCent = tire.profundidad_cen?.at(-1)?.value || 'N/A';
+              const latestVida = tire.vida?.at(-1)?.value || 'N/A';
 
               const cpk = calculateCPK(latestKms, tire.costo).toFixed(2);
               const cpkProy = calculateProjectedCPK(tire.costo, latestKms, latestProact).toFixed(2);
@@ -82,6 +84,7 @@ const DetallesLlantas = ({ tires }) => {
                   <td>{tire.dimension || 'N/A'}</td>
                   <td>{tire.banda || 'N/A'}</td>
                   <td>{tire.costo || 'N/A'}</td>
+                  <td>{latestVida}</td>
                   <td>{latestPos}</td>
                   <td>{latestKms}</td>
                   <td>{cpk}</td>

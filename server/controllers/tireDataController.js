@@ -70,8 +70,8 @@ const uploadTireData = async (req, res) => {
 
     // Transform Excel data into tire data objects
     const tireDataEntries = jsonData.map(row => ({
-      llanta: row['llanta'] || 0,
-      vida: transformToHistoricalArrayWithDay(row['vida'] || 'unknown'),
+      llanta: normalizeText(row['llanta']),
+      vida: transformToHistoricalArrayWithDay(normalizeText(row['vida'] || 'unknown')),
       placa: normalizeText(row['placa']),
       kilometraje_actual: transformToHistoricalArrayWithDay(row['kilometraje_actual']),
       frente: normalizeText(row['frente']),
@@ -166,6 +166,7 @@ const uploadTireData = async (req, res) => {
     res.status(500).json({ msg: 'Server error', error: error.message });
   }
 };
+
 
 
 // Update historical fields

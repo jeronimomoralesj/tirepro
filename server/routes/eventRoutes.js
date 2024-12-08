@@ -17,7 +17,7 @@ router.get('/user/:user', getEventsByUser);
 // Route to update a specific field in an event
 router.put('/update-field', updateEventField);
 
-// Route to add a new entry to `otherevents`
+// Route to add a new entry to `oetherevents`
 router.put('/add-other-event', addOtherEvent);
 
 module.exports = router;
