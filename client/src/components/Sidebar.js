@@ -5,6 +5,7 @@ import axios from 'axios';
 import {jwtDecode} from 'jwt-decode';
 import './Sidebar.css';
 import logo from "../img/logo.png";
+import logo_text from "../img/logo_text.png"
 
 const Sidebar = () => {
   const location = useLocation();
@@ -52,7 +53,7 @@ const Sidebar = () => {
       <div className="logo-section">
         <div className="logo">
           <img src={logo} alt="Catalog Logo" />
-          <span className="logo-text">TirePro</span>
+          <span className="logo-text"><img src={logo_text} alt="Catalog Logo" style={{ height:"20px" }} /></span>
         </div>
         <div className="burger-icon" onClick={toggleMenu}>
           <i className="bx bx-menu"></i>

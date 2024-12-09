@@ -51,12 +51,18 @@ const AgregarInspeccion = () => {
 
     for (const tire of filteredTires) {
       const profundidades = profundidadUpdates[tire._id] || {};
+      const currentProfundidades = {
+        int: tire.profundidad_int?.[tire.profundidad_int.length - 1]?.value || 0,
+        cen: tire.profundidad_cen?.[tire.profundidad_cen.length - 1]?.value || 0,
+        ext: tire.profundidad_ext?.[tire.profundidad_ext.length - 1]?.value || 0,
+      };
+
       if (
-        profundidades.profundidad_int == null ||
-        profundidades.profundidad_cen == null ||
-        profundidades.profundidad_ext == null
+        profundidades.profundidad_int > currentProfundidades.int ||
+        profundidades.profundidad_cen > currentProfundidades.cen ||
+        profundidades.profundidad_ext > currentProfundidades.ext
       ) {
-        alert(`Por favor, completa todas las profundidades para la llanta.`);
+        alert(`Las profundidades no pueden ser mayores que las actuales para la llanta ${tire.llanta}.`);
         return false;
       }
     }
@@ -64,40 +70,98 @@ const AgregarInspeccion = () => {
     return true;
   };
 
-  // Save updates: Profundidades and proact
+  // Calculate KMS
+  const calculateKms = (lastKilometraje, currentKilometraje, lastKms) => {
+    const difference = Math.max(0, currentKilometraje - (lastKilometraje || 0));
+    return difference; // Only return the difference to append it as a new value
+  };
+
+  const calculateCPK = (costo, kms) => (kms > 0 ? costo / kms : 0);
+
+  const calculateProjectedCPK = (costo, kms, profundidad_inicial, proact) => {
+    const projectedKms =
+      proact < profundidad_inicial
+        ? (kms / (profundidad_inicial - proact)) * profundidad_inicial
+        : 0;
+    return calculateCPK(costo, projectedKms);
+  };
+
   const handleSaveUpdates = async () => {
     if (!validateFields()) {
-      return; // Stop if validation fails
+      return;
     }
-
-    const tireIds = filteredTires.map((tire) => tire._id);
-    const updates = filteredTires.map((tire) => {
-      const profundidades = profundidadUpdates[tire._id] || {};
-      const minProfundidad = Math.min(
-        profundidades.profundidad_int || 0,
-        profundidades.profundidad_cen || 0,
-        profundidades.profundidad_ext || 0
-      );
-
-      return [
-        { tireId: tire._id, field: 'profundidad_int', newValue: profundidades.profundidad_int || 0 },
-        { tireId: tire._id, field: 'profundidad_cen', newValue: profundidades.profundidad_cen || 0 },
-        { tireId: tire._id, field: 'profundidad_ext', newValue: profundidades.profundidad_ext || 0 },
-        { tireId: tire._id, field: 'proact', newValue: minProfundidad },
-      ];
-    }).flat();
-
+  
     const token = localStorage.getItem('token');
-
+    const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
+  
+    if (!userId) {
+      alert("Usuario no identificado.");
+      return;
+    }
+  
     try {
       setLoading(true);
-
+  
+      // Fetch the latest tire data from the server to ensure up-to-date values
+      const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      const tires = response.data;
+  
+      const updates = filteredTires.map((tire) => {
+        const profundidades = profundidadUpdates[tire._id] || {};
+        const minProfundidad = Math.min(
+          profundidades.profundidad_int || 0,
+          profundidades.profundidad_cen || 0,
+          profundidades.profundidad_ext || 0
+        );
+  
+        const latestTireData = tires.find((t) => t._id === tire._id);
+        const lastKilometrajeActual =
+          latestTireData?.kilometraje_actual?.[latestTireData.kilometraje_actual.length - 1]?.value || 0;
+        const lastKms = latestTireData?.kms?.[latestTireData.kms.length - 1]?.value || 0;
+  
+        // Calculate difference and new KMS
+        const difference = Math.max(0, Number(kilometrajeActual) - lastKilometrajeActual);
+        const newKms = lastKms + difference;
+  
+        // Validate and ensure ascending order
+        if (newKms < lastKms) {
+          console.error(`Invalid KMS value: ${newKms} is less than ${lastKms}`);
+          alert(`Error: Invalid KMS value for tire ${tire.llanta}.`);
+          return null;
+        }
+  
+        // Calculate CPK and CPK Proy
+        const cpk = tire.costo / newKms;
+        const projectedKms =
+          minProfundidad > 0
+            ? (newKms / (tire.profundidad_inicial - minProfundidad)) * tire.profundidad_inicial
+            : 0;
+        const cpkProy = projectedKms > 0 ? tire.costo / projectedKms : 0;
+  
+        return [
+          { tireId: tire._id, field: 'profundidad_int', newValue: profundidades.profundidad_int || 0 },
+          { tireId: tire._id, field: 'profundidad_cen', newValue: profundidades.profundidad_cen || 0 },
+          { tireId: tire._id, field: 'profundidad_ext', newValue: profundidades.profundidad_ext || 0 },
+          { tireId: tire._id, field: 'proact', newValue: minProfundidad },
+          { tireId: tire._id, field: 'kms', newValue: newKms }, // Append new KMS
+          { tireId: tire._id, field: 'cpk', newValue: cpk },
+          { tireId: tire._id, field: 'cpk_proy', newValue: cpkProy },
+        ];
+      }).flat();
+  
+      const tireIds = filteredTires.map((tire) => tire._id);
+  
+      // Update `kilometraje_actual` on the server
       await axios.put(
         'https://tirepro.onrender.com/api/tires/update-inspection-date',
         { tireIds, kilometrajeActual },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
+  
+      // Update historical fields on the server
       if (updates.length > 0) {
         await axios.put(
           'https://tirepro.onrender.com/api/tires/update-field',
@@ -105,8 +169,8 @@ const AgregarInspeccion = () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
       }
-
-      alert("Kilometraje_actual y profundidades actualizadas correctamente.");
+  
+      alert("Kilometraje_actual, profundidades, KMS, CPK, y CPK proyectado actualizados correctamente.");
       setKilometrajeActual('');
       setProfundidadUpdates({});
       setFilteredTires([]);
@@ -118,6 +182,8 @@ const AgregarInspeccion = () => {
       setLoading(false);
     }
   };
+  
+  
 
   return (
     <div className="section inspeccion-section">
@@ -137,6 +203,11 @@ const AgregarInspeccion = () => {
         <div className="filtered-tires-container">
           {filteredTires.map((tire) => {
             const posLastValue = tire.pos?.[tire.pos.length - 1]?.value || 'N/A';
+            const currentProfundidades = {
+              int: tire.profundidad_int?.[tire.profundidad_int.length - 1]?.value || 0,
+              cen: tire.profundidad_cen?.[tire.profundidad_cen.length - 1]?.value || 0,
+              ext: tire.profundidad_ext?.[tire.profundidad_ext.length - 1]?.value || 0,
+            };
             return (
               <div key={tire._id} className="tire-card">
                 <p><strong>Posición:</strong> {posLastValue}</p>
@@ -151,7 +222,10 @@ const AgregarInspeccion = () => {
                       placeholder={`Ingresar ${field}`}
                       value={profundidadUpdates[tire._id]?.[field] || ''}
                       onChange={(e) => {
-                        const value = Math.max(0, Math.min(30, Number(e.target.value))); // Restrict value between 0 and 30
+                        const value = Math.max(
+                          0,
+                          Math.min(currentProfundidades[field.split('_')[1]], Number(e.target.value))
+                        );
                         setProfundidadUpdates((prev) => ({
                           ...prev,
                           [tire._id]: {
@@ -162,6 +236,7 @@ const AgregarInspeccion = () => {
                       }}
                       className="input-field"
                     />
+                    <p><small>Actual: {currentProfundidades[field.split('_')[1]]}</small></p>
                   </div>
                 ))}
               </div>

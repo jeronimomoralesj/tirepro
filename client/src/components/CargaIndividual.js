@@ -17,6 +17,8 @@ const CargaIndividual = () => {
     profundidad_int: '',
     profundidad_cen: '',
     profundidad_ext: '',
+    profundidad_inicial: '',
+    presion: '',
     eje: '',
     costo: '',
     kms: '',
@@ -28,7 +30,7 @@ const CargaIndividual = () => {
   const handleIndividualTireChange = (field, value) => {
     setIndividualTire((prevState) => ({
       ...prevState,
-      [field]: ['llanta', 'kilometraje_actual', 'pos', 'profundidad_int', 'profundidad_cen', 'profundidad_ext', 'costo', 'kms'].includes(field)
+      [field]: ['llanta', 'kilometraje_actual', 'pos', 'profundidad_int', 'profundidad_cen', 'profundidad_ext', 'profundidad_inicial', 'presion', 'costo', 'kms'].includes(field)
         ? value.replace(/\D/g, '') // Only allow numbers
         : value.toLowerCase(), // Convert text fields to lowercase
     }));
@@ -43,6 +45,8 @@ const CargaIndividual = () => {
       'profundidad_int',
       'profundidad_cen',
       'profundidad_ext',
+      'profundidad_inicial',
+      'presion',
       'costo',
       'kms',
     ];
@@ -115,6 +119,19 @@ const CargaIndividual = () => {
       ];
       const proact = Math.min(...profundidades);
 
+      // Calculate projected KMS
+      const profundidadInicial = Number(individualTire.profundidad_inicial) || 20;
+      const kms = Number(individualTire.kms) || 0;
+      const projectedKms =
+        proact < profundidadInicial
+          ? (kms / (profundidadInicial - proact)) * profundidadInicial
+          : 0;
+
+      // Calculate CPK and Projected CPK
+      const costo = Number(individualTire.costo) || 0;
+      const cpk = kms > 0 ? costo / kms : 0; // Ensure stored as number
+      const cpkProy = projectedKms > 0 ? costo / projectedKms : 0; // Ensure stored as number
+
       // Prepare the new tire data
       const newTire = {
         ...individualTire,
@@ -155,15 +172,34 @@ const CargaIndividual = () => {
           year: new Date().getFullYear(),
           value: Number(individualTire.profundidad_ext) || 0,
         },
+        profundidad_inicial: profundidadInicial,
+        presion: {
+          day: new Date().getDate(),
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear(),
+          value: Number(individualTire.presion) || 0,
+        },
         kms: {
           day: new Date().getDate(),
           month: new Date().getMonth() + 1,
           year: new Date().getFullYear(),
-          value: Number(individualTire.kms) || 0,
+          value: kms,
+        },
+        cpk: {
+          day: new Date().getDate(),
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear(),
+          value: cpk,
+        },
+        cpk_proy: {
+          day: new Date().getDate(),
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear(),
+          value: cpkProy,
         },
         proact,
         ultima_inspeccion: new Date(),
-        costo: Number(individualTire.costo) || 0, // Ensure `costo` is a number
+        costo, // Ensure `costo` is a number
       };
 
       // Make the POST request
@@ -190,6 +226,8 @@ const CargaIndividual = () => {
         profundidad_int: '',
         profundidad_cen: '',
         profundidad_ext: '',
+        profundidad_inicial: '',
+        presion: '',
         eje: '',
         costo: '',
         kms: '',
@@ -207,30 +245,20 @@ const CargaIndividual = () => {
   return (
     <div className="section individual-section">
       <h3>Carga Individual</h3>
-      {Object.keys(individualTire).map((key) => {
-        if (key === 'proact') return null; // Skip proact as it's automatically calculated
-        return (
-          <input
-            key={key}
-            type={
-              key === 'llanta' ||
-              key === 'kilometraje_actual' ||
-              key === 'pos' ||
-              key === 'profundidad_int' ||
-              key === 'profundidad_cen' ||
-              key === 'profundidad_ext' ||
-              key === 'costo' ||
-              key === 'kms'
-                ? 'number' // Use number input type for numeric fields
-                : 'text' // Use text input type for other fields
-            }
-            value={individualTire[key]}
-            placeholder={`Ingresar ${key.replace('_', ' ')}`}
-            onChange={(e) => handleIndividualTireChange(key, e.target.value)}
-            className="input-field"
-          />
-        );
-      })}
+      {Object.keys(individualTire).map((key) => (
+        <input
+          key={key}
+          type={
+            ['llanta', 'kilometraje_actual', 'pos', 'profundidad_int', 'profundidad_cen', 'profundidad_ext', 'profundidad_inicial', 'presion', 'costo', 'kms'].includes(key)
+              ? 'number' // Use number input type for numeric fields
+              : 'text' // Use text input type for other fields
+          }
+          value={individualTire[key]}
+          placeholder={`Ingresar ${key.replace('_', ' ')}`}
+          onChange={(e) => handleIndividualTireChange(key, e.target.value)}
+          className="input-field"
+        />
+      ))}
       <button className="upload-button" onClick={handleSingleTireUpload} disabled={loading}>
         {loading ? 'Cargando...' : 'Agregar'}
       </button>

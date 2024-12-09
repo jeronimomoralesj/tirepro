@@ -28,8 +28,8 @@ const normalizeValueWithDefault = (value, defaultValue) => {
 const normalizeText = (text) => (text ? text.toString().toLowerCase() : 'unknown');
 
 const calculateCPK = (costo, kilometraje) => (kilometraje ? costo / kilometraje : 0);
-const calculateProjectedCPK = (costo, kilometrajeActual, proact) => {
-  const projectedKms = proact < 18 ? (kilometrajeActual / (18 - proact)) * 18 : 0;
+const calculateProjectedCPK = (costo, kilometrajeActual, proact, profundidad_inicial) => {
+  const projectedKms = proact < 18 ? (kilometrajeActual / (profundidad_inicial - proact)) * profundidad_inicial : 0;
   return calculateCPK(costo, projectedKms);
 };
 
@@ -72,41 +72,55 @@ const uploadTireData = async (req, res) => {
     const currentMonth = currentDate.getMonth() + 1;
     const currentYear = currentDate.getFullYear();
 
-    const tireDataEntries = jsonData.map((row) => ({
-      llanta: row['llanta'] || 0,
-      vida: transformToHistoricalArrayWithDay(normalizeText(row['vida'] || 'unknown')),
-      placa: normalizeText(row['placa']),
-      kilometraje_actual: transformToHistoricalArrayWithDay(row['kilometraje_actual']),
-      frente: normalizeText(row['frente']),
-      marca: normalizeText(row['marca']),
-      diseno: normalizeText(row['diseno']),
-      banda: normalizeText(row['banda']),
-      tipovhc: normalizeText(row['tipovhc']),
-      pos: transformToHistoricalArrayWithDay(row['pos']),
-      original: normalizeText(row['original']),
-      profundidad_int: transformToHistoricalArrayWithDay(row['profundidad_int']),
-      profundidad_cen: transformToHistoricalArrayWithDay(row['profundidad_cen']),
-      profundidad_ext: transformToHistoricalArrayWithDay(row['profundidad_ext']),
-      profundidad_inicial: normalizeValueWithDefault(row['profundidad_inicial'], 20), // Default to 20
-      presion: transformToHistoricalArrayWithDay(row['presion']), // New historical field
-      costo: parseFloat(row['costo']) || 0,
-      kms: transformToHistoricalArrayWithDay(row['kms']),
-      cpk: [
-        {
-          day: currentDay,
-          month: currentMonth,
-          year: currentYear,
-          value: calculateCPK(parseFloat(row['costo']), parseFloat(row['kilometraje_actual']) || 1),
-        },
-      ],
-      dimension: normalizeText(row['dimension']),
-      proact: transformToHistoricalArrayWithDay(row['proact']),
-      eje: normalizeText(row['eje']),
-      user: userId,
-    }));
-
+    // Fetch existing tires for the user
     const existingTires = await TireData.find({ user: userId });
 
+    const tireDataEntries = jsonData.map((row) => {
+      const kms = parseFloat(row['kms']) || 0; // Use provided kms directly
+      const profundidadInicial = normalizeValueWithDefault(row['profundidad_inicial'], 20);
+      const profundidadInt = parseFloat(row['profundidad_int']) || 0;
+      const profundidadCen = parseFloat(row['profundidad_cen']) || 0;
+      const profundidadExt = parseFloat(row['profundidad_ext']) || 0;
+      const proact = Math.min(profundidadInt, profundidadCen, profundidadExt);
+
+      const projectedKms =
+        proact < profundidadInicial
+          ? (kms / (profundidadInicial - proact)) * profundidadInicial
+          : 0;
+
+      const costo = parseFloat(row['costo']) || 0;
+      const cpk = calculateCPK(costo, kms);
+      const cpkProy = projectedKms > 0 ? calculateCPK(costo, projectedKms) : 0;
+
+      return {
+        llanta: row['llanta'] || 0,
+        vida: transformToHistoricalArrayWithDay(normalizeText(row['vida'] || 'unknown')),
+        placa: normalizeText(row['placa']),
+        kilometraje_actual: transformToHistoricalArrayWithDay(parseFloat(row['kilometraje_actual']) || 0),
+        frente: normalizeText(row['frente']),
+        marca: normalizeText(row['marca']),
+        diseno: normalizeText(row['diseno']),
+        banda: normalizeText(row['banda']),
+        tipovhc: normalizeText(row['tipovhc']),
+        pos: transformToHistoricalArrayWithDay(row['pos']),
+        original: normalizeText(row['original']),
+        profundidad_int: transformToHistoricalArrayWithDay(profundidadInt),
+        profundidad_cen: transformToHistoricalArrayWithDay(profundidadCen),
+        profundidad_ext: transformToHistoricalArrayWithDay(profundidadExt),
+        profundidad_inicial: profundidadInicial,
+        presion: transformToHistoricalArrayWithDay(row['presion']),
+        costo,
+        kms: [{ day: currentDay, month: currentMonth, year: currentYear, value: kms }],
+        cpk: [{ day: currentDay, month: currentMonth, year: currentYear, value: cpk }],
+        cpk_proy: [{ day: currentDay, month: currentMonth, year: currentYear, value: cpkProy }],
+        dimension: normalizeText(row['dimension']),
+        proact: transformToHistoricalArrayWithDay(proact),
+        eje: normalizeText(row['eje']),
+        user: userId,
+      };
+    });
+
+    // Check for duplicates by `llanta`
     const duplicateLlantaEntries = tireDataEntries.filter((newTire) =>
       existingTires.some((existingTire) => existingTire.llanta === newTire.llanta)
     );
@@ -118,12 +132,13 @@ const uploadTireData = async (req, res) => {
       });
     }
 
+    // Check for duplicates by `placa` and `pos`
     const duplicatePosEntries = tireDataEntries.filter((newTire) =>
       existingTires.some((existingTire) => {
-        const latestPos = existingTire.pos?.at(-1)?.value || null;
+        const latestPos = existingTire.pos?.at(-1)?.value || null; // Get the latest position value
         return (
-          existingTire.placa === newTire.placa &&
-          latestPos === newTire.pos?.[0]?.value
+          existingTire.placa === newTire.placa && // Match `placa`
+          latestPos === newTire.pos?.[0]?.value  // Match `pos`
         );
       })
     );
@@ -131,12 +146,17 @@ const uploadTireData = async (req, res) => {
     if (duplicatePosEntries.length > 0) {
       return res.status(400).json({
         msg: 'Duplicate placa and pos found. Please resolve these before uploading.',
-        duplicates: duplicatePosEntries.map((tire) => ({ placa: tire.placa, pos: tire.pos?.[0]?.value })),
+        duplicates: duplicatePosEntries.map((tire) => ({
+          placa: tire.placa,
+          pos: tire.pos?.[0]?.value,
+        })),
       });
     }
 
+    // Insert tire data
     const createdTires = await TireData.insertMany(tireDataEntries);
 
+    // Prepare and insert events
     const events = createdTires.map((tire) => ({
       llanta: tire.llanta,
       vida: tire.vida,
@@ -158,6 +178,9 @@ const uploadTireData = async (req, res) => {
     res.status(500).json({ msg: 'Server error', error: error.message });
   }
 };
+
+
+
 
 
 // Update historical fields

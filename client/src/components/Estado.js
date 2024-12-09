@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
+import {jwtDecode} from 'jwt-decode';
 import './Home.css';
 import SemaforoPie from './SemaforoPie';
 import PromedioEje from './PromedioEje';
@@ -73,9 +73,22 @@ const Estado = () => {
         ...tire.profundidad_cen.map((p) => p.value),
         ...tire.profundidad_ext.map((p) => p.value)
       );
-      return minDepth > 0; // Example filter, customize as needed
+
+      // Apply filters
+      const isEjeMatch = selectedEje ? tire.eje === selectedEje : true;
+      const isConditionMatch = selectedCondition
+        ? selectedCondition === 'buenEstado' && minDepth > 7 ||
+          selectedCondition === 'dias60' && minDepth <= 7 && minDepth > 6 ||
+          selectedCondition === 'dias30' && minDepth <= 6 && minDepth > 5 ||
+          selectedCondition === 'cambioInmediato' && minDepth <= 5
+        : true;
+      const isVidaMatch = selectedVida
+        ? tire.vida?.at(-1)?.value === selectedVida
+        : true;
+
+      return isEjeMatch && isConditionMatch && isVidaMatch;
     });
-  }, [tires]);
+  }, [tires, selectedEje, selectedCondition, selectedVida]);
 
   // Calculate summary metrics including CPK and CPK Proyectado
   useEffect(() => {

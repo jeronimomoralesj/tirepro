@@ -11,13 +11,14 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
+import './HistoricChart.css';
 
 // Register chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 const HistoricChart = ({ tires }) => {
-  const [lastFiftyDaysData, setLastFiftyDaysData] = useState([]);
-  const [selectedData, setSelectedData] = useState(['proact']); // Default selection is 'proact'
+  const [lastSixtyDaysData, setLastSixtyDaysData] = useState([]);
+  const [selectedData, setSelectedData] = useState('proact'); // Default field
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   // Process historical data and average values for each day
@@ -51,68 +52,87 @@ const HistoricChart = ({ tires }) => {
       .sort((a, b) => {
         const dateA = new Date(a.year, a.month - 1, a.day);
         const dateB = new Date(b.year, b.month - 1, b.day);
-        return dateB - dateA; // Sort descending
+        return dateA - dateB; // Sort ascending
       });
 
-    return averagedData.slice(-50); // Limit to the last 50 days
+    return averagedData.slice(-60); // Limit to the last 60 days
   };
 
-  // Fetch processed data whenever tires or selected fields change
+  // Fetch processed data whenever tires or selected field changes
   useEffect(() => {
-    const processedData = selectedData.map((field) => processHistoricData(tires, field));
-    setLastFiftyDaysData(processedData);
+    const processedData = processHistoricData(tires, selectedData);
+    setLastSixtyDaysData(processedData);
   }, [tires, selectedData]);
 
   const chartData = {
-    labels: lastFiftyDaysData[0]?.map((data) => `${data.day}/${data.month}/${data.year}`) || [],
-    datasets: selectedData.map((dataField, index) => ({
-      label: dataField.charAt(0).toUpperCase() + dataField.slice(1),
-      data: lastFiftyDaysData[index]?.map((data) => data.value) || [],
-      borderColor: `rgb(${index * 50 + 50}, ${index * 60 + 100}, ${index * 70 + 150})`,
-      backgroundColor: `rgba(${index * 50 + 50}, ${index * 60 + 100}, ${index * 70 + 150}, 0.2)`,
-      fill: true,
-      tension: 0.4,
-      borderWidth: 2,
-      pointRadius: 0,
-    })),
+    labels: lastSixtyDaysData.map((data) => `${data.day}/${data.month}/${data.year}`),
+    datasets: [
+      {
+        label: selectedData.charAt(0).toUpperCase() + selectedData.slice(1),
+        data: lastSixtyDaysData.map((data) => data.value),
+        borderColor: '#4A90E2',
+        backgroundColor: 'rgba(74, 144, 226, 0.2)',
+        fill: true,
+        tension: lastSixtyDaysData.length === 1 ? 0 : 0.4, // Disable curve for a single point
+        borderWidth: 2,
+        pointRadius: lastSixtyDaysData.length === 1 ? 8 : 3, // Larger point for single data
+        pointBackgroundColor: '#4A90E2',
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+    },
+    scales: {
+      x: {
+        ticks: { color: '#A0AEC0' },
+        grid: { display: false },
+      },
+      y: {
+        beginAtZero: true,
+        ticks: { color: '#A0AEC0' },
+        grid: {
+          color: 'rgba(160, 174, 192, 0.3)',
+        },
+      },
+    },
+    elements: {
+      point: {
+        radius: lastSixtyDaysData.length === 1 ? 8 : 3, // Emphasize single point
+        backgroundColor: lastSixtyDaysData.length === 1 ? '#FF5733' : '#4A90E2', // Unique color for single point
+      },
+    },
   };
 
   const toggleDropdown = () => setDropdownOpen((prev) => !prev);
 
   const handleDataSelect = (field) => {
-    setSelectedData((prevSelectedData) => {
-      if (prevSelectedData.includes(field)) {
-        return prevSelectedData.filter((item) => item !== field);
-      }
-      return [...prevSelectedData, field];
-    });
+    setSelectedData(field);
+    setDropdownOpen(false); // Close the dropdown after selection
   };
 
-  // Helper to get spaced points for summary display
-  const spacedPoints = lastFiftyDaysData.map((dataset) =>
-    dataset.filter((_, index) => index % Math.ceil(dataset.length / 3) === 0)
-  );
-
   return (
-    <div className="horizontal-bar-chart-card">
-      <h2 className="horizontal-bar-chart-title">Datos Históricos (Últimos 50 Días - Promedio por Día)</h2>
+    <div className="historic-chart-card">
+      <h2 className="historic-chart-title">Datos Históricos (Últimos 60 datos)</h2>
 
-      {/* Dropdown to toggle data fields */}
+      {/* Dropdown to select data field */}
       <div className="data-selection">
         <button className="data-selection-btn" onClick={toggleDropdown}>
-          Escoger Elementos
+          {selectedData.charAt(0).toUpperCase() + selectedData.slice(1)} ▼
         </button>
         {dropdownOpen && (
           <div className="dropdown-menu">
             {['proact', 'kilometraje_actual', 'profundidad_int', 'profundidad_cen', 'profundidad_ext', 'cpk', 'cpk_proy'].map((field) => (
-              <div key={field} className="dropdown-item">
-                <input
-                  type="checkbox"
-                  id={field}
-                  checked={selectedData.includes(field)}
-                  onChange={() => handleDataSelect(field)}
-                />
-                <label htmlFor={field}>{field.charAt(0).toUpperCase() + field.slice(1)}</label>
+              <div
+                key={field}
+                className={`dropdown-item ${field === selectedData ? 'active' : ''}`}
+                onClick={() => handleDataSelect(field)}
+              >
+                {field.charAt(0).toUpperCase() + field.slice(1)}
               </div>
             ))}
           </div>
@@ -121,19 +141,7 @@ const HistoricChart = ({ tires }) => {
 
       {/* Display Line Chart */}
       <div className="chart-container">
-        <Line data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
-      </div>
-
-      {/* Display spaced points */}
-      <div className="proact-result">
-        <h4>Puntos Espaciados:</h4>
-        <ul>
-          {spacedPoints[0]?.map((data, index) => (
-            <li key={index}>
-              Día: {data.day}/{data.month}/{data.year} - Valor: {data.value !== null && !isNaN(data.value) ? data.value.toFixed(2) : 'N/A'}
-            </li>
-          ))}
-        </ul>
+        <Line data={chartData} options={chartOptions} />
       </div>
     </div>
   );
