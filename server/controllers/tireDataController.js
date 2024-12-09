@@ -21,6 +21,12 @@ const getTireDataByUser = async (req, res) => {
 
 
 // Function to calculate CPK and projected CPK
+const normalizeValueWithDefault = (value, defaultValue) => {
+  return value != null && value !== '' ? value : defaultValue;
+};
+
+const normalizeText = (text) => (text ? text.toString().toLowerCase() : 'unknown');
+
 const calculateCPK = (costo, kilometraje) => (kilometraje ? costo / kilometraje : 0);
 const calculateProjectedCPK = (costo, kilometrajeActual, proact) => {
   const projectedKms = proact < 18 ? (kilometrajeActual / (18 - proact)) * 18 : 0;
@@ -45,7 +51,7 @@ const uploadTireData = async (req, res) => {
     const userId = req.body.user;
 
     if (!file) {
-      console.error("No file uploaded");
+      console.error('No file uploaded');
       return res.status(400).json({ msg: 'No file uploaded' });
     }
 
@@ -53,7 +59,7 @@ const uploadTireData = async (req, res) => {
     try {
       workbook = xlsx.read(file.buffer, { type: 'buffer' });
     } catch (parseError) {
-      console.error("Error parsing Excel file:", parseError);
+      console.error('Error parsing Excel file:', parseError);
       return res.status(500).json({ msg: 'Error parsing Excel file', error: parseError.message });
     }
 
@@ -66,19 +72,7 @@ const uploadTireData = async (req, res) => {
     const currentMonth = currentDate.getMonth() + 1;
     const currentYear = currentDate.getFullYear();
 
-    // Updated normalizeText function to handle non-string values
-    const normalizeText = (text) => {
-      if (typeof text === 'string') {
-        return text.toLowerCase();
-      }
-      if (typeof text === 'number') {
-        return text.toString().toLowerCase();
-      }
-      return 'unknown';
-    };
-
-    // Transform Excel data into tire data objects
-    const tireDataEntries = jsonData.map(row => ({
+    const tireDataEntries = jsonData.map((row) => ({
       llanta: row['llanta'] || 0,
       vida: transformToHistoricalArrayWithDay(normalizeText(row['vida'] || 'unknown')),
       placa: normalizeText(row['placa']),
@@ -93,42 +87,43 @@ const uploadTireData = async (req, res) => {
       profundidad_int: transformToHistoricalArrayWithDay(row['profundidad_int']),
       profundidad_cen: transformToHistoricalArrayWithDay(row['profundidad_cen']),
       profundidad_ext: transformToHistoricalArrayWithDay(row['profundidad_ext']),
+      profundidad_inicial: normalizeValueWithDefault(row['profundidad_inicial'], 20), // Default to 20
+      presion: transformToHistoricalArrayWithDay(row['presion']), // New historical field
       costo: parseFloat(row['costo']) || 0,
       kms: transformToHistoricalArrayWithDay(row['kms']),
-      cpk: [{
-        day: currentDay,
-        month: currentMonth,
-        year: currentYear,
-        value: parseFloat(row['costo']) / (parseFloat(row['kilometraje_actual']) || 1),
-      }],
+      cpk: [
+        {
+          day: currentDay,
+          month: currentMonth,
+          year: currentYear,
+          value: calculateCPK(parseFloat(row['costo']), parseFloat(row['kilometraje_actual']) || 1),
+        },
+      ],
       dimension: normalizeText(row['dimension']),
       proact: transformToHistoricalArrayWithDay(row['proact']),
       eje: normalizeText(row['eje']),
       user: userId,
     }));
 
-    // Fetch existing tires for the user
     const existingTires = await TireData.find({ user: userId });
 
-    // Check for duplicates by `llanta`
-    const duplicateLlantaEntries = tireDataEntries.filter(newTire =>
-      existingTires.some(existingTire => existingTire.llanta === newTire.llanta)
+    const duplicateLlantaEntries = tireDataEntries.filter((newTire) =>
+      existingTires.some((existingTire) => existingTire.llanta === newTire.llanta)
     );
 
     if (duplicateLlantaEntries.length > 0) {
       return res.status(400).json({
         msg: 'Duplicate llantas found. Please resolve these before uploading.',
-        duplicates: duplicateLlantaEntries.map(tire => tire.llanta),
+        duplicates: duplicateLlantaEntries.map((tire) => tire.llanta),
       });
     }
 
-    // Check for duplicates by `placa` and `pos`
-    const duplicatePosEntries = tireDataEntries.filter(newTire =>
-      existingTires.some(existingTire => {
-        const latestPos = existingTire.pos?.at(-1)?.value || null; // Get the latest position value
+    const duplicatePosEntries = tireDataEntries.filter((newTire) =>
+      existingTires.some((existingTire) => {
+        const latestPos = existingTire.pos?.at(-1)?.value || null;
         return (
-          existingTire.placa === newTire.placa && // Match `placa`
-          latestPos === newTire.pos?.[0]?.value  // Match `pos`
+          existingTire.placa === newTire.placa &&
+          latestPos === newTire.pos?.[0]?.value
         );
       })
     );
@@ -136,28 +131,16 @@ const uploadTireData = async (req, res) => {
     if (duplicatePosEntries.length > 0) {
       return res.status(400).json({
         msg: 'Duplicate placa and pos found. Please resolve these before uploading.',
-        duplicates: duplicatePosEntries.map(tire => ({ placa: tire.placa, pos: tire.pos?.[0]?.value })),
+        duplicates: duplicatePosEntries.map((tire) => ({ placa: tire.placa, pos: tire.pos?.[0]?.value })),
       });
     }
 
-    // Insert tire data
     const createdTires = await TireData.insertMany(tireDataEntries);
 
-    // Prepare and insert events
-    const events = createdTires.map(tire => ({
+    const events = createdTires.map((tire) => ({
       llanta: tire.llanta,
-      vida: tire.vida.map((entry) => ({
-        day: entry.day || currentDay,
-        month: entry.month || currentMonth,
-        year: currentYear,
-        value: entry.value,
-      })),
-      pos: tire.pos.map((entry) => ({
-        day: entry.day || currentDay,
-        month: entry.month || currentMonth,
-        year: entry.year || currentYear,
-        value: entry.value,
-      })),
+      vida: tire.vida,
+      pos: tire.pos,
       otherevents: [],
       user: tire.user,
       placa: tire.placa,
@@ -171,11 +154,10 @@ const uploadTireData = async (req, res) => {
       events: createdEvents,
     });
   } catch (error) {
-    console.error("Error uploading tire data and creating events:", error);
+    console.error('Error uploading tire data and creating events:', error);
     res.status(500).json({ msg: 'Server error', error: error.message });
   }
 };
-
 
 
 // Update historical fields
