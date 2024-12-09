@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import './Home.css';
 import SemaforoPie from './SemaforoPie';
 import PromedioEje from './PromedioEje';
@@ -11,6 +11,7 @@ import Recomendaciones from './Recomendaciones';
 import MonthlyCPKChart from './MonthlyCPKChart';
 import PorVida from './PorVida';
 import HistoricChart from './HistoricChart';
+import { FaPlus } from 'react-icons/fa';
 
 const Home = () => {
   const [tires, setTires] = useState([]);
@@ -22,6 +23,7 @@ const Home = () => {
   const [averageCPK, setAverageCPK] = useState(0);
   const [averageProjectedCPK, setAverageProjectedCPK] = useState(0);
   const [lastMonthInvestment, setLastMonthInvestment] = useState(2003); // Static for now
+  const [charts, setCharts] = useState([{ id: 0 }]); // Array to store chart configurations
 
   // Fetch tire data on mount
   useEffect(() => {
@@ -33,7 +35,7 @@ const Home = () => {
           const userId = decodedToken?.user?.id;
 
           if (!userId) {
-            console.error("User ID not found in token");
+            console.error('User ID not found in token');
             return;
           }
 
@@ -45,9 +47,11 @@ const Home = () => {
 
           // Separate "Cambio Inmediato" tires for popup display
           const cambioInmediato = tireData.filter((tire) => {
-            const minDepth = Math.min(...tire.profundidad_int.map(p => p.value), 
-                                      ...tire.profundidad_cen.map(p => p.value), 
-                                      ...tire.profundidad_ext.map(p => p.value));
+            const minDepth = Math.min(
+              ...tire.profundidad_int.map((p) => p.value),
+              ...tire.profundidad_cen.map((p) => p.value),
+              ...tire.profundidad_ext.map((p) => p.value)
+            );
             return minDepth <= 5;
           });
           setCambioInmediatoTires(cambioInmediato);
@@ -66,9 +70,11 @@ const Home = () => {
       const matchesEje = selectedEje ? tire.eje === selectedEje : true;
       const matchesCondition = selectedCondition
         ? (() => {
-            const minDepth = Math.min(...tire.profundidad_int.map(p => p.value), 
-                                      ...tire.profundidad_cen.map(p => p.value), 
-                                      ...tire.profundidad_ext.map(p => p.value));
+            const minDepth = Math.min(
+              ...tire.profundidad_int.map((p) => p.value),
+              ...tire.profundidad_cen.map((p) => p.value),
+              ...tire.profundidad_ext.map((p) => p.value)
+            );
             if (selectedCondition === 'buenEstado') return minDepth > 7;
             if (selectedCondition === 'dias60') return minDepth > 6 && minDepth <= 7;
             if (selectedCondition === 'dias30') return minDepth > 5 && minDepth <= 6;
@@ -82,7 +88,8 @@ const Home = () => {
   // Calculate summary metrics based on filtered data
   useEffect(() => {
     const calculateMetrics = () => {
-      let validTiresCount = 0;
+      let validCPKCount = 0;
+      let validProjectedCPKCount = 0;
       let totalCPK = 0;
       let totalProjectedCPK = 0;
 
@@ -90,25 +97,22 @@ const Home = () => {
       setTotalCost(totalCost);
 
       filteredTires.forEach((tire) => {
-        const lastKms = tire.kms?.[tire.kms.length - 1]?.value || 0;
-        const lastProact = tire.proact?.[tire.proact.length - 1]?.value || 0;
+        const latestCPK = tire.cpk?.at(-1)?.value || 0;
+        const latestProjectedCPK = tire.cpk_proy?.at(-1)?.value || 0;
 
-        if (lastProact < 0 || lastProact > 50) {
-          return; // Skip invalid `proact` values
+        if (latestCPK > 0) {
+          totalCPK += latestCPK;
+          validCPKCount++;
         }
 
-        const cpk = lastKms > 0 ? tire.costo / lastKms : 0;
-        totalCPK += cpk;
-
-        const projectedKms = lastProact < 16 ? (lastKms / (16 - lastProact)) * 16 : 0;
-        const cpkProy = projectedKms > 0 ? tire.costo / projectedKms : 0;
-        totalProjectedCPK += cpkProy;
-
-        validTiresCount++;
+        if (latestProjectedCPK > 0) {
+          totalProjectedCPK += latestProjectedCPK;
+          validProjectedCPKCount++;
+        }
       });
 
-      setAverageCPK(validTiresCount ? totalCPK / validTiresCount : 0);
-      setAverageProjectedCPK(validTiresCount ? totalProjectedCPK / validTiresCount : 0);
+      setAverageCPK(validCPKCount ? totalCPK / validCPKCount : 0);
+      setAverageProjectedCPK(validProjectedCPKCount ? totalProjectedCPK / validProjectedCPKCount : 0);
     };
 
     calculateMetrics();
@@ -121,6 +125,11 @@ const Home = () => {
   const resetFilters = () => {
     setSelectedEje(null);
     setSelectedCondition(null);
+  };
+
+  // Add a new HistoricChart component
+  const addHistoricChart = () => {
+    setCharts((prevCharts) => [...prevCharts, { id: prevCharts.length }]);
   };
 
   // Toggle the popup visibility
@@ -215,9 +224,14 @@ const Home = () => {
         />
         <ReencuacheTotal />
         <ProgressBar />
-        <HistoricChart 
-        tires = {filteredTires}
-        />
+        {charts.map((chart) => (
+          <HistoricChart key={chart.id} tires={filteredTires} />
+        ))}
+        {/* Add Button */}
+        <button className="add-chart-btn" onClick={addHistoricChart}>
+          <FaPlus className="add-icon" />
+          Agregar
+        </button>
       </div>
 
       {/* Reset Filters Button */}

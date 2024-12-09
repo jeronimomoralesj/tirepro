@@ -15,15 +15,6 @@ const DetallesLlantas = ({ tires }) => {
     );
   });
 
-  // Helper function for individual CPK
-  const calculateCPK = (kms, costo) => (kms > 0 ? costo / kms : 0);
-
-  // Helper function for individual Projected CPK
-  const calculateProjectedCPK = (costo, kms, proact) => {
-    const projectedKms = proact < 16 ? (kms / (16 - proact)) * 16 : 0;
-    return projectedKms > 0 ? costo / projectedKms : 0;
-  };
-
   return (
     <div className="detalles-llantas-container">
       <h2>Detalles de Llantas</h2>
@@ -67,13 +58,12 @@ const DetallesLlantas = ({ tires }) => {
               const latestPos = tire.pos?.at(-1)?.value || 'N/A';
               const latestKms = tire.kms?.at(-1)?.value || 0;
               const latestProact = tire.proact?.at(-1)?.value || 0;
+              const latestCpk = tire.cpk?.at(-1)?.value?.toFixed(2) || 'N/A';
+              const latestCpkProy = tire.cpk_proy?.at(-1)?.value?.toFixed(2) || 'N/A';
               const latestInt = tire.profundidad_int?.at(-1)?.value || 'N/A';
               const latestExt = tire.profundidad_ext?.at(-1)?.value || 'N/A';
               const latestCent = tire.profundidad_cen?.at(-1)?.value || 'N/A';
               const latestVida = tire.vida?.at(-1)?.value || 'N/A';
-
-              const cpk = calculateCPK(latestKms, tire.costo).toFixed(2);
-              const cpkProy = calculateProjectedCPK(tire.costo, latestKms, latestProact).toFixed(2);
 
               return (
                 <tr key={tire._id || `${tire.placa}-${tire.llanta}`}>
@@ -87,8 +77,8 @@ const DetallesLlantas = ({ tires }) => {
                   <td>{latestVida}</td>
                   <td>{latestPos}</td>
                   <td>{latestKms}</td>
-                  <td>{cpk}</td>
-                  <td>{cpkProy}</td>
+                  <td>{latestCpk}</td>
+                  <td>{latestCpkProy}</td>
                   <td>{latestProact}</td>
                   <td>{latestInt}</td>
                   <td>{latestExt}</td>
