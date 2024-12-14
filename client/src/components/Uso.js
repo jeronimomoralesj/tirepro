@@ -10,11 +10,15 @@ const Uso = () => {
   const [selectedTire, setSelectedTire] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [proactValues, setProactValues] = useState([]);
+  const [cpkValues, setCpkValues] = useState([]);
+  const [cpkProyValues, setCpkProyValues] = useState([]);
 
   const handleSearch = async () => {
     try {
       setSelectedTire(null);
       setProactValues([]);
+      setCpkValues([]);
+      setCpkProyValues([]);
       const token = localStorage.getItem('token');
       if (!token) {
         setErrorMessage('Usuario no identificado');
@@ -60,7 +64,7 @@ const Uso = () => {
     }
   };
 
-  const fetchProactValues = async (llantaId) => {
+  const fetchInspectionValues = async (llantaId) => {
     try {
       const token = localStorage.getItem('token');
       const userId = JSON.parse(atob(token.split('.')[1])).user.id;
@@ -72,20 +76,26 @@ const Uso = () => {
       const tires = response?.data || [];
       const matchingTire = tires.find((tire) => tire.llanta === llantaId);
 
-      if (matchingTire && matchingTire.proact) {
-        setProactValues(matchingTire.proact);
+      if (matchingTire) {
+        setProactValues(matchingTire.proact || []);
+        setCpkValues(matchingTire.cpk || []);
+        setCpkProyValues(matchingTire.cpk_proy || []);
       } else {
         setProactValues([]);
+        setCpkValues([]);
+        setCpkProyValues([]);
       }
     } catch (error) {
-      console.error('Error fetching proact values:', error);
+      console.error('Error fetching inspection values:', error);
       setProactValues([]);
+      setCpkValues([]);
+      setCpkProyValues([]);
     }
   };
 
   const handleViewHistory = (tire) => {
     setSelectedTire(tire);
-    fetchProactValues(tire.llanta);
+    fetchInspectionValues(tire.llanta);
   };
 
   const renderTimeline = (tire) => {
@@ -127,7 +137,7 @@ const Uso = () => {
 
   const renderProactValues = () => {
     if (proactValues.length === 0) {
-      return <p>No hay datos de Proact disponibles.</p>;
+      return <p>No hay datos de inspecciones disponibles.</p>;
     }
 
     return (
@@ -138,6 +148,8 @@ const Uso = () => {
             <tr>
               <th>Fecha</th>
               <th>Proact</th>
+              <th>CPK</th>
+              <th>CPK Proy</th>
             </tr>
           </thead>
           <tbody>
@@ -145,6 +157,8 @@ const Uso = () => {
               <tr key={index}>
                 <td>{`${entry.day}/${entry.month}/${entry.year}`}</td>
                 <td>{entry.value}</td>
+                <td>{cpkValues[index]?.value || 'N/A'}</td>
+                <td>{cpkProyValues[index]?.value || 'N/A'}</td>
               </tr>
             ))}
           </tbody>

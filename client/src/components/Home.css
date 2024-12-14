@@ -28,7 +28,7 @@
     font-size: 14px;
     font-weight: 500;
     color: #fff;
-    background-color: #4361ee;
+    background-color: #4a90e2;
     border: none;
     border-radius: 6px;
     cursor: pointer;
@@ -36,7 +36,7 @@
   }
   
   .generate-pdf-btn:hover {
-    background-color: #357abd;
+    background-color: #4a90e2;
   }
   
   /* Full-width Sales Card */
@@ -251,7 +251,7 @@
   }
   
   .popup-table th {
-    background-color: #333;
+    background-color: #0a183a;
     color: white;
   }
   
@@ -262,7 +262,7 @@
   .close-button {
     margin-top: 15px;
     padding: 8px 16px;
-    background-color: #4361ee;
+    background-color: #4a90e2;
     color: white;
     border: none;
     border-radius: 5px;
@@ -319,7 +319,7 @@
 }
 
 .add-chart-btn:hover {
-  background-color: #357abd;
+  background-color: #4a90e2;
 }
 
 .add-icon {

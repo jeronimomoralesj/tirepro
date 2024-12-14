@@ -13,6 +13,7 @@ import Flota from './components/Flota';
 import Uso from './components/Uso';
 import Nueva from './components/Nueva';
 import Soporte from './components/Soporte';
+import Ajustes from './components/Ajustes';
 
 function App() {
   return (
@@ -24,14 +25,6 @@ function App() {
           element={
             <PublicRoute>
               <LandingPage />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <PublicRoute>
-              <Register />
             </PublicRoute>
           }
         />
@@ -59,6 +52,7 @@ function App() {
           <Route path="uso" element={<Uso />} />
           <Route path="nueva" element={<Nueva />} />
           <Route path="soporte" element={<Soporte />} />
+          <Route path="ajustes" element={<Ajustes />} />
           {/* Add other nested routes here */}
         </Route>
       </Routes>

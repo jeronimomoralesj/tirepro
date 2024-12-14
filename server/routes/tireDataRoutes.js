@@ -1,5 +1,5 @@
 const express = require('express');
-const { getTireDataByUser, uploadTireData, updateTireField, updateInspectionDate, createTire } = require('../controllers/tireDataController');
+const { getTireDataByUser, uploadTireData, updateTireField, updateInspectionDate, createTire, updateNonHistorics } = require('../controllers/tireDataController');
 const router = express.Router();
 const multer = require('multer');
 const upload = multer();
@@ -18,5 +18,8 @@ router.put('/update-field', updateTireField);
 
 // New Route to update only the inspection date
 router.put('/update-inspection-date', updateInspectionDate);
+
+// Update non-historical fields
+router.put('/update-nonhistorics', updateNonHistorics);
 
 module.exports = router;

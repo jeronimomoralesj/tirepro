@@ -24,7 +24,7 @@
 }
 
 .economic-table thead th {
-  background-color: #333;
+  background-color: #0a183a;
   color: white;
   position: sticky;
   top: 0;
@@ -47,7 +47,7 @@
 
 .yellow-cell {
   background-color: #ff9e00; /* Yellow */
-  color: #333;
+  color: #0a183a;
 }
 
 .green-cell {
@@ -84,7 +84,7 @@
 }
 
 .detalles-llantas-table thead th {
-  background-color: #333;
+  background-color: #0a183a;
   color: white;
   position: sticky;
   top: 0;

@@ -17,7 +17,7 @@
     justify-content: space-between;
     padding: 20px 40px;
     width: 100%;
-    background: #4cc9f0;
+    background: #4a90e2;
     position: relative;
     z-index: 10;
   }
@@ -69,7 +69,7 @@
   
   /* Gradient Background Section */
   .landingPage-heroSection {
-    background: linear-gradient(180deg, #4cc9f0, #ffffff);
+    background: linear-gradient(180deg, #4a90e2, #ffffff);
     padding: 100px 40px 80px;
     display: flex;
     flex-direction: column;
@@ -99,7 +99,7 @@
   }
   
   .landingPage-ctaButton {
-    background-color: #6c63ff;
+    background-color: #173d68;
     color: #ffffff;
     font-size: 1rem;
     padding: 12px 24px;
@@ -110,7 +110,7 @@
   }
   
   .landingPage-ctaButton:hover {
-    background-color: #5a54e8;
+    background-color: #173d68;
   }
   
   /* Hero Image */

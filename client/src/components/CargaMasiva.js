@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import './Nueva.css';
+import './CargaIndividual.css';
 
 const CargaMasiva = () => {
   const [file, setFile] = useState(null);
