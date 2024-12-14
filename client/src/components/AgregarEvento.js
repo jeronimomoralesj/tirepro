@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
+import './AgregarEvento.css'; // Import the new CSS
 import CambiarVida from './CambiarVida';
 import CambiarPosicion from './CambiarPosicion';
 import CambiarOtherEvents from './CambiarOtherEvents';
+import "./AgregarEvento.css"
 
 const AgregarEvento = () => {
   const [selectedOption, setSelectedOption] = useState(''); // Track user's choice
 
   return (
-    <div>
+    <div className="agregar-evento-container">
       <h2>Agregar Evento</h2>
 
       {/* Selection Menu */}
@@ -26,7 +28,7 @@ const AgregarEvento = () => {
       </div>
 
       {/* Conditional Rendering */}
-      <div style={{ marginTop: '2rem' }}>
+      <div className="agregar-evento-content">
         {selectedOption === 'cambiarVida' && <CambiarVida />}
         {selectedOption === 'cambiarPosicion' && <CambiarPosicion />}
         {selectedOption === 'AgregarOtro' && <CambiarOtherEvents />}

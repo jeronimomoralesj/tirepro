@@ -8,7 +8,7 @@
 
 .uso-title {
   font-size: 24px;
-  color: #333;
+  color: #0a183a;
   margin-bottom: 15px;
   font-weight: bold;
 }
@@ -36,7 +36,7 @@
   background: transparent;
   outline: none;
   font-size: 16px;
-  color: #333;
+  color: #0a183a;
 }
 
 .search-input::placeholder {
@@ -82,7 +82,7 @@
 }
 
 .results-table thead th {
-  background-color: #333;
+  background-color: #0a183a;
   color: white;
 }
 
@@ -107,7 +107,7 @@
 .history-title {
   font-size: 18px;
   font-weight: bold;
-  color: #333;
+  color: #0a183a;
   margin-bottom: 10px;
   padding: 20px;
 }
@@ -126,7 +126,7 @@
 .line-segment {
   width: 4px;
   height: 30px;
-  background-color: #333;
+  background-color: #0a183a;
   border-radius: 2px;
   margin: 0 auto;
   z-index: 1;
@@ -166,12 +166,12 @@
 .step-label {
   font-size: 14px;
   font-weight: bold;
-  color: #333;
+  color: #0a183a;
   margin-top: 5px; /* Add margin to avoid overlap */
 }
 
 .view-button {
-  background-color: #4361ee;
+  background-color: #4a90e2;
   color: white;
   border: none;
   border-radius: 5px;
@@ -181,7 +181,7 @@
 }
 
 .view-button:hover {
-  background-color: #3b4ccc;
+  background-color: #2b6bb3;
 }
 
 
@@ -198,7 +198,7 @@
 .proact-section h4 {
   font-size: 18px;
   font-weight: bold;
-  color: #333;
+  color: #0a183a;
   margin-bottom: 10px;
   text-align: center;
 }
@@ -216,7 +216,7 @@
 }
 
 .proact-table th {
-  background-color: #4361ee;
+  background-color: #4a90e2;
   color: white;
 }
 

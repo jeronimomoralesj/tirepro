@@ -15,7 +15,7 @@
   font-size: 24px;
   font-weight: bold;
   margin-bottom: 20px;
-  color: #333;
+  color: #0a183a;
 }
 
 /* Button Navigation */
@@ -31,7 +31,7 @@
   padding: 10px 20px;
   font-size: 16px;
   font-weight: bold;
-  color: #333;
+  color: #0a183a;
   background-color: #f0f0f0;
   border: 1px solid #ccc;
   border-radius: 5px;
@@ -40,9 +40,9 @@
 }
 
 .section-button.active {
-  background-color: #007bff;
+  background-color: #4a90e2;
   color: white;
-  border-color: #0056b3;
+  border-color: #1e76b6;
 }
 
 .section-button:hover {
@@ -93,7 +93,7 @@
   font-size: 16px;
   font-weight: bold;
   color: white;
-  background-color: #138496;
+  background-color: #4a90e2;
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -101,7 +101,7 @@
 }
 
 .upload-button:hover {
-  background-color: #138494;
+  background-color: #2667b1;
 }
 
 /* Individual Tire Section */
@@ -118,7 +118,7 @@
   font-size: 16px;
   font-weight: bold;
   color: white;
-  background-color: #007bff;
+  background-color: #4a90e2;
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -126,7 +126,7 @@
 }
 
 .single-upload-button:hover {
-  background-color: #0056b3;
+  background-color: #336aaa;
 }
 
 /* Search Section */
@@ -157,7 +157,7 @@
   font-size: 16px;
   font-weight: bold;
   color: white;
-  background-color: #138496;
+  background-color: #4a90e2;
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -165,7 +165,7 @@
 }
 
 .search-button:hover {
-  background-color: #138496;
+  background-color: #2360a5;
 }
 
 /* Filtered Tires Section */
@@ -176,7 +176,7 @@
 .filtered-tires-container h3 {
   font-size: 18px;
   font-weight: bold;
-  color: #333;
+  color: #0a183a;
   margin-bottom: 10px;
 }
 
@@ -206,7 +206,7 @@
   font-size: 16px;
   font-weight: bold;
   color: white;
-  background-color: #17a2b8;
+  background-color: #4a90e2;
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -214,7 +214,7 @@
 }
 
 .save-button:hover {
-  background-color: #138496;
+  background-color: #2f70ba;
 }
 
 

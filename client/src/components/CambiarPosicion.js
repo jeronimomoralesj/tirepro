@@ -8,7 +8,6 @@ const CambiarPosicion = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch tires by placa
   const handleSearch = async () => {
     if (!placa.trim()) {
       alert('Por favor, ingresa una placa válida.');
@@ -27,14 +26,14 @@ const CambiarPosicion = () => {
     }
 
     try {
-      const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
+      const response = await axios.get(`http://localhost:5001/api/tires/user/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       const fetchedTires = response.data.filter((tire) => tire.placa.toLowerCase() === placa.toLowerCase());
       if (fetchedTires.length > 0) {
         // Fetch event data for the tires
-        const eventResponse = await axios.get(`https://tirepro.onrender.com/api/events/user/${userId}`, {
+        const eventResponse = await axios.get(`http://localhost:5001/api/events/user/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -64,7 +63,6 @@ const CambiarPosicion = () => {
     }
   };
 
-  // Check for duplicate positions
   const hasDuplicatePositions = () => {
     const updatedPositions = tires.map((tire) => positionUpdates[tire._id]?.newPos || tire.pos?.at(-1)?.value);
     const positionCounts = updatedPositions.reduce((counts, pos) => {
@@ -74,66 +72,87 @@ const CambiarPosicion = () => {
     return Object.values(positionCounts).some((count) => count > 1);
   };
 
-  // Save updated positions to both events and tire data collections
   const handleSaveUpdates = async () => {
-    if (hasDuplicatePositions()) {
-      alert('Existen posiciones duplicadas. Por favor, corrige los conflictos antes de continuar.');
-      return;
-    }
-
-    const updates = tires.map((tire) => ({
-      tireId: tire._id,
-      eventId: tire.eventId,
-      newPos: positionUpdates[tire._id]?.newPos,
-    }));
-
-    setIsLoading(true);
     const token = localStorage.getItem('token');
-
+    const historicalUpdates = [];
+    const nonHistoricalUpdates = [];
+  
+    tires.forEach((tire) => {
+      const newPos = positionUpdates[tire._id]?.newPos || tire.pos?.at(-1)?.value;
+  
+      // Find the tire to swap with based on new position
+      const swapTire = tires.find(
+        (otherTire) => positionUpdates[otherTire._id]?.newPos === tire.pos?.at(-1)?.value
+      );
+  
+      if (swapTire) {
+        // Historical updates for `pos` and `kilometraje_actual`
+        historicalUpdates.push(
+          {
+            tireId: tire._id,
+            field: 'pos',
+            newValue: newPos,
+          },
+          {
+            tireId: swapTire._id,
+            field: 'pos',
+            newValue: tire.pos?.at(-1)?.value,
+          }
+        );
+  
+        // Non-historical updates for `eje`, `placa`, `tipovhc`, `frente`
+        const fieldsToUpdate = ['eje', 'placa', 'tipovhc', 'frente'];
+        fieldsToUpdate.forEach((field) => {
+          nonHistoricalUpdates.push(
+            {
+              tireId: tire._id,
+              field,
+              newValue: swapTire[field],
+            },
+            {
+              tireId: swapTire._id,
+              field,
+              newValue: tire[field],
+            }
+          );
+        });
+      }
+    });
+  
     try {
-      // Update in tire data
-      const tireDataUpdates = updates.map((update) => ({
-        tireId: update.tireId,
-        field: 'pos',
-        newValue: update.newPos,
-      }));
-
-      await axios.put(
-        'https://tirepro.onrender.com/api/tires/update-field',
-        { tireUpdates: tireDataUpdates },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      // Update in events
-      const eventUpdates = updates
-        .filter((update) => update.eventId) // Ensure events exist for updates
-        .map((update) => ({
-          eventId: update.eventId,
-          field: 'pos',
-          newValue: update.newPos,
-        }));
-
-      await Promise.all(
-        eventUpdates.map((update) =>
-          axios.put(
-            'https://tirepro.onrender.com/api/events/update-field',
-            update,
-            { headers: { Authorization: `Bearer ${token}` } }
-          )
-        )
-      );
-
-      alert('Posiciones actualizadas correctamente en ambos sistemas.');
+      console.log('Historical Updates Payload:', historicalUpdates);
+      console.log('Non-Historical Updates Payload:', nonHistoricalUpdates);
+  
+      // Update historical fields (e.g., `pos`, `kilometraje_actual`)
+      if (historicalUpdates.length > 0) {
+        await axios.put(
+          'http://localhost:5001/api/tires/update-field',
+          { tireUpdates: historicalUpdates },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+  
+      // Update non-historical fields (e.g., `eje`, `placa`, `tipovhc`, `frente`)
+      if (nonHistoricalUpdates.length > 0) {
+        await axios.put(
+          'http://localhost:5001/api/tires/update-nonhistorics',
+          { updates: nonHistoricalUpdates },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+  
+      alert('Actualización completada con éxito.');
       setTires([]);
       setPlaca('');
       setPositionUpdates({});
     } catch (error) {
-      console.error('Error updating positions:', error);
-      alert('Error al actualizar posiciones.');
+      console.error('Error updating positions and fields:', error);
+      alert('Error al actualizar posiciones y campos.');
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <div>

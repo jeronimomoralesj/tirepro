@@ -342,6 +342,57 @@ const createTire = async (req, res) => {
 };
 
 
+// Function to update non-historical fields
+const updateNonHistorics = async (req, res) => {
+  try {
+    const { updates } = req.body; // Extract 'updates' from the request body
+
+    // Validate the payload
+    if (!updates || !Array.isArray(updates)) {
+      console.error("Invalid updates payload:", req.body);
+      return res.status(400).json({ msg: "Invalid updates provided. Expected an array of objects." });
+    }
+
+    for (const update of updates) {
+      if (!update.tireId || !update.field || update.newValue === undefined) {
+        console.error("Invalid update object:", update);
+        return res.status(400).json({
+          msg: `Invalid update object: ${JSON.stringify(update)}. Each object must include tireId, field, and newValue.`,
+        });
+      }
+    }
+
+    // Process updates
+    const updateResults = [];
+    for (const update of updates) {
+      const { tireId, field, newValue } = update;
+
+      const updatedTire = await TireData.findByIdAndUpdate(
+        tireId,
+        { [field]: newValue }, // Dynamically update the specified field
+        { new: true } // Return the updated document
+      );
+
+      if (!updatedTire) {
+        console.error(`Tire with ID ${tireId} not found.`);
+        return res.status(404).json({ msg: `Tire with ID ${tireId} not found.` });
+      }
+
+      updateResults.push(updatedTire);
+    }
+    // Respond with success
+    res.status(200).json({
+      msg: "Non-historical fields updated successfully.",
+      updatedTires: updateResults,
+    });
+  } catch (error) {
+    console.error("Error updating non-historical fields:", error);
+    res.status(500).json({ msg: "Server error.", error: error.message });
+  }
+};
+
+
+
 
 module.exports = {
   getTireDataByUser,
@@ -349,4 +400,5 @@ module.exports = {
   updateTireField,
   updateInspectionDate,
   createTire,
+  updateNonHistorics,
 };

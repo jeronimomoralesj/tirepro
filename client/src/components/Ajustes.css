@@ -1,0 +1,34 @@
+.ajustes-container {
+    padding: 20px;
+    max-width: 500px;
+    margin: 50px auto;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .ajustes-title {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    color: #0a183a;
+  }
+  
+  .ajustes-card {
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+    font-size: 1rem;
+    color: #0a183a;
+  }
+  
+  .ajustes-card p {
+    margin: 10px 0;
+  }
+  
+  .ajustes-card strong {
+    color: #0a183a;
+  }
+  

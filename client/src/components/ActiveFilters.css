@@ -35,14 +35,14 @@
     margin-left: 8px;
     background: none;
     border: none;
-    color: #ff4d4f;
+    color: #348ccb;
     cursor: pointer;
     font-weight: bold;
   }
   
   .clear-all-btn {
     margin-top: 10px;
-    background-color: #ff4d4f;
+    background-color: #348ccb;
     color: white;
     border: none;
     padding: 6px 12px;
@@ -52,6 +52,6 @@
   }
   
   .clear-all-btn:hover {
-    background-color: #e63946;
+    background-color: #348ccb;
   }
   

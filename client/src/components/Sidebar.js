@@ -6,6 +6,7 @@ import {jwtDecode} from 'jwt-decode';
 import './Sidebar.css';
 import logo from "../img/logo.png";
 import logo_text from "../img/logo_text.png"
+import Ajustes from './Ajustes';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -104,7 +105,7 @@ const Sidebar = () => {
 
         <div className="profile-actions">
           <div className="profile-action-icon">
-            <i className="bx bx-cog"></i>
+            <Link to={"/ajustes"}><i className="bx bx-cog"></i></Link>
           </div>
           <div className="profile-action-icon" onClick={handleLogout} style={{ cursor: 'pointer' }}>
             <i className="bx bx-log-out"></i>

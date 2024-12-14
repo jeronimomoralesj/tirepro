@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import './Nueva.css';
+import './CargaIndividual.css';
 
 const CargaIndividual = () => {
   const [individualTire, setIndividualTire] = useState({
@@ -50,13 +51,28 @@ const CargaIndividual = () => {
       'costo',
       'kms',
     ];
+
     for (const field of numericFields) {
-      const value = individualTire[field];
-      if (!value || isNaN(Number(value))) {
+      const value = Number(individualTire[field]);
+      if (!value || isNaN(value)) {
         alert(`El campo "${field.replace('_', ' ')}" debe ser un número válido.`);
         return false;
       }
+
+      // Validate profundidades to be within 0 and 30 
+      if (
+        ['profundidad_int', 'profundidad_cen', 'profundidad_ext', 'profundidad_inicial'].includes(
+          field
+        ) &&
+        (value < 0 || value > 30)
+      ) {
+        alert(
+          `El campo "${field.replace('_', ' ')}" debe estar entre 0 y 30.`
+        );
+        return false;
+      }
     }
+
     return true;
   };
 
