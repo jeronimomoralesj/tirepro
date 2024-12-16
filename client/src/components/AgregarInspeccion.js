@@ -240,10 +240,13 @@ const AgregarInspeccion = () => {
               cen: tire.profundidad_cen?.[tire.profundidad_cen.length - 1]?.value || 0,
               ext: tire.profundidad_ext?.[tire.profundidad_ext.length - 1]?.value || 0,
             };
+            const currentPos = tire.pos?.[tire.pos.length - 1]?.value || 'N/A';
             return (
               <div key={tire._id} className="tire-card">
                 <p><strong>Placa:</strong> {tire.placa}</p>
                 <p><strong>Llanta:</strong> {tire.llanta}</p>
+                <p><strong>Marca:</strong> {tire.marca}</p>
+                <p><strong>Posición:</strong> {currentPos}</p>
                 {['profundidad_int', 'profundidad_cen', 'profundidad_ext'].map((field) => (
                   <div key={field}>
                     <label>{field.replace('_', ' ')}</label>

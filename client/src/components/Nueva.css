@@ -23,11 +23,12 @@
   display: flex;
   justify-content: space-between;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .section-button {
   flex: 1;
-  margin: 0 5px;
+  margin: 5px;
   padding: 10px 20px;
   font-size: 16px;
   font-weight: bold;
@@ -37,6 +38,7 @@
   border-radius: 5px;
   cursor: pointer;
   transition: all 0.3s ease;
+  min-width: 120px;
 }
 
 .section-button.active {
@@ -217,4 +219,18 @@
   background-color: #2f70ba;
 }
 
+/* Responsive Design */
+@media screen and (max-width: 600px) {
+  .nueva-container {
+    padding: 10px;
+  }
 
+  .button-container {
+    flex-direction: column;
+  }
+
+  .section-button {
+    margin: 5px 0;
+    width: 100%;
+  }
+}
