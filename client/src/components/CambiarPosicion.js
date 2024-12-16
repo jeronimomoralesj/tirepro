@@ -26,14 +26,14 @@ const CambiarPosicion = () => {
     }
 
     try {
-      const response = await axios.get(`http://localhost:5001/api/tires/user/${userId}`, {
+      const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       const fetchedTires = response.data.filter((tire) => tire.placa.toLowerCase() === placa.toLowerCase());
       if (fetchedTires.length > 0) {
         // Fetch event data for the tires
-        const eventResponse = await axios.get(`http://localhost:5001/api/events/user/${userId}`, {
+        const eventResponse = await axios.get(`https://tirepro.onrender.com/api/events/user/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -126,7 +126,7 @@ const CambiarPosicion = () => {
       // Update historical fields (e.g., `pos`, `kilometraje_actual`)
       if (historicalUpdates.length > 0) {
         await axios.put(
-          'http://localhost:5001/api/tires/update-field',
+          'https://tirepro.onrender.com/api/tires/update-field',
           { tireUpdates: historicalUpdates },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -135,7 +135,7 @@ const CambiarPosicion = () => {
       // Update non-historical fields (e.g., `eje`, `placa`, `tipovhc`, `frente`)
       if (nonHistoricalUpdates.length > 0) {
         await axios.put(
-          'http://localhost:5001/api/tires/update-nonhistorics',
+          'https://tirepro.onrender.com/api/tires/update-nonhistorics',
           { updates: nonHistoricalUpdates },
           { headers: { Authorization: `Bearer ${token}` } }
         );

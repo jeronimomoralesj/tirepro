@@ -22,7 +22,7 @@ const Home = () => {
   const [totalCost, setTotalCost] = useState(0);
   const [averageCPK, setAverageCPK] = useState(0);
   const [averageProjectedCPK, setAverageProjectedCPK] = useState(0);
-  const [lastMonthInvestment, setLastMonthInvestment] = useState(2003); // Static for now
+  const [lastMonthInvestment, setLastMonthInvestment] = useState(10000000); // Static for now
   const [charts, setCharts] = useState([{ id: 0 }]); // Array to store chart configurations
 
   // Fetch tire data on mount

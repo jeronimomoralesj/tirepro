@@ -163,6 +163,8 @@ const CambiarOtherEvents = () => {
                   <option value="">Seleccione una opción</option>
                   <option value="fin">Fin de Vida</option>
                   <option value="pinchazo">Pinchazo</option>
+                  <option value="pinchazo">Cacehtona</option>
+                  <option value="pinchazo">Cristalizada</option>
                 </select>
 
                 <button onClick={handleAction} disabled={isLoading}>

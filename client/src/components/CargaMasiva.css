@@ -1,0 +1,112 @@
+.section.masiva-section {
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .section.masiva-section:hover {
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    transform: translateY(-5px);
+  }
+  
+  .section.masiva-section h3 {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 25px;
+    color: #2c3e50;
+    font-weight: 600;
+    position: relative;
+  }
+  
+  .section.masiva-section h3::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background-color: #0a183a;
+  }
+  
+  .file-input {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    margin: 20px 0;
+    border: 2px dashed #0a183a;
+    border-radius: 8px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .file-input:hover {
+    border-color: #2980b9;
+    background-color: rgba(52, 152, 219, 0.05);
+  }
+  
+  .file-input::file-selector-button {
+    display: none;
+  }
+  
+  .file-input::-webkit-file-upload-button {
+    display: none;
+  }
+  
+  .upload-button {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    margin-top: 25px;
+    font-size: 16px;
+    color: #ffffff;
+    background-color: #0a183a;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    text-transform: uppercase;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .upload-button:hover:not(:disabled) {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .upload-button:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .upload-button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 600px) {
+    .section.masiva-section {
+        margin: 20px;
+        padding: 20px;
+    }
+  }
+  
+  /* Small Animation for File Upload */
+  @keyframes fileUploadHover {
+    0% { border-color: #3498db; }
+    50% { border-color: #2ecc71; }
+    100% { border-color: #3498db; }
+  }
+  
+  .file-input.drag-over {
+    animation: fileUploadHover 1.5s infinite;
+  }
