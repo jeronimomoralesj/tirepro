@@ -6,10 +6,11 @@ const generateToken = (user) => {
     {
       user: {
         id: user._id.toString(),
+        companyId: user.companyId, // Add companyId to the payload
       },
     },
-    process.env.JWT_SECRET, // Use secret from .env
-    { expiresIn: '1h' } // Token expiration time
+    process.env.JWT_SECRET,
+    { expiresIn: '1h' }
   );
 };
 

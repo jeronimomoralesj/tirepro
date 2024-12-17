@@ -6,14 +6,13 @@ import {jwtDecode} from 'jwt-decode';
 import './Sidebar.css';
 import logo from "../img/logo.png";
 import logo_text from "../img/logo_text.png"
-import Ajustes from './Ajustes';
 
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userName, setUserName] = useState('');
-  const [userRole, setUserRole] = useState(''); // to check if user is admin
+  const [userRole, setUserRole] = useState('');
 
   const isActive = (path) => location.pathname === path;
 
@@ -39,7 +38,7 @@ const Sidebar = () => {
           });
           const { name, role } = response.data;
           setUserName(name.length > 16 ? name.substring(0, 16) + '...' : name);
-          setUserRole(role); // Set role for conditionally rendering sidebar links
+          setUserRole(role);
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -54,7 +53,7 @@ const Sidebar = () => {
       <div className="logo-section">
         <div className="logo">
           <img src={logo} alt="Catalog Logo" />
-          <span className="logo-text"><img src={logo_text} alt="Catalog Logo" style={{ height:"20px" }} /></span>
+          <span className="logo-text"><img src={logo_text} alt="Catalog Logo" style={{ height: "20px" }} /></span>
         </div>
         <div className="burger-icon" onClick={toggleMenu}>
           <i className="bx bx-menu"></i>
@@ -62,7 +61,7 @@ const Sidebar = () => {
       </div>
 
       <div className={`menu ${isMenuOpen ? 'menu-open' : ''}`}>
-        {userRole === 'admin' && (
+        {userRole === 'admin' ? (
           <>
             <Link to="/home" className={`menu-item ${isActive('/home') ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>
               <i className="menu-icon bx bx-home"></i>
@@ -80,16 +79,19 @@ const Sidebar = () => {
               <i className="menu-icon bx bx-map"></i>
               <span className="menu-text">Uso</span>
             </Link>
+            <Link to="/nueva" className={`menu-item ${isActive('/nueva') ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>
+              <i className="menu-icon bx bx-plus"></i>
+              <span className="menu-text">Nueva</span>
+            </Link>
+            <Link to="/soporte" className={`menu-item ${isActive('/soporte') ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>
+              <i className="menu-icon bx bx-phone"></i>
+              <span className="menu-text">Soporte</span>
+            </Link>
           </>
-        )}
-        <Link to="/nueva" className={`menu-item ${isActive('/nueva') ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>
-          <i className="menu-icon bx bx-plus"></i>
-          <span className="menu-text">Nueva</span>
-        </Link>
-        {userRole === 'admin' && (
-          <Link to="/soporte" className={`menu-item ${isActive('/soporte') ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>
-            <i className="menu-icon bx bx-phone"></i>
-            <span className="menu-text">Soporte</span>
+        ) : (
+          <Link to="/nuevanormal" className={`menu-item ${isActive('/nuevanormal') ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>
+            <i className="menu-icon bx bx-plus"></i>
+            <span className="menu-text">Nueva</span>
           </Link>
         )}
       </div>
@@ -105,7 +107,7 @@ const Sidebar = () => {
 
         <div className="profile-actions">
           <div className="profile-action-icon">
-            <Link to={"/ajustes"}><i className="bx bx-cog"></i></Link>
+            <Link to="/ajustes"><i className="bx bx-cog"></i></Link>
           </div>
           <div className="profile-action-icon" onClick={handleLogout} style={{ cursor: 'pointer' }}>
             <i className="bx bx-log-out"></i>

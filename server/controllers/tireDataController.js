@@ -3,6 +3,23 @@ const Event = require('../models/event'); // Ensure Event model is correctly imp
 const xlsx = require('xlsx');
 
 // Function to fetch tire data by user
+
+const getTireDataByCompany = async (req, res) => {
+  try {
+    const { companyId } = req.params;
+    console.log('Received CompanyID:', companyId);
+
+    const tireData = await TireData.find({ companyId });
+    res.json(tireData);
+  } catch (error) {
+    console.error('Error fetching tires by company ID:', error);
+    res.status(500).json({ msg: 'Server error' });
+  }
+};
+
+
+
+
 const getTireDataByUser = async (req, res) => {
   try {
     const userId = req.params.user;
@@ -401,4 +418,5 @@ module.exports = {
   updateInspectionDate,
   createTire,
   updateNonHistorics,
+  getTireDataByCompany,
 };
