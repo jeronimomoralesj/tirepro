@@ -6,7 +6,7 @@ import './Login.css';
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
-  const [isLoading, setIsLoading] = useState(false); // Loading state
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) =>
@@ -14,33 +14,37 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true); // Start loading
+    setIsLoading(true);
     try {
-      const res = await axios.post('https://tirepro.onrender.com/api/auth/login', formData);
+      // API call for login
+      const res = await axios.post('http://localhost:5001/api/auth/login', formData);
       const token = res.data.token;
-      localStorage.setItem('token', token); // Save token to local storage
+      localStorage.setItem('token', token);
 
-      // Decode token to get user ID
+      // Decode the token
       const decodedToken = jwtDecode(token);
+
       const userId = decodedToken.user.id;
 
-      // Fetch user role based on ID
-      const userRes = await axios.get(`https://tirepro.onrender.com/api/auth/users/${userId}`, {
+      // Fetch additional user data
+      const userRes = await axios.get(`http://localhost:5001/api/auth/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       const userRole = userRes.data.role;
+      const companyId = userRes.data.companyId;
 
       // Navigate based on role
       if (userRole === 'admin') {
-        navigate('/home'); // Redirect to home if admin
+        navigate('/home');
       } else {
-        navigate('/nueva'); // Redirect to nueva if regular user
+        navigate('/nueva');
       }
     } catch (err) {
       console.error('Error during login:', err);
       alert('Error during login. Please try again.');
     } finally {
-      setIsLoading(false); // Stop loading
+      setIsLoading(false);
     }
   };
 
@@ -48,7 +52,7 @@ const Login = () => {
     <div className="login-container">
       <div className="login-card">
         <h2 className="login-title">Bienvenido</h2>
-        {isLoading ? ( // Show spinner if loading
+        {isLoading ? (
           <div className="loading-spinner"></div>
         ) : (
           <form onSubmit={handleSubmit}>

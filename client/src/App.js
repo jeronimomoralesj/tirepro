@@ -14,6 +14,7 @@ import Uso from './components/Uso';
 import Nueva from './components/Nueva';
 import Soporte from './components/Soporte';
 import Ajustes from './components/Ajustes';
+import NuevaEmpleado from './components/NuevaEmpleado';
 
 function App() {
   return (
@@ -37,6 +38,15 @@ function App() {
           }
         />
 
+<Route
+          path="/register"
+          element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          }
+        />
+
         {/* Sidebar Layout for Protected Routes */}
         <Route
           path="/"
@@ -53,6 +63,7 @@ function App() {
           <Route path="nueva" element={<Nueva />} />
           <Route path="soporte" element={<Soporte />} />
           <Route path="ajustes" element={<Ajustes />} />
+          <Route path="nuevanormal" element={<NuevaEmpleado />} />
           {/* Add other nested routes here */}
         </Route>
       </Routes>

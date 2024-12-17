@@ -3,8 +3,9 @@ const bcrypt = require('bcryptjs');
 const { generateToken } = require('../utils/authUtils');
 
 // Registration controller
+// Registration controller
 const registerUser = async (req, res) => {
-  const { name, email, password, company, role } = req.body;
+  const { name, email, password, company, role, placa } = req.body;
 
   try {
     // Check if user already exists
@@ -17,6 +18,16 @@ const registerUser = async (req, res) => {
     const validRoles = ['admin', 'regular'];
     const userRole = validRoles.includes(role) ? role : 'regular';
 
+    // Validate placa input only if the role is 'regular'
+    let placasArray = [];
+    if (userRole === 'regular') {
+      if (placa && Array.isArray(placa)) {
+        placasArray = placa;
+      } else {
+        return res.status(400).json({ msg: 'Placa must be an array of strings for regular users.' });
+      }
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -27,6 +38,7 @@ const registerUser = async (req, res) => {
       password: hashedPassword,
       company,
       role: userRole,
+      placa: placasArray, // Include placa only if user role is 'regular'
     });
 
     await newUser.save();
@@ -37,12 +49,13 @@ const registerUser = async (req, res) => {
   }
 };
 
+
 // Login controller
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select('id companyId password');
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ msg: 'Invalid email or password' });
     }
@@ -57,19 +70,28 @@ const loginUser = async (req, res) => {
   }
 };
 
+
 // Get user by ID controller
 const getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.userId).select('name role email company companyId');
+    const user = await User.findById(req.params.userId).select('name role email company companyId placa');
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
-    res.status(200).json({ name: user.name, role: user.role, email: user.email, company: user.company, companyId: user.companyId });
+    res.status(200).json({
+      name: user.name,
+      role: user.role,
+      email: user.email,
+      company: user.company,
+      companyId: user.companyId,
+      placa: user.placa,
+    });
   } catch (error) {
     console.error('Error fetching user:', error.message);
     res.status(500).json({ msg: 'Server error' });
   }
 };
+
 
 module.exports = {
   registerUser,
