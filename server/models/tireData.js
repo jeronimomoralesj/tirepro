@@ -1,10 +1,19 @@
 const mongoose = require('mongoose');
 
+// Schema for historical values
 const HistoricalValueSchema = new mongoose.Schema({
   day: { type: Number, required: true },
   month: { type: Number, required: true },
   year: { type: Number, required: true },
   value: { type: mongoose.Schema.Types.Mixed, required: true }, // Store as string or number
+});
+
+// Schema for life-related data (used in primera_vida and additional_life)
+const LifeSchema = new mongoose.Schema({
+  banda: { type: String, required: true }, // Banda details
+  kms: { type: Number, required: true },  // Kilometers
+  cpk: { type: Number, required: true },  // Cost per kilometer
+  costo: { type: Number, required: true }, // Cost value
 });
 
 const TireDataSchema = new mongoose.Schema(
@@ -38,6 +47,8 @@ const TireDataSchema = new mongoose.Schema(
     costo_remanente: { type: Number, required: true, default: 0 },
     proyeccion_fecha: { type: Date, required: true, default: Date.now },
     ultima_inspeccion: { type: Date, required: true, default: Date.now },
+    primera_vida: { type: [LifeSchema], default: [] }, // Array for primera_vida details
+    additional_life: { type: [LifeSchema], default: [] }, // Array for additional life details
     user: { type: String, required: true },
   },
   { collection: 'tire_data' }

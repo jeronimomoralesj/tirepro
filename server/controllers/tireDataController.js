@@ -18,8 +18,6 @@ const getTireDataByCompany = async (req, res) => {
 };
 
 
-
-
 const getTireDataByUser = async (req, res) => {
   try {
     const userId = req.params.user;
@@ -409,6 +407,38 @@ const updateNonHistorics = async (req, res) => {
 };
 
 
+const addPrimeraVidaDetails = async (req, res) => {
+  try {
+    const { tireId } = req.body;
+
+    // Find the tire by ID
+    const tire = await TireData.findById(tireId);
+
+    if (!tire) {
+      return res.status(404).json({ msg: 'Tire not found.' });
+    }
+
+    const currentCosto = tire.costo || 0;
+    const lastCPK = tire.cpk.length > 0 ? tire.cpk[tire.cpk.length - 1].value : 0;
+    const lastKms = tire.kms.length > 0 ? tire.kms[tire.kms.length - 1].value : 0;
+    const currentBanda = tire.banda || 'N/A';
+
+    // Add details to primera_vida
+    tire.primera_vida.push({
+      banda: currentBanda,
+      kms: lastKms,
+      cpk: lastCPK,
+      costo: currentCosto,
+    });
+
+    await tire.save();
+
+    res.status(200).json({ msg: 'Primera vida details added successfully.', tire });
+  } catch (error) {
+    console.error('Error updating primera_vida:', error);
+    res.status(500).json({ msg: 'Server error.', error: error.message });
+  }
+};
 
 
 module.exports = {
@@ -419,4 +449,5 @@ module.exports = {
   createTire,
   updateNonHistorics,
   getTireDataByCompany,
+  addPrimeraVidaDetails,
 };

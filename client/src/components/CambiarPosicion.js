@@ -3,68 +3,73 @@ import axios from 'axios';
 import './CambiarPosicion.css';
 
 const CambiarPosicion = () => {
-  const [placas, setPlacas] = useState(['']); // Array to hold multiple placas
-  const [tires, setTires] = useState([]);
+  const [placas, setPlacas] = useState(['']); // Array of placas
+  const [tires, setTires] = useState([]); // Tires fetched for placas
   const [positionUpdates, setPositionUpdates] = useState({});
+  const [previousValues, setPreviousValues] = useState({}); // Store previous values for swapping
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Add a new empty placa
-  const handleAddPlaca = () => {
-    setPlacas([...placas, '']);
-  };
+  const token = localStorage.getItem('token');
+  const decodedToken = token ? JSON.parse(atob(token.split('.')[1])) : null;
+  const companyId = decodedToken?.user?.companyId;
 
-  // Update a specific placa in the array
+  // Add a new empty placa input
+  const handleAddPlaca = () => setPlacas([...placas, '']);
+
+  // Update the placa array
   const handlePlacaChange = (index, value) => {
     const updatedPlacas = [...placas];
     updatedPlacas[index] = value;
     setPlacas(updatedPlacas);
   };
 
-  // Search for tires associated with the provided placas
+  // Fetch tires for entered placas
   const handleSearch = async () => {
     if (placas.some((placa) => !placa.trim())) {
       alert('Por favor, asegúrese de que todas las placas ingresadas sean válidas.');
       return;
     }
-
+  
     setIsLoading(true);
     setErrorMessage('');
-    const token = localStorage.getItem('token');
-    const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
-
-    if (!userId) {
-      alert('Usuario no identificado.');
-      setIsLoading(false);
-      return;
-    }
-
+  
     try {
-      const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const fetchedTires = response.data.filter((tire) =>
-        placas.some((placa) => tire.placa.toLowerCase() === placa.toLowerCase())
+      const response = await axios.get(
+        `https://tirepro.onrender.com/api/tires/user/${companyId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
+  
+      const fetchedTires = response.data
+        .filter((tire) =>
+          placas.some((placa) => tire.placa.toLowerCase() === placa.toLowerCase())
+        )
+        .sort((a, b) => {
+          // Sort by the latest pos value
+          const posA = a.pos?.at(-1)?.value || 0;
+          const posB = b.pos?.at(-1)?.value || 0;
+          return posA - posB; // Ascending order
+        });
+  
       if (fetchedTires.length > 0) {
-        const eventResponse = await axios.get(`https://tirepro.onrender.com/api/events/user/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const fetchedEvents = eventResponse.data;
-
-        const tiresWithEventIds = fetchedTires.map((tire) => {
-          const event = fetchedEvents.find((e) => e.llanta === tire.llanta);
-          return { ...tire, eventId: event?._id || null };
-        });
-
-        setTires(tiresWithEventIds);
+        setTires(fetchedTires);
+        setPreviousValues(
+          fetchedTires.reduce((acc, tire) => {
+            const key = `${tire.placa}-${tire.pos?.at(-1)?.value}`;
+            acc[key] = {
+              frente: tire.frente,
+              tipoVhc: tire.tipovhc,
+              kilometrajeActual: tire.kilometraje_actual?.at(-1)?.value || 0,
+            };
+            return acc;
+          }, {})
+        );
         setPositionUpdates(
-          tiresWithEventIds.reduce((acc, tire) => {
-            const currentPos = tire.pos?.at(-1)?.value || '';
-            acc[tire._id] = { newPos: currentPos, newPlaca: tire.placa };
+          fetchedTires.reduce((acc, tire) => {
+            acc[tire._id] = {
+              newPlaca: tire.placa,
+              newPos: tire.pos?.at(-1)?.value || '',
+            };
             return acc;
           }, {})
         );
@@ -78,74 +83,59 @@ const CambiarPosicion = () => {
       setIsLoading(false);
     }
   };
+  
 
-  // Check for duplicate positions within the same placa
-  const hasDuplicatePositions = () => {
-    const positionMap = {};
+  // Swap values between tires correctly
+  const handleValueTransfer = (tireId, targetPlaca, targetPos) => {
+    const newKey = `${targetPlaca}-${targetPos}`;
+    const oldKey = `${positionUpdates[tireId]?.newPlaca}-${positionUpdates[tireId]?.newPos}`;
 
-    for (const tire of tires) {
-      const newPlaca = positionUpdates[tire._id]?.newPlaca || tire.placa;
-      const newPos = positionUpdates[tire._id]?.newPos || tire.pos?.at(-1)?.value;
+    const inheritedValues = previousValues[newKey] || {};
+    const currentValues = previousValues[oldKey] || {};
 
-      if (!newPlaca || !newPos) continue;
+    setPreviousValues((prev) => ({
+      ...prev,
+      [oldKey]: { ...currentValues }, // Store current tire's values to its old position
+      [newKey]: { ...currentValues }, // Pass values to the new position
+    }));
 
-      if (positionMap[newPlaca]?.includes(newPos)) {
-        return true;
-      }
-
-      if (!positionMap[newPlaca]) {
-        positionMap[newPlaca] = [];
-      }
-      positionMap[newPlaca].push(newPos);
-    }
-
-    return false;
+    setPositionUpdates((prev) => ({
+      ...prev,
+      [tireId]: {
+        newPlaca: targetPlaca,
+        newPos: targetPos,
+        frente: inheritedValues.frente || '',
+        tipoVhc: inheritedValues.tipoVhc || '',
+        kilometrajeActual: inheritedValues.kilometrajeActual || 0,
+      },
+    }));
   };
 
-  // Save updates for tire positions and fields
+  // Save updates to the backend
   const handleSaveUpdates = async () => {
-    if (hasDuplicatePositions()) {
-      alert('No se puede asignar la misma posición a dos llantas diferentes en el mismo vehículo.');
-      return;
-    }
-
-    const token = localStorage.getItem('token');
     const historicalUpdates = [];
     const nonHistoricalUpdates = [];
-    const eventUpdates = [];
 
     tires.forEach((tire) => {
-      const newPlaca = positionUpdates[tire._id]?.newPlaca || tire.placa;
-      const newPos = positionUpdates[tire._id]?.newPos || tire.pos?.at(-1)?.value;
+      const { newPlaca, newPos, frente, tipoVhc, kilometrajeActual } = positionUpdates[tire._id];
 
       if (newPlaca !== tire.placa || newPos !== tire.pos?.at(-1)?.value) {
-        // Historical updates for `pos`
-        historicalUpdates.push({
-          tireId: tire._id,
-          field: 'pos',
-          newValue: newPos,
-        });
+        historicalUpdates.push(
+          { tireId: tire._id, field: 'pos', newValue: newPos },
+          { tireId: tire._id, field: 'kilometraje_actual', newValue: kilometrajeActual }
+        );
 
-        // Non-historical updates for other fields
-        nonHistoricalUpdates.push({
-          tireId: tire._id,
-          field: 'placa',
-          newValue: newPlaca,
-        });
-
-        // Event updates for `pos`
-        if (tire.eventId) {
-          eventUpdates.push({
-            eventId: tire.eventId,
-            field: 'pos',
-            newValue: newPos,
-          });
-        }
+        nonHistoricalUpdates.push(
+          { tireId: tire._id, field: 'placa', newValue: newPlaca },
+          { tireId: tire._id, field: 'frente', newValue: frente },
+          { tireId: tire._id, field: 'tipovhc', newValue: tipoVhc }
+        );
       }
     });
 
     try {
-      // Update historical fields in `tires`
+      setIsLoading(true);
+
       if (historicalUpdates.length > 0) {
         await axios.put(
           'https://tirepro.onrender.com/api/tires/update-field',
@@ -154,7 +144,6 @@ const CambiarPosicion = () => {
         );
       }
 
-      // Update non-historical fields in `tires`
       if (nonHistoricalUpdates.length > 0) {
         await axios.put(
           'https://tirepro.onrender.com/api/tires/update-nonhistorics',
@@ -163,24 +152,13 @@ const CambiarPosicion = () => {
         );
       }
 
-      // Update `events` collection for `pos`
-      if (eventUpdates.length > 0) {
-        for (const update of eventUpdates) {
-          await axios.put(
-            'https://tirepro.onrender.com/api/events/update-field',
-            update,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-        }
-      }
-
-      alert('Actualización completada con éxito.');
+      alert('Cambios guardados exitosamente.');
       setTires([]);
       setPlacas(['']);
       setPositionUpdates({});
     } catch (error) {
-      console.error('Error updating positions and fields:', error);
-      alert('Error al actualizar posiciones y campos.');
+      console.error('Error saving updates:', error);
+      alert('Error al guardar los cambios.');
     } finally {
       setIsLoading(false);
     }
@@ -197,35 +175,37 @@ const CambiarPosicion = () => {
           {isLoading ? 'Buscando...' : 'Buscar'}
         </button>
       </div>
-      <br />
+
       <div className="placas-row">
         {placas.map((placa, index) => (
           <div key={index} className="placa-column">
-            <div className="placa-header">
-              <input
-                type="text"
-                placeholder={`Ingrese placa ${index + 1}`}
-                value={placa}
-                onChange={(e) => handlePlacaChange(index, e.target.value)}
-                className="placa-input"
-              />
-            </div>
+            <h4>Placa: {placa}</h4>
+            <input
+              type="text"
+              placeholder={`Placa ${index + 1}`}
+              value={placa}
+              onChange={(e) => handlePlacaChange(index, e.target.value)}
+              className="placa-input"
+            />
             <div className="tire-cards">
               {tires
-                .filter((tire) => tire.placa === placa || positionUpdates[tire._id]?.newPlaca === placa)
+                .filter((tire) => tire.placa === placa)
                 .map((tire) => (
                   <div key={tire._id} className="tire-card">
+                    <p><strong>Llanta:</strong> {tire.llanta}</p>
+                    <p><strong>Marca:</strong> {tire.marca}</p>
                     <p>
-                      <strong>Llanta:</strong> {tire.llanta}
-                    </p>
-                    <p>
-                      <strong>Marca:</strong> {tire.marca}
-                    </p>
-                    <p>
-                      <strong>Placa actual:</strong>{' '}
+                      <strong>Placa:</strong>
                       <input
                         type="text"
-                        value={positionUpdates[tire._id]?.newPlaca || tire.placa}
+                        value={positionUpdates[tire._id]?.newPlaca}
+                        onBlur={() =>
+                          handleValueTransfer(
+                            tire._id,
+                            positionUpdates[tire._id]?.newPlaca,
+                            positionUpdates[tire._id]?.newPos
+                          )
+                        }
                         onChange={(e) =>
                           setPositionUpdates((prev) => ({
                             ...prev,
@@ -236,17 +216,21 @@ const CambiarPosicion = () => {
                       />
                     </p>
                     <p>
-                      <strong>Posición actual:</strong>{' '}
+                      <strong>Posición:</strong>
                       <input
                         type="number"
-                        value={positionUpdates[tire._id]?.newPos || tire.pos?.at(-1)?.value}
+                        value={positionUpdates[tire._id]?.newPos}
+                        onBlur={() =>
+                          handleValueTransfer(
+                            tire._id,
+                            positionUpdates[tire._id]?.newPlaca,
+                            positionUpdates[tire._id]?.newPos
+                          )
+                        }
                         onChange={(e) =>
                           setPositionUpdates((prev) => ({
                             ...prev,
-                            [tire._id]: {
-                              ...prev[tire._id],
-                              newPos: parseInt(e.target.value, 10) || 0,
-                            },
+                            [tire._id]: { ...prev[tire._id], newPos: parseInt(e.target.value, 10) || 0 },
                           }))
                         }
                         className="tire-input"
@@ -258,6 +242,7 @@ const CambiarPosicion = () => {
           </div>
         ))}
       </div>
+
       <div className="save-button-container">
         <button onClick={handleSaveUpdates} className="save-button" disabled={isLoading}>
           {isLoading ? 'Guardando...' : 'Guardar Cambios'}

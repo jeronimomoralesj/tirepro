@@ -1,28 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
 import './Nueva.css';
 
 const NuevaEmpleado = () => {
-  const [placas, setPlacas] = useState([]);
-  const [selectedPlaca, setSelectedPlaca] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [filteredTires, setFilteredTires] = useState([]);
   const [profundidadUpdates, setProfundidadUpdates] = useState({});
   const [presionUpdates, setPresionUpdates] = useState({});
   const [kilometrajeActual, setKilometrajeActual] = useState('');
   const [loading, setLoading] = useState(false);
+  const [addPressure, setAddPressure] = useState(false);
+  const [placas, setPlacas] = useState([]);
+  const [selectedPlaca, setSelectedPlaca] = useState('');
 
   const token = localStorage.getItem('token');
-  const decodedToken = token ? jwtDecode(token) : null;
-  const userId = decodedToken?.user?.id;
+  const decodedToken = token ? JSON.parse(atob(token.split('.')[1])) : null;
   const companyId = decodedToken?.user?.companyId;
 
   useEffect(() => {
-    const fetchUserPlacas = async () => {
-      if (!userId || !token) return;
+    const fetchPlacas = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5001/api/auth/users/${userId}`,
+          `https://tirepro.onrender.com/api/auth/users/${decodedToken.user.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setPlacas(response.data.placa || []);
@@ -31,8 +30,8 @@ const NuevaEmpleado = () => {
         alert('Error al obtener las placas.');
       }
     };
-    fetchUserPlacas();
-  }, [userId, token]);
+    fetchPlacas();
+  }, [token, decodedToken]);
 
   const handleSearch = async () => {
     if (!selectedPlaca) {
@@ -43,15 +42,15 @@ const NuevaEmpleado = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:5001/api/tires/user/${companyId}`,
+        `https://tirepro.onrender.com/api/tires/user/${companyId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const tires = response.data.filter((tire) => tire.placa === selectedPlaca);
       setFilteredTires(tires);
     } catch (error) {
-      console.error('Error fetching tires:', error);
-      alert('Error al obtener llantas.');
+      console.error('Error fetching tire data:', error);
+      alert('Error al obtener datos.');
     } finally {
       setLoading(false);
     }
@@ -59,50 +58,46 @@ const NuevaEmpleado = () => {
 
   const validateFields = () => {
     if (!kilometrajeActual.trim()) {
-      alert('Por favor, ingresa el kilometraje actual.');
+      alert("Por favor, ingresa el kilometraje actual.");
       return false;
     }
 
-    const currentKilometraje = Number(kilometrajeActual);
+    const currentKilometrajeActual = Number(kilometrajeActual);
 
     for (const tire of filteredTires) {
       const profundidades = profundidadUpdates[tire._id] || {};
+      const allProfundidadesFilled =
+        profundidades.profundidad_int != null &&
+        profundidades.profundidad_cen != null &&
+        profundidades.profundidad_ext != null;
 
-      // Check if all required profundidades are filled
-      if (
-        profundidades.profundidad_int == null ||
-        profundidades.profundidad_cen == null ||
-        profundidades.profundidad_ext == null
-      ) {
+      if (!allProfundidadesFilled) {
         alert(`Completa todas las profundidades para la llanta ${tire.llanta}.`);
         return false;
       }
 
-      // Validate kilometraje_actual
-      const lastKilometraje =
+      const lastKilometrajeActual =
         tire.kilometraje_actual?.[tire.kilometraje_actual.length - 1]?.value || 0;
-      if (currentKilometraje < lastKilometraje) {
+
+      if (currentKilometrajeActual < lastKilometrajeActual) {
         alert(
-          `El kilometraje actual (${currentKilometraje}) no puede ser menor que el último registrado (${lastKilometraje}) para la llanta ${tire.llanta}.`
+          `El kilometraje actual (${currentKilometrajeActual}) no puede ser menor que el último valor registrado (${lastKilometrajeActual}) para la llanta ${tire.llanta}.`
         );
         return false;
       }
 
-      // Validate profundidades
-      const lastProfundidades = {
+      const currentProfundidades = {
         int: tire.profundidad_int?.[tire.profundidad_int.length - 1]?.value || 0,
         cen: tire.profundidad_cen?.[tire.profundidad_cen.length - 1]?.value || 0,
         ext: tire.profundidad_ext?.[tire.profundidad_ext.length - 1]?.value || 0,
       };
 
       if (
-        profundidades.profundidad_int > lastProfundidades.int ||
-        profundidades.profundidad_cen > lastProfundidades.cen ||
-        profundidades.profundidad_ext > lastProfundidades.ext
+        profundidades.profundidad_int > currentProfundidades.int ||
+        profundidades.profundidad_cen > currentProfundidades.cen ||
+        profundidades.profundidad_ext > currentProfundidades.ext
       ) {
-        alert(
-          `Las profundidades no pueden ser mayores que las registradas (${lastProfundidades.int}, ${lastProfundidades.cen}, ${lastProfundidades.ext}) para la llanta ${tire.llanta}.`
-        );
+        alert(`Las profundidades no pueden ser mayores que las actuales para la llanta ${tire.llanta}.`);
         return false;
       }
     }
@@ -118,26 +113,35 @@ const NuevaEmpleado = () => {
 
       const updates = filteredTires.map((tire) => {
         const profundidades = profundidadUpdates[tire._id] || {};
+        const proact = Math.min(
+          profundidades.profundidad_int || 0,
+          profundidades.profundidad_cen || 0,
+          profundidades.profundidad_ext || 0
+        );
+
         return [
           { tireId: tire._id, field: 'profundidad_int', newValue: profundidades.profundidad_int },
           { tireId: tire._id, field: 'profundidad_cen', newValue: profundidades.profundidad_cen },
           { tireId: tire._id, field: 'profundidad_ext', newValue: profundidades.profundidad_ext },
+          { tireId: tire._id, field: 'proact', newValue: proact },
         ];
       }).flat();
 
       const tireIds = filteredTires.map((tire) => tire._id);
 
       await axios.put(
-        'http://localhost:5001/api/tires/update-field',
-        { tireUpdates: updates },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      await axios.put(
-        'http://localhost:5001/api/tires/update-inspection-date',
+        'https://tirepro.onrender.com/api/tires/update-inspection-date',
         { tireIds, kilometrajeActual: Number(kilometrajeActual) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      if (updates.length > 0) {
+        await axios.put(
+          'https://tirepro.onrender.com/api/tires/update-field',
+          { tireUpdates: updates },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
 
       alert('Datos actualizados correctamente.');
       setFilteredTires([]);
@@ -145,7 +149,7 @@ const NuevaEmpleado = () => {
       setKilometrajeActual('');
     } catch (error) {
       console.error('Error saving updates:', error);
-      alert('Error al actualizar.');
+      alert('Error al guardar los datos.');
     } finally {
       setLoading(false);
     }
@@ -155,7 +159,6 @@ const NuevaEmpleado = () => {
     <div className="section inspeccion-section">
       <h3>Inspección de Llantas</h3>
 
-      {/* Select Placa */}
       <label>Seleccionar Placa:</label>
       <select
         value={selectedPlaca}
@@ -170,7 +173,7 @@ const NuevaEmpleado = () => {
         ))}
       </select>
 
-      <button className="search-button" onClick={handleSearch} disabled={loading}>
+      <button onClick={handleSearch} className="search-button" disabled={loading}>
         {loading ? 'Buscando...' : 'Buscar'}
       </button>
 
@@ -185,7 +188,6 @@ const NuevaEmpleado = () => {
                   <label>{field.replace('_', ' ')}</label>
                   <input
                     type="number"
-                    className="input-field"
                     onChange={(e) =>
                       setProfundidadUpdates((prev) => ({
                         ...prev,
@@ -195,6 +197,7 @@ const NuevaEmpleado = () => {
                         },
                       }))
                     }
+                    className="input-field"
                   />
                 </div>
               ))}

@@ -1,12 +1,13 @@
 const express = require('express');
 const {
   getTireDataByUser,
-  getTireDataByCompany, // Import the new function
+  getTireDataByCompany,
   uploadTireData,
   updateTireField,
   updateInspectionDate,
   createTire,
   updateNonHistorics,
+  addPrimeraVidaDetails, // Import the function
 } = require('../controllers/tireDataController');
 const router = express.Router();
 const multer = require('multer');
@@ -16,7 +17,7 @@ const upload = multer();
 router.get('/user/:user', getTireDataByUser);
 
 // Route to fetch tire data by company ID
-router.get('/company/:companyId', getTireDataByCompany); // New Route
+router.get('/company/:companyId', getTireDataByCompany);
 
 // Create tire
 router.post('/', createTire);
@@ -32,5 +33,8 @@ router.put('/update-inspection-date', updateInspectionDate);
 
 // Update non-historical fields
 router.put('/update-nonhistorics', updateNonHistorics);
+
+// Add primera_vida details
+router.post('/add-primera-vida', addPrimeraVidaDetails); // New route
 
 module.exports = router;
