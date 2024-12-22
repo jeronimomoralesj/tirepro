@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import './Uso.css';
 import { FaSearch } from 'react-icons/fa';
@@ -13,12 +13,12 @@ const Uso = () => {
   const [cpkValues, setCpkValues] = useState([]);
   const [cpkProyValues, setCpkProyValues] = useState([]);
 
-  const handleSearch = async () => {
+  const fetchTires = async () => {
     try {
+      setErrorMessage('');
+      setTireData([]);
       setSelectedTire(null);
-      setProactValues([]);
-      setCpkValues([]);
-      setCpkProyValues([]);
+
       const token = localStorage.getItem('token');
       if (!token) {
         setErrorMessage('Usuario no identificado');
@@ -26,52 +26,60 @@ const Uso = () => {
       }
 
       const decodedToken = JSON.parse(atob(token.split('.')[1]));
-      const userId = decodedToken?.user?.id;
+      const companyId = decodedToken?.user?.companyId;
 
-      if (!userId) {
-        setErrorMessage('No se encuentra ID de usuario');
+      if (!companyId) {
+        setErrorMessage('No se encuentra ID de la compañía');
         return;
       }
 
-      let response;
       const searchByLlanta = !isNaN(searchTerm);
 
+      const response = await axios.get(
+        `https://tirepro.onrender.com/api/tires/user/${companyId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      let fetchedTires = response.data;
+
+      // Filter tires based on search term
       if (searchByLlanta) {
-        response = await axios.get(`https://tirepro.onrender.com/api/events/user/${userId}`, {
-          params: { llanta: searchTerm },
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        fetchedTires = fetchedTires.filter((tire) => tire.llanta === searchTerm);
       } else {
-        response = await axios.get(`https://tirepro.onrender.com/api/events/user/${userId}`, {
-          params: { placa: searchTerm },
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        fetchedTires = fetchedTires.filter((tire) =>
+          tire.placa.toLowerCase() === searchTerm.toLowerCase()
+        );
       }
 
-      const fetchedEvents = response?.data;
-
-      if (Array.isArray(fetchedEvents) && fetchedEvents.length > 0) {
-        setTireData(fetchedEvents);
-        setErrorMessage('');
-      } else {
+      if (fetchedTires.length === 0) {
         setErrorMessage('No se encontró llanta o placa');
-        setTireData([]);
+        return;
       }
+
+      // Sort tires by position (pos)
+      fetchedTires.sort((a, b) => {
+        const posA = a.pos?.at(-1)?.value || 0;
+        const posB = b.pos?.at(-1)?.value || 0;
+        return posA - posB;
+      });
+
+      setTireData(fetchedTires);
     } catch (error) {
-      console.error('Error fetching events:', error);
-      setErrorMessage('Error fetching data');
-      setTireData([]);
+      console.error('Error fetching tires:', error);
+      setErrorMessage('Error al buscar llantas.');
     }
   };
 
   const fetchInspectionValues = async (llantaId) => {
     try {
       const token = localStorage.getItem('token');
-      const userId = JSON.parse(atob(token.split('.')[1])).user.id;
+      const decodedToken = JSON.parse(atob(token.split('.')[1]));
+      const companyId = decodedToken?.user?.companyId;
 
-      const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `https://tirepro.onrender.com/api/tires/user/${companyId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       const tires = response?.data || [];
       const matchingTire = tires.find((tire) => tire.llanta === llantaId);
@@ -87,9 +95,6 @@ const Uso = () => {
       }
     } catch (error) {
       console.error('Error fetching inspection values:', error);
-      setProactValues([]);
-      setCpkValues([]);
-      setCpkProyValues([]);
     }
   };
 
@@ -99,18 +104,22 @@ const Uso = () => {
   };
 
   const renderTimeline = (tire) => {
+    const vida = Array.isArray(tire.vida) ? tire.vida : [];
+    const pos = Array.isArray(tire.pos) ? tire.pos : [];
+    const otherevents = Array.isArray(tire.otherevents) ? tire.otherevents : [];
+
     const allEvents = [
-      ...tire.vida.map((entry) => ({
+      ...vida.map((entry) => ({
         date: new Date(entry.year, entry.month - 1, entry.day),
         type: 'Vida',
         value: entry.value,
       })),
-      ...tire.pos.map((entry) => ({
+      ...pos.map((entry) => ({
         date: new Date(entry.year, entry.month - 1, entry.day),
         type: 'Posición',
         value: entry.value,
       })),
-      ...tire.otherevents.map((entry) => ({
+      ...otherevents.map((entry) => ({
         date: new Date(entry.year, entry.month - 1, entry.day),
         type: 'Otro Evento',
         value: entry.value,
@@ -179,13 +188,11 @@ const Uso = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <button className="search-button" onClick={handleSearch}>
+        <button className="search-button" onClick={fetchTires}>
           Buscar
         </button>
       </div>
-
       {errorMessage && <p className="error-message">{errorMessage}</p>}
-
       {tireData.length > 0 && (
         <div className="results-container">
           {selectedTire ? (
@@ -213,7 +220,10 @@ const Uso = () => {
                       <td>{tire.llanta}</td>
                       <td>{tire.placa}</td>
                       <td>
-                        <button className="view-button" onClick={() => handleViewHistory(tire)}>
+                        <button
+                          className="view-button"
+                          onClick={() => handleViewHistory(tire)}
+                        >
                           Ver Historial
                         </button>
                       </td>

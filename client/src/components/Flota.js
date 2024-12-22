@@ -7,6 +7,7 @@ import TipoVehiculo from './TipoVehiculo';
 import PorVida from './PorVida';
 import PromedioEje from './PromedioEje';
 import Inspecciones from './Inspecciones';
+import CpkTable from './CpkTable';
 
 const Flota = () => {
   const [tires, setTires] = useState([]);
@@ -198,6 +199,7 @@ const Flota = () => {
           selectedEje={selectedEje}
         />
         <Inspecciones tires={filteredTires} />
+        <CpkTable tires={filteredTires} />
 
       </div>
     </div>

@@ -17,7 +17,7 @@ const Login = () => {
     setIsLoading(true);
     try {
       // API call for login
-      const res = await axios.post('http://localhost:5001/api/auth/login', formData);
+      const res = await axios.post('https://tirepro.onrender.com/api/auth/login', formData);
       const token = res.data.token;
       localStorage.setItem('token', token);
 
@@ -27,7 +27,7 @@ const Login = () => {
       const userId = decodedToken.user.id;
 
       // Fetch additional user data
-      const userRes = await axios.get(`http://localhost:5001/api/auth/users/${userId}`, {
+      const userRes = await axios.get(`https://tirepro.onrender.com/api/auth/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

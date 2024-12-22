@@ -6,6 +6,9 @@ const CambiarVida = () => {
   const [tireData, setTireData] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [newVida, setNewVida] = useState('');
+  const [newBanda, setNewBanda] = useState('');
+  const [newCosto, setNewCosto] = useState('');
+  const [newProfundidadInicial, setNewProfundidadInicial] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   // Function to fetch tire and event data
@@ -23,7 +26,7 @@ const CambiarVida = () => {
       const userId = decodedToken?.user?.id;
 
       // Fetch tire data by user and `llanta`
-      const tireResponse = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
+      const tireResponse = await axios.get(`http://localhost:5001/api/tires/user/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -40,7 +43,7 @@ const CambiarVida = () => {
       }
 
       // Fetch event data for the same tire
-      const eventResponse = await axios.get(`https://tirepro.onrender.com/api/events/user/${userId}`, {
+      const eventResponse = await axios.get(`http://localhost:5001/api/events/user/${userId}`, {
         params: { llanta: searchTerm },
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -58,10 +61,18 @@ const CambiarVida = () => {
     }
   };
 
-  // Function to update `vida` in both collections
-  const handleVidaChange = async () => {
-    if (!newVida) {
-      alert('Por favor, seleccione un nuevo valor para la vida.');
+  // Recalculate CPK and CPK_Proy
+  const calculateCPK = (costo, kms) => (kms > 0 ? costo / kms : 0);
+  const calculateProjectedCPK = (costo, kms, profundidadInicial, proact) => {
+    if (proact >= profundidadInicial) return 0; // Avoid division by zero
+    const projectedKms = (kms / (profundidadInicial - proact)) * profundidadInicial;
+    return projectedKms > 0 ? costo / projectedKms : 0;
+  };
+
+  // Function to handle all updates with one button
+  const handleUpdate = async () => {
+    if (!newVida && !newBanda && !newCosto && !newProfundidadInicial) {
+      alert('Por favor, seleccione un nuevo valor para vida, banda, costo o profundidad inicial.');
       return;
     }
 
@@ -70,29 +81,136 @@ const CambiarVida = () => {
       const token = localStorage.getItem('token');
       const tireId = tireData._id; // Tire ID
       const eventId = tireData.eventId; // Event ID
-      const value = newVida; // Only send the value
 
-      // Update the `vida` field in the `events` collection
-      if (eventId) {
+      // Step 1: Add current details to primera_vida
+      await axios.post(
+        'http://localhost:5001/api/tires/add-primera-vida',
+        { tireId },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // Step 2: Update the `vida` field in the `events` collection
+      if (newVida && eventId) {
         await axios.put(
-          'https://tirepro.onrender.com/api/events/update-field',
-          { eventId, field: 'vida', newValue: value },
+          'http://localhost:5001/api/events/update-field',
+          { eventId, field: 'vida', newValue: newVida },
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
       }
 
-      // Update the `vida` field in the `tire data` collection
+      // Step 3: Update the `vida` field in the `tireData` collection
+      if (newVida) {
+        await axios.put(
+          'http://localhost:5001/api/tires/update-field',
+          {
+            tireUpdates: [
+              {
+                tireId,
+                field: 'vida',
+                newValue: newVida,
+              },
+            ],
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+      }
+
+      // Step 4: Update the `banda` field directly in `tireData`
+      if (newBanda) {
+        await axios.put(
+          'http://localhost:5001/api/tires/update-nonhistorics',
+          {
+            updates: [
+              {
+                tireId,
+                field: 'banda',
+                newValue: newBanda,
+              },
+            ],
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+      }
+
+      // Step 5: Update profundidad_inicial and related fields
+      if (newProfundidadInicial) {
+        const profundidadValue = parseFloat(newProfundidadInicial);
+
+        // Update `profundidad_inicial` as a non-historical value
+        await axios.put(
+          'http://localhost:5001/api/tires/update-nonhistorics',
+          {
+            updates: [
+              { tireId, field: 'profundidad_inicial', newValue: profundidadValue },
+            ],
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        // Update `profundidad_int`, `profundidad_cen`, `profundidad_ext`, and `proact` with the same value
+        const updates = [
+          { tireId, field: 'profundidad_int', newValue: profundidadValue },
+          { tireId, field: 'profundidad_cen', newValue: profundidadValue },
+          { tireId, field: 'profundidad_ext', newValue: profundidadValue },
+          { tireId, field: 'proact', newValue: profundidadValue },
+        ];
+
+        await axios.put(
+          'http://localhost:5001/api/tires/update-field',
+          { tireUpdates: updates },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+
+      // Step 6: Update the `costo` field in `tireData` by adding the new value to the existing one
+      let updatedCosto = tireData.costo;
+      if (newCosto) {
+        const currentCosto = parseFloat(tireData.costo) || 0;
+        updatedCosto = currentCosto + parseFloat(newCosto);
+
+        await axios.put(
+          'http://localhost:5001/api/tires/update-nonhistorics',
+          {
+            updates: [
+              {
+                tireId,
+                field: 'costo',
+                newValue: updatedCosto,
+              },
+            ],
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+      }
+
+      // Step 7: Recalculate and update `cpk` and `cpk_proy`
+      const lastKms = tireData.kms?.[tireData.kms.length - 1]?.value || 0;
+      const cpk = calculateCPK(updatedCosto, lastKms);
+      const cpkProy = calculateProjectedCPK(
+        updatedCosto,
+        lastKms,
+        parseFloat(newProfundidadInicial || tireData.profundidad_inicial),
+        parseFloat(newProfundidadInicial || tireData.profundidad_inicial) // Updated proact
+      );
+
       await axios.put(
-        'https://tirepro.onrender.com/api/tires/update-field',
+        'http://localhost:5001/api/tires/update-field',
         {
           tireUpdates: [
-            {
-              tireId,
-              field: 'vida',
-              newValue: value,
-            },
+            { tireId, field: 'cpk', newValue: cpk },
+            { tireId, field: 'cpk_proy', newValue: cpkProy },
           ],
         },
         {
@@ -100,13 +218,16 @@ const CambiarVida = () => {
         }
       );
 
-      alert('¡La vida de la llanta se actualizó correctamente en ambos sistemas!');
+      alert('¡Actualización completada correctamente!');
       setTireData(null);
       setNewVida('');
+      setNewBanda('');
+      setNewCosto('');
+      setNewProfundidadInicial('');
       setSearchTerm('');
     } catch (error) {
-      console.error('Error updating vida:', error);
-      alert('Error al actualizar la vida en ambos sistemas.');
+      console.error('Error updating fields:', error);
+      alert('Error al actualizar los campos.');
     } finally {
       setIsLoading(false);
     }
@@ -115,11 +236,10 @@ const CambiarVida = () => {
   // Generate options for new `vida` based on the last `vida` value
   const getAvailableOptions = () => {
     if (!tireData || !tireData.vida || tireData.vida.length === 0) return [];
-    const lastVida = tireData.vida[tireData.vida.length - 1]?.value;
+    const lastVida = tireData.vida?.[tireData.vida.length - 1]?.value;
 
     const options = ['reencauche', 'reencauche2', 'reencauche3'];
-    const index = options.indexOf(lastVida);
-    return options.slice(index + 1); // Only allow valid transitions
+    return options.slice(options.indexOf(lastVida) + 1);
   };
 
   return (
@@ -145,7 +265,15 @@ const CambiarVida = () => {
           </p>
           <p>
             <strong>Última Vida:</strong>{' '}
-            {tireData.vida[tireData.vida.length - 1]?.value || 'N/A'}
+            {tireData.vida?.[tireData.vida.length - 1]?.value || 'N/A'}
+          </p>
+          <p>
+            <strong>Última Banda:</strong>{' '}
+            {tireData.banda || 'N/A'}
+          </p>
+          <p>
+            <strong>Costo Actual:</strong>{' '}
+            {tireData.costo || 0}
           </p>
 
           <div>
@@ -164,8 +292,41 @@ const CambiarVida = () => {
             </select>
           </div>
 
-          <button onClick={handleVidaChange} disabled={isLoading}>
-            {isLoading ? 'Actualizando...' : 'Actualizar Vida'}
+          <div>
+            <label htmlFor="banda">Nueva Banda:</label>
+            <input
+              id="banda"
+              type="text"
+              placeholder="Ingrese nueva banda"
+              value={newBanda}
+              onChange={(e) => setNewBanda(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="costo">Costo Adicional:</label>
+            <input
+              id="costo"
+              type="number"
+              placeholder="Ingrese costo adicional"
+              value={newCosto}
+              onChange={(e) => setNewCosto(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="profundidad_inicial">Nueva Profundidad Inicial:</label>
+            <input
+              id="profundidad_inicial"
+              type="number"
+              placeholder="Ingrese nueva profundidad inicial"
+              value={newProfundidadInicial}
+              onChange={(e) => setNewProfundidadInicial(e.target.value)}
+            />
+          </div>
+
+          <button onClick={handleUpdate} disabled={isLoading}>
+            {isLoading ? 'Actualizando...' : 'Actualizar'}
           </button>
         </div>
       )}
