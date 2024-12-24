@@ -325,3 +325,30 @@
 .add-icon {
   font-size: 18px;
 }
+
+.toggle-filter-btn {
+  display: inline-block;
+  margin-top: 15px;
+  padding: 10px 20px;
+  background-color: #4a90e2; /* Green color */
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.toggle-filter-btn:hover {
+  background-color: #366fb0; /* Slightly darker green for hover effect */
+}
+
+.toggle-filter-btn:active {
+  background-color: #0a183a; /* Even darker green for active state */
+  transform: scale(0.98); /* Slightly reduce size on click */
+}
+
+.toggle-filter-btn:focus {
+  outline: 2px solid #366fb0; /* Outline to indicate focus */
+}

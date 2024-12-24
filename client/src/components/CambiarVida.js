@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import './CambiarVida.css';
 
 const CambiarVida = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,7 +27,7 @@ const CambiarVida = () => {
       const userId = decodedToken?.user?.id;
 
       // Fetch tire data by user and `llanta`
-      const tireResponse = await axios.get(`http://localhost:5001/api/tires/user/${userId}`, {
+      const tireResponse = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -43,7 +44,7 @@ const CambiarVida = () => {
       }
 
       // Fetch event data for the same tire
-      const eventResponse = await axios.get(`http://localhost:5001/api/events/user/${userId}`, {
+      const eventResponse = await axios.get(`https://tirepro.onrender.com/api/events/user/${userId}`, {
         params: { llanta: searchTerm },
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -84,7 +85,7 @@ const CambiarVida = () => {
 
       // Step 1: Add current details to primera_vida
       await axios.post(
-        'http://localhost:5001/api/tires/add-primera-vida',
+        'https://tirepro.onrender.com/api/tires/add-primera-vida',
         { tireId },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -94,7 +95,7 @@ const CambiarVida = () => {
       // Step 2: Update the `vida` field in the `events` collection
       if (newVida && eventId) {
         await axios.put(
-          'http://localhost:5001/api/events/update-field',
+          'https://tirepro.onrender.com/api/events/update-field',
           { eventId, field: 'vida', newValue: newVida },
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -105,7 +106,7 @@ const CambiarVida = () => {
       // Step 3: Update the `vida` field in the `tireData` collection
       if (newVida) {
         await axios.put(
-          'http://localhost:5001/api/tires/update-field',
+          'https://tirepro.onrender.com/api/tires/update-field',
           {
             tireUpdates: [
               {
@@ -124,7 +125,7 @@ const CambiarVida = () => {
       // Step 4: Update the `banda` field directly in `tireData`
       if (newBanda) {
         await axios.put(
-          'http://localhost:5001/api/tires/update-nonhistorics',
+          'https://tirepro.onrender.com/api/tires/update-nonhistorics',
           {
             updates: [
               {
@@ -146,7 +147,7 @@ const CambiarVida = () => {
 
         // Update `profundidad_inicial` as a non-historical value
         await axios.put(
-          'http://localhost:5001/api/tires/update-nonhistorics',
+          'https://tirepro.onrender.com/api/tires/update-nonhistorics',
           {
             updates: [
               { tireId, field: 'profundidad_inicial', newValue: profundidadValue },
@@ -166,7 +167,7 @@ const CambiarVida = () => {
         ];
 
         await axios.put(
-          'http://localhost:5001/api/tires/update-field',
+          'https://tirepro.onrender.com/api/tires/update-field',
           { tireUpdates: updates },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -179,7 +180,7 @@ const CambiarVida = () => {
         updatedCosto = currentCosto + parseFloat(newCosto);
 
         await axios.put(
-          'http://localhost:5001/api/tires/update-nonhistorics',
+          'https://tirepro.onrender.com/api/tires/update-nonhistorics',
           {
             updates: [
               {
@@ -206,7 +207,7 @@ const CambiarVida = () => {
       );
 
       await axios.put(
-        'http://localhost:5001/api/tires/update-field',
+        'https://tirepro.onrender.com/api/tires/update-field',
         {
           tireUpdates: [
             { tireId, field: 'cpk', newValue: cpk },
@@ -243,42 +244,47 @@ const CambiarVida = () => {
   };
 
   return (
-    <div>
-      <h2>Cambiar Vida</h2>
-      <div>
+    <div className="cambiar-vida-container">
+      <h2 className="cambiar-vida-title">Cambiar Vida</h2>
+      <div className="search-container">
         <input
+          className="search-input"
           type="text"
           placeholder="Ingrese Llanta ID"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <button onClick={handleSearch}>Buscar</button>
+        <button className="search-button" onClick={handleSearch}>
+          Buscar
+        </button>
       </div>
-
-      {errorMessage && <p>{errorMessage}</p>}
-
+  
+      {errorMessage && <p className="error-message">{errorMessage}</p>}
+  
       {tireData && (
-        <div>
+        <div className="tire-info">
           <h3>Información de la Llanta</h3>
-          <p>
-            <strong>ID:</strong> {tireData.llanta}
-          </p>
-          <p>
-            <strong>Última Vida:</strong>{' '}
-            {tireData.vida?.[tireData.vida.length - 1]?.value || 'N/A'}
-          </p>
-          <p>
-            <strong>Última Banda:</strong>{' '}
-            {tireData.banda || 'N/A'}
-          </p>
-          <p>
-            <strong>Costo Actual:</strong>{' '}
-            {tireData.costo || 0}
-          </p>
-
-          <div>
-            <label htmlFor="vida">Nueva Vida:</label>
+          <div className="info-item">
+            <strong>ID:</strong>
+            <span>{tireData.llanta}</span>
+          </div>
+          <div className="info-item">
+            <strong>Última Vida:</strong>
+            <span>{tireData.vida?.[tireData.vida.length - 1]?.value || 'N/A'}</span>
+          </div>
+          <div className="info-item">
+            <strong>Última Banda:</strong>
+            <span>{tireData.banda || 'N/A'}</span>
+          </div>
+          <div className="info-item">
+            <strong>Costo Actual:</strong>
+            <span>{tireData.costo || 0}</span>
+          </div>
+  
+          <div className="form-group">
+            <label className="form-label" htmlFor="vida">Nueva Vida:</label>
             <select
+              className="form-select"
               id="vida"
               value={newVida}
               onChange={(e) => setNewVida(e.target.value)}
@@ -291,10 +297,11 @@ const CambiarVida = () => {
               ))}
             </select>
           </div>
-
-          <div>
-            <label htmlFor="banda">Nueva Banda:</label>
+  
+          <div className="form-group">
+            <label className="form-label" htmlFor="banda">Nueva Banda:</label>
             <input
+              className="form-input"
               id="banda"
               type="text"
               placeholder="Ingrese nueva banda"
@@ -302,10 +309,11 @@ const CambiarVida = () => {
               onChange={(e) => setNewBanda(e.target.value)}
             />
           </div>
-
-          <div>
-            <label htmlFor="costo">Costo Adicional:</label>
+  
+          <div className="form-group">
+            <label className="form-label" htmlFor="costo">Costo Adicional:</label>
             <input
+              className="form-input"
               id="costo"
               type="number"
               placeholder="Ingrese costo adicional"
@@ -313,10 +321,13 @@ const CambiarVida = () => {
               onChange={(e) => setNewCosto(e.target.value)}
             />
           </div>
-
-          <div>
-            <label htmlFor="profundidad_inicial">Nueva Profundidad Inicial:</label>
+  
+          <div className="form-group">
+            <label className="form-label" htmlFor="profundidad_inicial">
+              Nueva Profundidad Inicial:
+            </label>
             <input
+              className="form-input"
               id="profundidad_inicial"
               type="number"
               placeholder="Ingrese nueva profundidad inicial"
@@ -324,8 +335,12 @@ const CambiarVida = () => {
               onChange={(e) => setNewProfundidadInicial(e.target.value)}
             />
           </div>
-
-          <button onClick={handleUpdate} disabled={isLoading}>
+  
+          <button 
+            className="update-button" 
+            onClick={handleUpdate} 
+            disabled={isLoading}
+          >
             {isLoading ? 'Actualizando...' : 'Actualizar'}
           </button>
         </div>

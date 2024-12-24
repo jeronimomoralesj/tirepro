@@ -1,0 +1,168 @@
+.cambiar-vida-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 24px;
+    background-color: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 8px 16px rgba(10, 24, 58, 0.08);
+  }
+  
+  .cambiar-vida-title {
+    color: #0a183a;
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  
+  .search-container {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  
+  .search-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid rgba(23, 61, 104, 0.2);
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #0a183a;
+    transition: all 0.2s ease;
+  }
+  
+  .search-input:focus {
+    outline: none;
+    border-color: #348ccb;
+    box-shadow: 0 0 0 3px rgba(52, 140, 203, 0.2);
+  }
+  
+  .search-button {
+    padding: 12px 24px;
+    background-color: #173d68;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .search-button:hover {
+    background-color: #0a183a;
+    transform: translateY(-1px);
+  }
+  
+  .search-button:disabled {
+    background-color: #a0aec0;
+    cursor: not-allowed;
+  }
+  
+  .error-message {
+    color: #dc2626;
+    background-color: #fee2e2;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  
+  .tire-info {
+    background-color: rgba(52, 140, 203, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  
+  .tire-info h3 {
+    color: #0a183a;
+    font-size: 1.25rem;
+    margin-bottom: 16px;
+  }
+  
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(23, 61, 104, 0.1);
+  }
+  
+  .info-item:last-child {
+    border-bottom: none;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-label {
+    display: block;
+    color: #173d68;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  
+  .form-input,
+  .form-select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid rgba(23, 61, 104, 0.2);
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #0a183a;
+    background-color: white;
+    transition: all 0.2s ease;
+  }
+  
+  .form-input:focus,
+  .form-select:focus {
+    outline: none;
+    border-color: #348ccb;
+    box-shadow: 0 0 0 3px rgba(52, 140, 203, 0.2);
+  }
+  
+  .update-button {
+    width: 100%;
+    padding: 14px;
+    background-color: #348ccb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 24px;
+  }
+  
+  .update-button:hover {
+    background-color: #173d68;
+    transform: translateY(-1px);
+  }
+  
+  .update-button:disabled {
+    background-color: #a0aec0;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  @media (max-width: 768px) {
+    .cambiar-vida-container {
+      padding: 16px;
+      margin: 0 12px;
+    }
+  
+    .cambiar-vida-title {
+      font-size: 1.5rem;
+    }
+  
+    .search-container {
+      flex-direction: column;
+    }
+  
+    .search-button {
+      width: 100%;
+    }
+  }
