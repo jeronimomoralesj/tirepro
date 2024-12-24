@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import './CambiarOtherEvents.css';
 
 const CambiarOtherEvents = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -125,38 +126,46 @@ const CambiarOtherEvents = () => {
   };
 
   return (
-    <div>
-      <h2>Cambiar Otros Eventos</h2>
-      <div>
+    <div className="other-events-container">
+      <h2 className="other-events-title">Cambiar Otros Eventos</h2>
+      
+      <div className="search-section">
         <input
+          className="search-input"
           type="text"
           placeholder="Ingrese Llanta ID"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <button onClick={handleSearch}>Buscar</button>
+        <button className="search-button" onClick={handleSearch}>
+          Buscar
+        </button>
       </div>
 
-      {errorMessage && <p>{errorMessage}</p>}
+      {errorMessage && <p className="error-message">{errorMessage}</p>}
 
       {tireData && (
-        <div>
+        <div className="tire-info">
           <h3>Información de la Llanta</h3>
-          <p>
-            <strong>ID:</strong> {tireData.llanta}
-          </p>
-          <p>
-            <strong>Última Vida:</strong>{' '}
-            {tireData.vida[tireData.vida.length - 1]?.value || 'N/A'}
-          </p>
+          <div className="info-item">
+            <strong>ID:</strong>
+            <span>{tireData.llanta}</span>
+          </div>
+          <div className="info-item">
+            <strong>Última Vida:</strong>
+            <span>{tireData.vida[tireData.vida.length - 1]?.value || 'N/A'}</span>
+          </div>
 
-          <div>
+          <div className="action-section">
             {tireData?.vida?.[tireData.vida.length - 1]?.value === 'fin' ? (
-              <p style={{ color: 'red' }}>Esta llanta ya tiene fin de vida y no puede ser modificada.</p>
+              <p className="end-of-life-message">
+                Esta llanta ya tiene fin de vida y no puede ser modificada.
+              </p>
             ) : (
               <div>
-                <label>Seleccione una acción:</label>
+                <label className="action-label">Seleccione una acción:</label>
                 <select
+                  className="action-select"
                   value={selectedAction}
                   onChange={(e) => setSelectedAction(e.target.value)}
                 >
@@ -167,7 +176,11 @@ const CambiarOtherEvents = () => {
                   <option value="pinchazo">Cristalizada</option>
                 </select>
 
-                <button onClick={handleAction} disabled={isLoading}>
+                <button 
+                  className="action-button"
+                  onClick={handleAction} 
+                  disabled={isLoading}
+                >
                   {isLoading ? 'Procesando...' : 'Registrar Acción'}
                 </button>
               </div>

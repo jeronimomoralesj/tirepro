@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import './Home.css';
 import SemaforoPie from './SemaforoPie';
 import PromedioEje from './PromedioEje';
@@ -16,9 +16,11 @@ const Estado = () => {
   const [selectedVida, setSelectedVida] = useState(null);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [cambioInmediatoTires, setCambioInmediatoTires] = useState([]);
+  const [totalCost, setTotalCost] = useState(0);
   const [averageCPK, setAverageCPK] = useState(0);
   const [averageProjectedCPK, setAverageProjectedCPK] = useState(0);
   const [selectedTire, setSelectedTire] = useState(null);
+  const [includeEndOfLife, setIncludeEndOfLife] = useState(false);
 
   const [metrics, setMetrics] = useState({
     expiredInspectionCount: 0,
@@ -65,64 +67,74 @@ const Estado = () => {
     fetchTireData();
   }, []);
 
-  // Filter tires based on selected filters
+  // Filter tires based on selected filters, toggle `vida` "fin" inclusion, and exclude `placa` equal to "inventario"
   const filteredTires = useMemo(() => {
     return tires.filter((tire) => {
+      // Exclude tires with `placa` equal to "inventario"
+      if (tire.placa === "inventario") {
+        return false;
+      }
+
       const minDepth = Math.min(
         ...tire.profundidad_int.map((p) => p.value),
         ...tire.profundidad_cen.map((p) => p.value),
         ...tire.profundidad_ext.map((p) => p.value)
       );
 
-      // Apply filters
-      const isEjeMatch = selectedEje ? tire.eje === selectedEje : true;
-      const isConditionMatch = selectedCondition
+      const matchesEje = selectedEje ? tire.eje === selectedEje : true;
+      const matchesCondition = selectedCondition
         ? selectedCondition === 'buenEstado' && minDepth > 7 ||
           selectedCondition === 'dias60' && minDepth <= 7 && minDepth > 6 ||
           selectedCondition === 'dias30' && minDepth <= 6 && minDepth > 5 ||
           selectedCondition === 'cambioInmediato' && minDepth <= 5
         : true;
-      const isVidaMatch = selectedVida
+      const matchesVida = selectedVida
         ? tire.vida?.at(-1)?.value === selectedVida
         : true;
 
-      return isEjeMatch && isConditionMatch && isVidaMatch;
+      // Apply or exclude tires with `vida` equal to "fin" based on toggle state
+      const isVidaNotFin = includeEndOfLife || tire.vida?.at(-1)?.value !== "fin";
+
+      return matchesEje && matchesCondition && matchesVida && isVidaNotFin;
     });
-  }, [tires, selectedEje, selectedCondition, selectedVida]);
+  }, [tires, selectedEje, selectedCondition, selectedVida, includeEndOfLife]);
 
   // Calculate summary metrics including CPK and CPK Proyectado
   useEffect(() => {
     const calculateMetrics = () => {
-      let validTiresCount = 0;
+      let validCPKCount = 0;
+      let validProjectedCPKCount = 0;
       let totalCPK = 0;
       let totalProjectedCPK = 0;
 
-      const expiredInspectionCount = tires.filter((tire) => {
+      const totalCost = filteredTires.reduce((sum, tire) => sum + tire.costo, 0);
+      setTotalCost(totalCost);
+
+      filteredTires.forEach((tire) => {
+        const latestCPK = tire.cpk?.at(-1)?.value || 0;
+        const latestProjectedCPK = tire.cpk_proy?.at(-1)?.value || 0;
+
+        if (latestCPK > 0) {
+          totalCPK += latestCPK;
+          validCPKCount++;
+        }
+
+        if (latestProjectedCPK > 0) {
+          totalProjectedCPK += latestProjectedCPK;
+          validProjectedCPKCount++;
+        }
+      });
+
+      setAverageCPK(validCPKCount ? totalCPK / validCPKCount : 0);
+      setAverageProjectedCPK(validProjectedCPKCount ? totalProjectedCPK / validProjectedCPKCount : 0);
+
+      const expiredInspectionCount = filteredTires.filter((tire) => {
         const lastInspectionDate = new Date(tire.ultima_inspeccion);
         return lastInspectionDate < new Date();
       }).length;
 
-      const uniquePlacas = new Set(tires.map((tire) => tire.placa)).size;
-      const llantasCount = tires.length;
-
-      tires.forEach((tire) => {
-        const lastKms = tire.kms?.[tire.kms.length - 1]?.value || 0;
-        const lastProact = tire.proact?.[tire.proact.length - 1]?.value || 0;
-
-        if (lastProact < 0 || lastProact > 50) return; // Skip invalid `proact` values
-
-        const cpk = lastKms > 0 ? tire.costo / lastKms : 0;
-        totalCPK += cpk;
-
-        const projectedKms = lastProact < 16 ? (lastKms / (16 - lastProact)) * 16 : 0;
-        const cpkProy = projectedKms > 0 ? tire.costo / projectedKms : 0;
-        totalProjectedCPK += cpkProy;
-
-        validTiresCount++;
-      });
-
-      setAverageCPK(validTiresCount ? totalCPK / validTiresCount : 0);
-      setAverageProjectedCPK(validTiresCount ? totalProjectedCPK / validTiresCount : 0);
+      const uniquePlacas = new Set(filteredTires.map((tire) => tire.placa)).size;
+      const llantasCount = filteredTires.length;
 
       setMetrics({
         expiredInspectionCount,
@@ -132,7 +144,7 @@ const Estado = () => {
     };
 
     calculateMetrics();
-  }, [tires]);
+  }, [filteredTires]);
 
   // Reset filters function
   const resetFilters = () => {
@@ -218,9 +230,25 @@ const Estado = () => {
             <span className="stat-label">CPK Proyectado</span>
           </div>
         </div>
+
+<br />
+        {/* Toggle Include End-of-Life Tires Button */}
+        <button
+          className="toggle-filter-btn"
+          onClick={() => setIncludeEndOfLife((prev) => !prev)}
+        >
+          {includeEndOfLife ? "Excluir Llantas en Fin de Vida" : "Incluir Llantas en Fin de Vida"}
+        </button>
       </div>
 
-      {/* Cards Container with Filtered Tires */}
+      {/* Reset Filters Button */}
+      {(selectedEje || selectedCondition || selectedVida) && (
+        <button className="reset-filters-btn" onClick={resetFilters}>
+          Eliminar Filtros
+        </button>
+      )}
+
+      {/* Cards Container */}
       <div className="cards-container">
         <SemaforoTabla
           filteredTires={filteredTires}
@@ -251,13 +279,6 @@ const Estado = () => {
           selectedCondition={selectedCondition}
         />
       </div>
-
-      {/* Reset Filters Button */}
-      {selectedEje || selectedCondition || selectedVida ? (
-        <button className="reset-filters-btn" onClick={resetFilters}>
-          Eliminar Filtros
-        </button>
-      ) : null}
     </div>
   );
 };

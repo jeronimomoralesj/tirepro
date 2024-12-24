@@ -24,6 +24,7 @@ const Home = () => {
   const [averageProjectedCPK, setAverageProjectedCPK] = useState(0);
   const [lastMonthInvestment, setLastMonthInvestment] = useState(10000000); // Static for now
   const [charts, setCharts] = useState([{ id: 0 }]); // Array to store chart configurations
+  const [includeEndOfLife, setIncludeEndOfLife] = useState(false); // New state for including "fin" tires
 
   // Fetch tire data on mount
   useEffect(() => {
@@ -67,6 +68,11 @@ const Home = () => {
   // Filter tires by selected "Eje" and "Condition"
   const filteredTires = useMemo(() => {
     return tires.filter((tire) => {
+      // Exclude tires with "placa" equal to "inventario"
+      if (tire.placa === "inventario") {
+        return false;
+      }
+
       const matchesEje = selectedEje ? tire.eje === selectedEje : true;
       const matchesCondition = selectedCondition
         ? (() => {
@@ -81,9 +87,13 @@ const Home = () => {
             if (selectedCondition === 'cambioInmediato') return minDepth <= 5;
           })()
         : true;
-      return matchesEje && matchesCondition;
+
+      // Include or exclude tires with `vida` equal to "fin" based on toggle state
+      const isVidaNotFin = includeEndOfLife || tire.vida?.at(-1)?.value !== "fin";
+
+      return matchesEje && matchesCondition && isVidaNotFin;
     });
-  }, [tires, selectedEje, selectedCondition]);
+  }, [tires, selectedEje, selectedCondition, includeEndOfLife]);
 
   // Calculate summary metrics based on filtered data
   useEffect(() => {
@@ -157,7 +167,6 @@ const Home = () => {
                       <th>Placa</th>
                       <th>Pos</th>
                       <th>Llanta</th>
-                      <th>Vida</th>
                       <th>Marca</th>
                     </tr>
                   </thead>
@@ -206,6 +215,16 @@ const Home = () => {
             <span className="stat-label">CPK Proyectado</span>
           </div>
         </div>
+
+        <br />
+
+        {/* Toggle Include End-of-Life Tires Button */}
+        <button
+          className="toggle-filter-btn"
+          onClick={() => setIncludeEndOfLife((prev) => !prev)}
+        >
+          {includeEndOfLife ? "Excluir Llantas en Fin de Vida" : "Incluir Llantas en Fin de Vida"}
+        </button>
       </div>
 
       {/* Cards Container with Filtered Tires */}

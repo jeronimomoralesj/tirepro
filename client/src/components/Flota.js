@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import './Home.css';
 import HorizontalBarChart from './HorizontalBarChart';
 import TipoVehiculo from './TipoVehiculo';
@@ -16,12 +16,14 @@ const Flota = () => {
   const [selectedVida, setSelectedVida] = useState(null);
   const [selectedEje, setSelectedEje] = useState(null);
   const [selectedCondition, setSelectedCondition] = useState(null);
+  const [includeEndOfLife, setIncludeEndOfLife] = useState(false); // New state for including "fin" tires
+  const [totalCost, setTotalCost] = useState(0);
+  const [averageCPK, setAverageCPK] = useState(0);
+  const [averageProjectedCPK, setAverageProjectedCPK] = useState(0);
   const [metrics, setMetrics] = useState({
     expiredInspectionCount: 0,
     placaCount: 0,
     llantasCount: 0,
-    averageCPK: 0,
-    averageProjectedCPK: 0,
   });
 
   // Fetch tire data on mount
@@ -52,9 +54,14 @@ const Flota = () => {
     fetchTireData();
   }, []);
 
-  // Filter tires based on selected filters
+  // Filter tires based on selected filters and toggle `vida` "fin" inclusion
   const filteredTires = useMemo(() => {
     return tires.filter((tire) => {
+      // Exclude tires with `placa` equal to "inventario"
+      if (tire.placa === "inventario") {
+        return false;
+      }
+
       const matchesBrand = selectedBrand ? tire.marca === selectedBrand : true;
       const matchesVehicleType = selectedVehicleType ? tire.tipovhc === selectedVehicleType : true;
       const matchesVida = selectedVida
@@ -78,48 +85,54 @@ const Flota = () => {
           })()
         : true;
 
-      return matchesBrand && matchesVehicleType && matchesVida && matchesEje && matchesCondition;
+      // Apply or exclude tires with `vida` equal to "fin" based on toggle state
+      const isVidaNotFin = includeEndOfLife || tire.vida?.at(-1)?.value !== "fin";
+
+      return matchesBrand && matchesVehicleType && matchesVida && matchesEje && matchesCondition && isVidaNotFin;
     });
-  }, [tires, selectedBrand, selectedVehicleType, selectedVida, selectedEje, selectedCondition]);
+  }, [tires, selectedBrand, selectedVehicleType, selectedVida, selectedEje, selectedCondition, includeEndOfLife]);
 
   // Calculate metrics based on filtered data
   useEffect(() => {
     const calculateMetrics = () => {
-      const today = new Date();
+      let validCPKCount = 0;
+      let validProjectedCPKCount = 0;
+      let totalCPK = 0;
+      let totalProjectedCPK = 0;
+
+      const totalCost = filteredTires.reduce((sum, tire) => sum + tire.costo, 0);
+      setTotalCost(totalCost);
+
+      filteredTires.forEach((tire) => {
+        const latestCPK = tire.cpk?.at(-1)?.value || 0;
+        const latestProjectedCPK = tire.cpk_proy?.at(-1)?.value || 0;
+
+        if (latestCPK > 0) {
+          totalCPK += latestCPK;
+          validCPKCount++;
+        }
+
+        if (latestProjectedCPK > 0) {
+          totalProjectedCPK += latestProjectedCPK;
+          validProjectedCPKCount++;
+        }
+      });
+
+      setAverageCPK(validCPKCount ? totalCPK / validCPKCount : 0);
+      setAverageProjectedCPK(validProjectedCPKCount ? totalProjectedCPK / validProjectedCPKCount : 0);
+
       const expiredInspectionCount = filteredTires.filter((tire) => {
         const inspectionDate = new Date(tire.ultima_inspeccion);
-        return inspectionDate < today;
+        return inspectionDate < new Date();
       }).length;
 
       const placaCount = new Set(filteredTires.map((tire) => tire.placa)).size;
       const llantasCount = filteredTires.length;
 
-      let validTiresCount = 0;
-      let totalCPK = 0;
-      let totalProjectedCPK = 0;
-
-      filteredTires.forEach((tire) => {
-        const lastKms = tire.kms?.[tire.kms.length - 1]?.value || 0;
-        const lastProact = tire.proact?.[tire.proact.length - 1]?.value || 0;
-
-        if (lastProact < 0 || lastProact > 50) return; // Skip invalid `proact` values
-
-        const cpk = lastKms > 0 ? tire.costo / lastKms : 0;
-        totalCPK += cpk;
-
-        const projectedKms = lastProact < 16 ? (lastKms / (16 - lastProact)) * 16 : 0;
-        const cpkProy = projectedKms > 0 ? tire.costo / projectedKms : 0;
-        totalProjectedCPK += cpkProy;
-
-        validTiresCount++;
-      });
-
       setMetrics({
         expiredInspectionCount,
         placaCount,
         llantasCount,
-        averageCPK: validTiresCount ? totalCPK / validTiresCount : 0,
-        averageProjectedCPK: validTiresCount ? totalProjectedCPK / validTiresCount : 0,
       });
     };
 
@@ -157,16 +170,26 @@ const Flota = () => {
             <span className="stat-label">Cantidad de Llantas</span>
           </div>
           <div className="stat-box">
-            <span className="stat-value">${metrics.averageCPK.toFixed(2)}</span>
+            <span className="stat-value">${averageCPK.toFixed(2)}</span>
             <br />
             <span className="stat-label">CPK</span>
           </div>
           <div className="stat-box">
-            <span className="stat-value">${metrics.averageProjectedCPK.toFixed(2)}</span>
+            <span className="stat-value">${averageProjectedCPK.toFixed(2)}</span>
             <br />
             <span className="stat-label">CPK Proyectado</span>
           </div>
         </div>
+
+        <br />
+
+        {/* Toggle Include End-of-Life Tires Button */}
+        <button
+          className="toggle-filter-btn"
+          onClick={() => setIncludeEndOfLife((prev) => !prev)}
+        >
+          {includeEndOfLife ? "Excluir Llantas en Fin de Vida" : "Incluir Llantas en Fin de Vida"}
+        </button>
       </div>
 
       {/* Reset Filters Button */}
@@ -200,7 +223,6 @@ const Flota = () => {
         />
         <Inspecciones tires={filteredTires} />
         <CpkTable tires={filteredTires} />
-
       </div>
     </div>
   );

@@ -148,7 +148,18 @@ const Uso = () => {
     if (proactValues.length === 0) {
       return <p>No hay datos de inspecciones disponibles.</p>;
     }
-
+  
+    // Combine proactValues, cpkValues, and cpkProyValues into a single array of objects
+    const inspections = proactValues.map((entry, index) => ({
+      date: new Date(entry.year, entry.month - 1, entry.day),
+      proact: entry.value,
+      cpk: cpkValues[index]?.value || 'N/A',
+      cpkProy: cpkProyValues[index]?.value || 'N/A',
+    }));
+  
+    // Sort the inspections array by date in descending order
+    inspections.sort((a, b) => b.date - a.date);
+  
     return (
       <div className="proact-section">
         <h4>Historial de Inspecciones:</h4>
@@ -162,12 +173,12 @@ const Uso = () => {
             </tr>
           </thead>
           <tbody>
-            {proactValues.map((entry, index) => (
+            {inspections.map((inspection, index) => (
               <tr key={index}>
-                <td>{`${entry.day}/${entry.month}/${entry.year}`}</td>
-                <td>{entry.value}</td>
-                <td>{cpkValues[index]?.value || 'N/A'}</td>
-                <td>{cpkProyValues[index]?.value || 'N/A'}</td>
+                <td>{inspection.date.toLocaleDateString()}</td>
+                <td>{inspection.proact}</td>
+                <td>{inspection.cpk}</td>
+                <td>{inspection.cpkProy}</td>
               </tr>
             ))}
           </tbody>
@@ -175,6 +186,7 @@ const Uso = () => {
       </div>
     );
   };
+  
 
   return (
     <div className="uso-container">

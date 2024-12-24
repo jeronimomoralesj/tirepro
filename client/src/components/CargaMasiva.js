@@ -86,10 +86,6 @@ const CargaMasiva = () => {
       setLoading(false);
     }
   };
-  
-  
-  
-  
 
   return (
     <div className="section masiva-section">

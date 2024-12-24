@@ -147,16 +147,19 @@ const uploadTireData = async (req, res) => {
       });
     }
 
-    // Check for duplicates by `placa` and `pos`
-    const duplicatePosEntries = tireDataEntries.filter((newTire) =>
-      existingTires.some((existingTire) => {
+    // Check for duplicates by `placa` and `pos`, but allow duplicates if `placa` is "inventario"
+    const duplicatePosEntries = tireDataEntries.filter((newTire) => {
+      if (newTire.placa === 'inventario') {
+        return false; // Skip duplicate check for `placa` = "inventario"
+      }
+      return existingTires.some((existingTire) => {
         const latestPos = existingTire.pos?.at(-1)?.value || null; // Get the latest position value
         return (
           existingTire.placa === newTire.placa && // Match `placa`
           latestPos === newTire.pos?.[0]?.value  // Match `pos`
         );
-      })
-    );
+      });
+    });
 
     if (duplicatePosEntries.length > 0) {
       return res.status(400).json({
@@ -193,8 +196,6 @@ const uploadTireData = async (req, res) => {
     res.status(500).json({ msg: 'Server error', error: error.message });
   }
 };
-
-
 
 
 

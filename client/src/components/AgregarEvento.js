@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
-import './AgregarEvento.css'; // Import the new CSS
+import './AgregarEvento.css';
 import CambiarVida from './CambiarVida';
 import CambiarPosicion from './CambiarPosicion';
 import CambiarOtherEvents from './CambiarOtherEvents';
-import "./AgregarEvento.css"
 
 const AgregarEvento = () => {
-  const [selectedOption, setSelectedOption] = useState(''); // Track user's choice
+  const [selectedOption, setSelectedOption] = useState('');
 
   return (
     <div className="agregar-evento-container">
       <h2>Agregar Evento</h2>
-
+      
       {/* Selection Menu */}
-      <div>
-        <label htmlFor="option-select">Seleccione una acción:</label>
+      <div className="option-select-container">
+        <label className="option-select-label" htmlFor="option-select">
+          Seleccione una acción:
+        </label>
         <select
+          className="option-select"
           id="option-select"
           value={selectedOption}
           onChange={(e) => setSelectedOption(e.target.value)}
