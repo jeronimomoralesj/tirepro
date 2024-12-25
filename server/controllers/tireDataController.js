@@ -7,9 +7,10 @@ const xlsx = require('xlsx');
 const getTireDataByCompany = async (req, res) => {
   try {
     const { companyId } = req.params;
-    console.log('Received CompanyID:', companyId);
+    const tireData = await TireData.find({ companyId }).select(
+      'llanta vida placa kilometraje_actual frente marca diseno banda tipovhc pos original profundidad_int profundidad_cen profundidad_ext profundidad_inicial presion costo kms cpk cpk_proy dimension proact eje operacion peso_carga'
+    );
 
-    const tireData = await TireData.find({ companyId });
     res.json(tireData);
   } catch (error) {
     console.error('Error fetching tires by company ID:', error);
@@ -18,10 +19,13 @@ const getTireDataByCompany = async (req, res) => {
 };
 
 
+
 const getTireDataByUser = async (req, res) => {
   try {
     const userId = req.params.user;
-    const tireData = await TireData.find({ user: userId });
+    const tireData = await TireData.find({ user: userId }).select(
+      'llanta vida placa kilometraje_actual frente marca diseno banda tipovhc pos original profundidad_int profundidad_cen profundidad_ext profundidad_inicial presion costo kms cpk cpk_proy dimension proact eje operacion peso_carga'
+    );
 
     if (!tireData || tireData.length === 0) {
       return res.status(200).json([]); // Return an empty array if no data is found
@@ -29,10 +33,11 @@ const getTireDataByUser = async (req, res) => {
 
     res.json(tireData);
   } catch (error) {
-    console.error("Error fetching tire data:", error);
+    console.error('Error fetching tire data:', error);
     res.status(500).json({ msg: 'Server error' });
   }
 };
+
 
 
 // Function to calculate CPK and projected CPK
@@ -131,6 +136,8 @@ const uploadTireData = async (req, res) => {
         dimension: normalizeText(row['dimension']),
         proact: transformToHistoricalArrayWithDay(proact),
         eje: normalizeText(row['eje']),
+        operacion: normalizeText(row['operacion']), 
+        peso_carga: parseFloat(row['peso_carga']) || 0,
         user: userId,
       };
     });
@@ -182,6 +189,8 @@ const uploadTireData = async (req, res) => {
       otherevents: [],
       user: tire.user,
       placa: tire.placa,
+      operacion: tire.operacion, 
+      peso_carga: tire.peso_carga,
     }));
 
     const createdEvents = await Event.insertMany(events);
