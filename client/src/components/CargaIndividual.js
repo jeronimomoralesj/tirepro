@@ -14,8 +14,6 @@ const CargaIndividual = () => {
     diseno: '',
     banda: '',
     tipovhc: '',
-    operacion: '',
-    peso_carga: '',
     pos: '',
     profundidad_int: '',
     profundidad_cen: '',
@@ -33,7 +31,7 @@ const CargaIndividual = () => {
 
   // Handle individual tire input change
   const handleIndividualTireChange = async (field, value) => {
-    if (isInventoryMode && ['placa', 'pos', 'eje', 'kilometraje_actual', 'frente', 'tipovhc', 'operacion', 'peso_carga'].includes(field)) {
+    if (isInventoryMode && ['placa', 'pos', 'eje', 'kilometraje_actual', 'frente', 'tipovhc'].includes(field)) {
       return; // Prevent editing when in inventory mode
     }
 
@@ -205,8 +203,6 @@ const CargaIndividual = () => {
       kilometraje_actual: 1,
       frente: '1',
       tipovhc: '1',
-      operacion: '1',
-      peso_carga: '1',
       eje: '1',
     }));
     setIsInventoryMode(true);
@@ -223,8 +219,6 @@ const CargaIndividual = () => {
       diseno: '',
       banda: '',
       tipovhc: '',
-      operacion: '',
-      peso_carga: '',
       pos: '',
       profundidad_int: '',
       profundidad_cen: '',
@@ -264,7 +258,7 @@ const CargaIndividual = () => {
           className="input-field"
           disabled={
             (isInventoryMode &&
-              ['placa', 'pos', 'eje', 'kilometraje_actual', 'frente', 'tipovhc', 'operacion', 'peso_carga'].includes(key)) ||
+              ['placa', 'pos', 'eje', 'kilometraje_actual', 'frente', 'tipovhc'].includes(key)) ||
             (isKilometrajeLocked && key === 'kilometraje_actual')
           } // Disable fields in inventory mode or locked mode
         />

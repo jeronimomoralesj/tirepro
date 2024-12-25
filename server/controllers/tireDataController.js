@@ -117,8 +117,6 @@ const uploadTireData = async (req, res) => {
         diseno: normalizeText(row['diseno']),
         banda: normalizeText(row['banda']),
         tipovhc: normalizeText(row['tipovhc']),
-        operacion: normalizeText(row['operacion']),
-        peso_carga: normalizeText(row['peso_carga']),
         pos: transformToHistoricalArrayWithDay(row['pos']),
         original: normalizeText(row['original']),
         profundidad_int: transformToHistoricalArrayWithDay(profundidadInt),
