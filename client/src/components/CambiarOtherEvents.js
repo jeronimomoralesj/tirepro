@@ -6,7 +6,7 @@ const CambiarOtherEvents = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [tireData, setTireData] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
-  const [selectedAction, setSelectedAction] = useState(''); // 'fin' or 'pinchazo'
+  const [selectedAction, setSelectedAction] = useState(''); // 'fin', 'pinchazo', etc.
   const [isLoading, setIsLoading] = useState(false);
 
   // Fetch tire and event data
@@ -82,7 +82,7 @@ const CambiarOtherEvents = () => {
       const eventId = tireData.eventId;
 
       if (selectedAction === 'fin') {
-        // Update `vida` to "fin" in both collections
+        // Update `vida`, `placa`, and `pos` for "Fin de Vida"
         await axios.put(
           'https://tirepro.onrender.com/api/events/update-field',
           { eventId, field: 'vida', newValue: 'fin' },
@@ -93,25 +93,36 @@ const CambiarOtherEvents = () => {
           'https://tirepro.onrender.com/api/tires/update-field',
           {
             tireUpdates: [
-              { tireId, field: 'vida', newValue: 'fin' },
+              { tireId, field: 'vida', newValue: 'fin' }, // Update historical "vida"
+              { tireId, field: 'pos', newValue: 1 }, // Update historical "pos"
+            ],
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        await axios.put(
+          'https://tirepro.onrender.com/api/tires/update-nonhistorics',
+          {
+            updates: [
+              { tireId, field: 'placa', newValue: 'fin' }, // Overwrite non-historical "placa"
             ],
           },
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
         alert('¡Fin de vida registrado exitosamente en ambos sistemas!');
-      } else if (selectedAction === 'pinchazo') {
-        // Add a new "pinchazo" entry to `otherevents` in the events collection
+      } else {
+        // Handle other events like "pinchazo"
         await axios.put(
           'https://tirepro.onrender.com/api/events/add-other-event',
           {
             eventId,
-            newValue: 'pinchazo',
+            newValue: selectedAction,
           },
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        alert('¡Pinchazo registrado exitosamente en el sistema de eventos!');
+        alert(`¡${selectedAction} registrado exitosamente en el sistema de eventos!`);
       }
 
       setTireData(null);
@@ -128,7 +139,7 @@ const CambiarOtherEvents = () => {
   return (
     <div className="other-events-container">
       <h2 className="other-events-title">Cambiar Otros Eventos</h2>
-      
+
       <div className="search-section">
         <input
           className="search-input"
@@ -172,13 +183,13 @@ const CambiarOtherEvents = () => {
                   <option value="">Seleccione una opción</option>
                   <option value="fin">Fin de Vida</option>
                   <option value="pinchazo">Pinchazo</option>
-                  <option value="pinchazo">Cacehtona</option>
-                  <option value="pinchazo">Cristalizada</option>
+                  <option value="cachetona">Cachetona</option>
+                  <option value="cristalizada">Cristalizada</option>
                 </select>
 
-                <button 
+                <button
                   className="action-button"
-                  onClick={handleAction} 
+                  onClick={handleAction}
                   disabled={isLoading}
                 >
                   {isLoading ? 'Procesando...' : 'Registrar Acción'}

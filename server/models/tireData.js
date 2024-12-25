@@ -27,6 +27,8 @@ const TireDataSchema = new mongoose.Schema(
     diseno: { type: String, required: true },
     banda: { type: String, required: true },
     tipovhc: { type: String, required: true },
+    operación: { type: String, required: true },
+    peso_carga: { type: Number, required: true },
     pos: { type: [HistoricalValueSchema], default: [] },
     original: { type: String, required: true, default: 'N/A' },
     profundidad_int: { type: [HistoricalValueSchema], default: [] },

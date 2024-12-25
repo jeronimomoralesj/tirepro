@@ -14,6 +14,8 @@ const CargaIndividual = () => {
     diseno: '',
     banda: '',
     tipovhc: '',
+    operacion: '',
+    peso_carga: '',
     pos: '',
     profundidad_int: '',
     profundidad_cen: '',
@@ -27,18 +29,65 @@ const CargaIndividual = () => {
   });
   const [loading, setLoading] = useState(false);
   const [isInventoryMode, setIsInventoryMode] = useState(false);
+  const [isKilometrajeLocked, setIsKilometrajeLocked] = useState(false);
 
   // Handle individual tire input change
-  const handleIndividualTireChange = (field, value) => {
-    if (isInventoryMode && ['placa', 'pos', 'eje', 'kilometraje_actual', 'frente', 'tipovhc'].includes(field)) {
+  const handleIndividualTireChange = async (field, value) => {
+    if (isInventoryMode && ['placa', 'pos', 'eje', 'kilometraje_actual', 'frente', 'tipovhc', 'operacion', 'peso_carga'].includes(field)) {
       return; // Prevent editing when in inventory mode
     }
-    setIndividualTire((prevState) => ({
-      ...prevState,
-      [field]: ['llanta', 'kilometraje_actual', 'pos', 'profundidad_int', 'profundidad_cen', 'profundidad_ext', 'profundidad_inicial', 'presion', 'costo', 'kms'].includes(field)
-        ? value.replace(/\D/g, '') // Only allow numbers
-        : value.toLowerCase(), // Convert text fields to lowercase
-    }));
+
+    if (field === 'placa') {
+      const placaValue = value.toLowerCase();
+      setIndividualTire((prevState) => ({
+        ...prevState,
+        placa: placaValue,
+      }));
+      fetchPlacaKilometraje(placaValue);
+    } else {
+      setIndividualTire((prevState) => ({
+        ...prevState,
+        [field]: ['llanta', 'kilometraje_actual', 'pos', 'profundidad_int', 'profundidad_cen', 'profundidad_ext', 'profundidad_inicial', 'presion', 'costo', 'kms'].includes(field)
+          ? value.replace(/\D/g, '') // Only allow numbers
+          : value.toLowerCase(), // Convert text fields to lowercase
+      }));
+    }
+  };
+
+  // Fetch existing tire data with the same `placa`
+  const fetchPlacaKilometraje = async (placa) => {
+    if (!placa) {
+      setIsKilometrajeLocked(false);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
+
+      if (!userId) {
+        alert('Usuario no identificado.');
+        return;
+      }
+
+      const response = await axios.get(
+        `https://tirepro.onrender.com/api/tires/user/${userId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const matchingTire = response.data.find((tire) => tire.placa === placa);
+      if (matchingTire) {
+        setIndividualTire((prevState) => ({
+          ...prevState,
+          kilometraje_actual: matchingTire.kilometraje_actual?.[0]?.value || '',
+        }));
+        setIsKilometrajeLocked(true);
+      } else {
+        setIsKilometrajeLocked(false);
+      }
+    } catch (error) {
+      console.error('Error fetching tire data for placa:', error);
+    }
   };
 
   // Validate the form before submission
@@ -58,8 +107,8 @@ const CargaIndividual = () => {
 
     for (const field of numericFields) {
       const value = Number(individualTire[field]);
-      if (!value || isNaN(value)) {
-        alert(`El campo "${field.replace('_', ' ')}" debe ser un número válido.`);
+      if (isNaN(value) || value < 0) {
+        alert(`El campo "${field.replace('_', ' ')}" debe ser un número válido mayor o igual a 0.`);
         return false;
       }
 
@@ -68,7 +117,7 @@ const CargaIndividual = () => {
         ['profundidad_int', 'profundidad_cen', 'profundidad_ext', 'profundidad_inicial'].includes(
           field
         ) &&
-        (value <= 0 || value > 30)
+        (value < 0 || value > 30)
       ) {
         alert(`El campo "${field.replace('_', ' ')}" debe estar entre 0 y 30.`);
         return false;
@@ -114,77 +163,18 @@ const CargaIndividual = () => {
 
       // Calculate CPK and Projected CPK
       const costo = Number(individualTire.costo) || 0;
-      const cpk = kms > 0 ? costo / kms : 0; // Ensure stored as number
+      const cpk = kms >= 0 ? costo / kms : 0; // Ensure stored as number
       const cpkProy = projectedKms > 0 ? costo / projectedKms : 0; // Ensure stored as number
 
       // Prepare the new tire data
       const newTire = {
         ...individualTire,
+        kilometraje_actual: Number(individualTire.kilometraje_actual),
+        kms,
         user: userId,
-        vida: {
-          day: new Date().getDate(),
-          month: new Date().getMonth() + 1,
-          year: new Date().getFullYear(),
-          value: individualTire.vida || 'nuevo',
-        },
-        kilometraje_actual: {
-          day: new Date().getDate(),
-          month: new Date().getMonth() + 1,
-          year: new Date().getFullYear(),
-          value: Number(individualTire.kilometraje_actual) || 0,
-        },
-        pos: {
-          day: new Date().getDate(),
-          month: new Date().getMonth() + 1,
-          year: new Date().getFullYear(),
-          value: Number(individualTire.pos) || 0,
-        },
-        profundidad_int: {
-          day: new Date().getDate(),
-          month: new Date().getMonth() + 1,
-          year: new Date().getFullYear(),
-          value: Number(individualTire.profundidad_int) || 0,
-        },
-        profundidad_cen: {
-          day: new Date().getDate(),
-          month: new Date().getMonth() + 1,
-          year: new Date().getFullYear(),
-          value: Number(individualTire.profundidad_cen) || 0,
-        },
-        profundidad_ext: {
-          day: new Date().getDate(),
-          month: new Date().getMonth() + 1,
-          year: new Date().getFullYear(),
-          value: Number(individualTire.profundidad_ext) || 0,
-        },
-        profundidad_inicial: profundidadInicial,
-        presion: {
-          day: new Date().getDate(),
-          month: new Date().getMonth() + 1,
-          year: new Date().getFullYear(),
-          value: Number(individualTire.presion) || 0,
-        },
-        kms: {
-          day: new Date().getDate(),
-          month: new Date().getMonth() + 1,
-          year: new Date().getFullYear(),
-          value: kms,
-        },
-        cpk: {
-          day: new Date().getDate(),
-          month: new Date().getMonth() + 1,
-          year: new Date().getFullYear(),
-          value: cpk,
-        },
-        cpk_proy: {
-          day: new Date().getDate(),
-          month: new Date().getMonth() + 1,
-          year: new Date().getFullYear(),
-          value: cpkProy,
-        },
         proact,
-        ultima_inspeccion: new Date(),
-        costo, // Ensure `costo` is a number
+        cpk,
+        cpkProy,
       };
 
       // Make the POST request
@@ -215,6 +205,8 @@ const CargaIndividual = () => {
       kilometraje_actual: 1,
       frente: '1',
       tipovhc: '1',
+      operacion: '1',
+      peso_carga: '1',
       eje: '1',
     }));
     setIsInventoryMode(true);
@@ -231,6 +223,8 @@ const CargaIndividual = () => {
       diseno: '',
       banda: '',
       tipovhc: '',
+      operacion: '',
+      peso_carga: '',
       pos: '',
       profundidad_int: '',
       profundidad_cen: '',
@@ -243,6 +237,7 @@ const CargaIndividual = () => {
       dimension: '',
     });
     setIsInventoryMode(false);
+    setIsKilometrajeLocked(false);
   };
 
   return (
@@ -268,9 +263,10 @@ const CargaIndividual = () => {
           onChange={(e) => handleIndividualTireChange(key, e.target.value)}
           className="input-field"
           disabled={
-            isInventoryMode &&
-            ['placa', 'pos', 'eje', 'kilometraje_actual', 'frente', 'tipovhc'].includes(key)
-          } // Disable fields in inventory mode
+            (isInventoryMode &&
+              ['placa', 'pos', 'eje', 'kilometraje_actual', 'frente', 'tipovhc', 'operacion', 'peso_carga'].includes(key)) ||
+            (isKilometrajeLocked && key === 'kilometraje_actual')
+          } // Disable fields in inventory mode or locked mode
         />
       ))}
       <button className="upload-button" onClick={handleSingleTireUpload} disabled={loading}>

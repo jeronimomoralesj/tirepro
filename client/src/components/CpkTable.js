@@ -109,7 +109,7 @@ const CpkTable = ({ tires }) => {
             checked={filterSinReencauche}
             onChange={(e) => setFilterSinReencauche(e.target.checked)}
           />
-          Mostrar Solo Sin Reencauche
+          Mostrar Solo datos de primera vida
         </label>
       </div>
 
@@ -119,6 +119,9 @@ const CpkTable = ({ tires }) => {
             <th>Llanta</th>
             <th>Placa</th>
             <th>CPK</th>
+            <th>CPK Proy</th>
+            <th>Vida</th>
+            <th>Posición</th>
             <th>Marca</th>
             <th>Diseño</th>
             <th>Dimensión</th>
@@ -139,7 +142,6 @@ const CpkTable = ({ tires }) => {
               const latestCpkProy = filterSinReencauche
                 ? 'N/A'
                 : tire.cpk_proy?.at(-1)?.value?.toFixed(2) || 'N/A';
-              const latestProact = tire.proact?.at(-1)?.value || 'N/A';
               const latestVida = tire.vida?.at(-1)?.value || 'N/A';
               const latestBanda = filterSinReencauche
                 ? primeraVida.banda || 'N/A'
@@ -150,6 +152,9 @@ const CpkTable = ({ tires }) => {
                   <td>{tire.llanta || 'N/A'}</td>
                   <td>{tire.placa || 'N/A'}</td>
                   <td>{latestCpk}</td>
+                  <td>{latestCpkProy}</td>
+                  <td>{latestVida}</td>
+                  <td>{latestPos}</td>
                   <td>{tire.marca || 'N/A'}</td>
                   <td>{tire.diseno || 'N/A'}</td>
                   <td>{tire.dimension || 'N/A'}</td>
@@ -159,7 +164,7 @@ const CpkTable = ({ tires }) => {
             })
           ) : (
             <tr>
-              <td colSpan="14">No hay datos disponibles</td>
+              <td colSpan="10">No hay datos disponibles</td>
             </tr>
           )}
         </tbody>
