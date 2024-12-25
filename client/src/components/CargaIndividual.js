@@ -24,13 +24,12 @@ const CargaIndividual = () => {
     costo: '',
     kms: '',
     dimension: '',
-    operacion: '', // New field for operation
-    peso_carga: '', // New field for load weight
   });
   const [loading, setLoading] = useState(false);
   const [isInventoryMode, setIsInventoryMode] = useState(false);
   const [isKilometrajeLocked, setIsKilometrajeLocked] = useState(false);
 
+  // Handle individual tire input change
   const handleIndividualTireChange = async (field, value) => {
     if (isInventoryMode && ['placa', 'pos', 'eje', 'kilometraje_actual', 'frente', 'tipovhc'].includes(field)) {
       return; // Prevent editing when in inventory mode
@@ -46,13 +45,14 @@ const CargaIndividual = () => {
     } else {
       setIndividualTire((prevState) => ({
         ...prevState,
-        [field]: ['llanta', 'kilometraje_actual', 'pos', 'profundidad_int', 'profundidad_cen', 'profundidad_ext', 'profundidad_inicial', 'presion', 'costo', 'kms', 'peso_carga'].includes(field)
+        [field]: ['llanta', 'kilometraje_actual', 'pos', 'profundidad_int', 'profundidad_cen', 'profundidad_ext', 'profundidad_inicial', 'presion', 'costo', 'kms'].includes(field)
           ? value.replace(/\D/g, '') // Only allow numbers
           : value.toLowerCase(), // Convert text fields to lowercase
       }));
     }
   };
 
+  // Fetch existing tire data with the same `placa`
   const fetchPlacaKilometraje = async (placa) => {
     if (!placa) {
       setIsKilometrajeLocked(false);
@@ -88,6 +88,7 @@ const CargaIndividual = () => {
     }
   };
 
+  // Validate the form before submission
   const validateForm = () => {
     const numericFields = [
       'llanta',
@@ -100,7 +101,6 @@ const CargaIndividual = () => {
       'presion',
       'costo',
       'kms',
-      'peso_carga', // Validate the new field
     ];
 
     for (const field of numericFields) {
@@ -110,6 +110,7 @@ const CargaIndividual = () => {
         return false;
       }
 
+      // Validate profundidades to be within 0 and 30
       if (
         ['profundidad_int', 'profundidad_cen', 'profundidad_ext', 'profundidad_inicial'].includes(
           field
@@ -121,14 +122,10 @@ const CargaIndividual = () => {
       }
     }
 
-    if (!individualTire.operacion) {
-      alert('El campo "Operación" no puede estar vacío.');
-      return false;
-    }
-
     return true;
   };
 
+  // Upload individual tire
   const handleSingleTireUpload = async () => {
     const token = localStorage.getItem('token');
     const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
@@ -138,13 +135,15 @@ const CargaIndividual = () => {
       return;
     }
 
+    // Validate the form
     if (!validateForm()) {
-      return;
+      return; // Stop submission if validation fails
     }
 
     try {
       setLoading(true);
 
+      // Automatically calculate `proact` as the smallest value of the three profundidades
       const profundidades = [
         Number(individualTire.profundidad_int) || 0,
         Number(individualTire.profundidad_cen) || 0,
@@ -152,6 +151,7 @@ const CargaIndividual = () => {
       ];
       const proact = Math.min(...profundidades);
 
+      // Calculate projected KMS
       const profundidadInicial = Number(individualTire.profundidad_inicial) || 20;
       const kms = Number(individualTire.kms) || 0;
       const projectedKms =
@@ -159,10 +159,12 @@ const CargaIndividual = () => {
           ? (kms / (profundidadInicial - proact)) * profundidadInicial
           : 0;
 
+      // Calculate CPK and Projected CPK
       const costo = Number(individualTire.costo) || 0;
-      const cpk = kms >= 0 ? costo / kms : 0;
-      const cpkProy = projectedKms > 0 ? costo / projectedKms : 0;
+      const cpk = kms >= 0 ? costo / kms : 0; // Ensure stored as number
+      const cpkProy = projectedKms > 0 ? costo / projectedKms : 0; // Ensure stored as number
 
+      // Prepare the new tire data
       const newTire = {
         ...individualTire,
         kilometraje_actual: Number(individualTire.kilometraje_actual),
@@ -173,6 +175,7 @@ const CargaIndividual = () => {
         cpkProy,
       };
 
+      // Make the POST request
       await axios.post(
         'https://tirepro.onrender.com/api/tires',
         newTire,
@@ -226,8 +229,6 @@ const CargaIndividual = () => {
       costo: '',
       kms: '',
       dimension: '',
-      operacion: '',
-      peso_carga: '',
     });
     setIsInventoryMode(false);
     setIsKilometrajeLocked(false);
@@ -247,9 +248,9 @@ const CargaIndividual = () => {
         <input
           key={key}
           type={
-            ['llanta', 'kilometraje_actual', 'pos', 'profundidad_int', 'profundidad_cen', 'profundidad_ext', 'profundidad_inicial', 'presion', 'costo', 'kms', 'peso_carga'].includes(key)
-              ? 'number'
-              : 'text'
+            ['llanta', 'kilometraje_actual', 'pos', 'profundidad_int', 'profundidad_cen', 'profundidad_ext', 'profundidad_inicial', 'presion', 'costo', 'kms'].includes(key)
+              ? 'number' // Use number input type for numeric fields
+              : 'text' // Use text input type for other fields
           }
           value={individualTire[key]}
           placeholder={`Ingresar ${key.replace('_', ' ')}`}
@@ -259,7 +260,7 @@ const CargaIndividual = () => {
             (isInventoryMode &&
               ['placa', 'pos', 'eje', 'kilometraje_actual', 'frente', 'tipovhc'].includes(key)) ||
             (isKilometrajeLocked && key === 'kilometraje_actual')
-          }
+          } // Disable fields in inventory mode or locked mode
         />
       ))}
       <button className="upload-button" onClick={handleSingleTireUpload} disabled={loading}>
