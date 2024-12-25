@@ -39,7 +39,7 @@ const TireDataSchema = new mongoose.Schema(
     cpk_proy: { type: [HistoricalValueSchema], default: [] },
     dimension: { type: String, required: true },
     proact: { type: [HistoricalValueSchema], default: [] },
-    presion: { type: [HistoricalValueSchema], default: [] }, // New field with historical structure
+    presion: { type: [HistoricalValueSchema], default: [] }, // Field with historical structure
     eje: { type: String, required: true },
     KMS_x_MM: { type: Number, required: true, default: 0 },
     pro_mes: { type: Number, required: true, default: 0 },
@@ -50,6 +50,8 @@ const TireDataSchema = new mongoose.Schema(
     primera_vida: { type: [LifeSchema], default: [] }, // Array for primera_vida details
     additional_life: { type: [LifeSchema], default: [] }, // Array for additional life details
     user: { type: String, required: true },
+    operacion: { type: String, required: true, default: 'N/A' }, // New field for operation
+    peso_carga: { type: Number, required: true, default: 0 },    // New field for load weight
   },
   { collection: 'tire_data' }
 );
