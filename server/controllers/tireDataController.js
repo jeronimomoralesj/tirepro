@@ -117,6 +117,8 @@ const uploadTireData = async (req, res) => {
         diseno: normalizeText(row['diseno']),
         banda: normalizeText(row['banda']),
         tipovhc: normalizeText(row['tipovhc']),
+        operacion: normalizeText(row['operacion']),
+        peso_carga: normalizeText(row['peso_carga']),
         pos: transformToHistoricalArrayWithDay(row['pos']),
         original: normalizeText(row['original']),
         profundidad_int: transformToHistoricalArrayWithDay(profundidadInt),
@@ -149,7 +151,7 @@ const uploadTireData = async (req, res) => {
 
     // Check for duplicates by `placa` and `pos`, but allow duplicates if `placa` is "inventario"
     const duplicatePosEntries = tireDataEntries.filter((newTire) => {
-      if (newTire.placa === 'inventario') {
+      if (newTire.placa === 'inventario' || newTire.placa === "fin") {
         return false; // Skip duplicate check for `placa` = "inventario"
       }
       return existingTires.some((existingTire) => {
