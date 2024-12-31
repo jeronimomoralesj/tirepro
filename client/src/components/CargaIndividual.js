@@ -24,8 +24,6 @@ const CargaIndividual = () => {
     costo: '',
     kms: '',
     dimension: '',
-    peso_carga: '',
-    opeacion:'',
   });
   const [loading, setLoading] = useState(false);
   const [isInventoryMode, setIsInventoryMode] = useState(false);
@@ -231,8 +229,6 @@ const CargaIndividual = () => {
       costo: '',
       kms: '',
       dimension: '',
-      operacion: '',
-      peso_carga: '',
     });
     setIsInventoryMode(false);
     setIsKilometrajeLocked(false);
