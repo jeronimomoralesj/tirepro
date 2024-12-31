@@ -131,6 +131,8 @@ const uploadTireData = async (req, res) => {
         dimension: normalizeText(row['dimension']),
         proact: transformToHistoricalArrayWithDay(proact),
         eje: normalizeText(row['eje']),
+        operacion: operacion.toLowerCase(),
+        peso_carga: pesoCarga,
         user: userId,
       };
     });
