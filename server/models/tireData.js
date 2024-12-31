@@ -49,8 +49,6 @@ const TireDataSchema = new mongoose.Schema(
     ultima_inspeccion: { type: Date, required: true, default: Date.now },
     primera_vida: { type: [LifeSchema], default: [] }, // Array for primera_vida details
     additional_life: { type: [LifeSchema], default: [] }, // Array for additional life details
-    operacion: { type: String, required: true }, // New field
-    peso_carga: { type: Number, required: true }, // New field
     user: { type: String, required: true },
   },
   { collection: 'tire_data' }
