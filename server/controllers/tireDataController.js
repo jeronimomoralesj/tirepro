@@ -6,13 +6,21 @@ const xlsx = require('xlsx');
 
 const getTireDataByCompany = async (req, res) => {
   try {
-    const { companyId } = req.params;
-    console.log('Received CompanyID:', companyId);
+    const userId = req.params.user;
+    const tireData = await TireData.find({ user: userId });
 
-    const tireData = await TireData.find({ companyId });
-    res.json(tireData);
+    if (!tireData || tireData.length === 0) {
+      return res.status(200).json([]); // Return an empty array if no data is found
+    }
+
+    res.json(
+      tireData.map((tire) => ({
+        ...tire.toObject(),
+        latestImage: tire.images?.at(-1)?.value || null, // Include latest image URL
+      }))
+    );
   } catch (error) {
-    console.error('Error fetching tires by company ID:', error);
+    console.error("Error fetching tire data:", error);
     res.status(500).json({ msg: 'Server error' });
   }
 };
@@ -27,12 +35,18 @@ const getTireDataByUser = async (req, res) => {
       return res.status(200).json([]); // Return an empty array if no data is found
     }
 
-    res.json(tireData);
+    res.json(
+      tireData.map((tire) => ({
+        ...tire.toObject(),
+        latestImage: tire.images?.at(-1)?.value || null, // Include latest image URL
+      }))
+    );
   } catch (error) {
     console.error("Error fetching tire data:", error);
     res.status(500).json({ msg: 'Server error' });
   }
 };
+
 
 
 // Function to calculate CPK and projected CPK
@@ -215,10 +229,23 @@ const updateTireField = async (req, res) => {
       const tire = await TireData.findById(tireId);
       if (!tire) continue;
 
-      if (!Array.isArray(tire[field])) continue;
-
-      // Always push a new entry, even if the day, month, and year match
-      tire[field].push({ day: currentDay, month: currentMonth, year: currentYear, value: newValue });
+      if (field === 'images') {
+        // Append a new historical entry for images
+        tire.images.push({
+          day: currentDay,
+          month: currentMonth,
+          year: currentYear,
+          value: newValue, // URL of the image
+        });
+      } else if (Array.isArray(tire[field])) {
+        // Append to existing historical fields
+        tire[field].push({
+          day: currentDay,
+          month: currentMonth,
+          year: currentYear,
+          value: newValue,
+        });
+      }
 
       await tire.save();
     }
@@ -229,6 +256,7 @@ const updateTireField = async (req, res) => {
     res.status(500).json({ msg: 'Server error', error: error.message });
   }
 };
+
 
 
 
