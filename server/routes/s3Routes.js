@@ -2,9 +2,8 @@ const express = require('express');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
-const router = express.Router(); // Initialize the router
+const router = express.Router();
 
-// Initialize the S3 client
 const s3Client = new S3Client({
   region: process.env.AWS_REGION,
   credentials: {
@@ -13,7 +12,6 @@ const s3Client = new S3Client({
   },
 });
 
-// Define the route for generating pre-signed URLs
 router.post('/s3/presigned-url', async (req, res) => {
   const { tireId, fileName } = req.body;
 
@@ -26,6 +24,7 @@ router.post('/s3/presigned-url', async (req, res) => {
       Bucket: process.env.AWS_BUCKET_NAME,
       Key: `tires/${tireId}/${fileName}`,
       ContentType: 'image/jpeg',
+      ACL: 'public-read', // Make file publicly readable
     });
 
     const url = await getSignedUrl(s3Client, command, { expiresIn: 60 });
@@ -36,4 +35,4 @@ router.post('/s3/presigned-url', async (req, res) => {
   }
 });
 
-module.exports = router; // Export the router
+module.exports = router;

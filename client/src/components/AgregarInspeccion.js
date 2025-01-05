@@ -11,6 +11,7 @@ const AgregarInspeccion = () => {
   const [loading, setLoading] = useState(false);
   const [addPressure, setAddPressure] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState({});
+  const [imageLinks, setImageLinks] = useState({});
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
@@ -172,6 +173,13 @@ const AgregarInspeccion = () => {
             ? await uploadImageToS3(tire._id, selectedFiles[tire._id])
             : null;
 
+          if (imageUrl) {
+            setImageLinks((prev) => ({
+              ...prev,
+              [tire._id]: imageUrl,
+            }));
+          }
+
           const updatesArray = [
             { tireId: tire._id, field: 'profundidad_int', newValue: profundidades.profundidad_int || 0 },
             { tireId: tire._id, field: 'profundidad_cen', newValue: profundidades.profundidad_cen || 0 },
@@ -183,7 +191,7 @@ const AgregarInspeccion = () => {
           ];
 
           if (imageUrl) {
-            updatesArray.push({ tireId: tire._id, field: 'image_url', newValue: imageUrl });
+            updatesArray.push({ tireId: tire._id, field: 'images', newValue: imageUrl });
           }
 
           if (addPressure) {
@@ -316,6 +324,13 @@ const AgregarInspeccion = () => {
                       }))
                     }
                   />
+                  {imageLinks[tire._id] && (
+                    <div>
+                      <a href={imageLinks[tire._id]} target="_blank" rel="noopener noreferrer">
+                        Ver Imagen
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
             );
