@@ -10,6 +10,7 @@ const AgregarInspeccion = () => {
   const [kilometrajeActual, setKilometrajeActual] = useState('');
   const [loading, setLoading] = useState(false);
   const [addPressure, setAddPressure] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState({});
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
@@ -28,7 +29,7 @@ const AgregarInspeccion = () => {
     }
 
     try {
-      const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
+      const response = await axios.get(`http://localhost:5001/api/tires/user/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -88,21 +89,6 @@ const AgregarInspeccion = () => {
         alert(`El kilometraje actual para la llanta ${tire.llanta} no puede ser menor que el último valor registrado (${lastKilometrajeActual}).`);
         return false;
       }
-
-      const currentProfundidades = {
-        int: tire.profundidad_int?.[tire.profundidad_int.length - 1]?.value || 0,
-        cen: tire.profundidad_cen?.[tire.profundidad_cen.length - 1]?.value || 0,
-        ext: tire.profundidad_ext?.[tire.profundidad_ext.length - 1]?.value || 0,
-      };
-
-      if (
-        profundidades.profundidad_int > currentProfundidades.int ||
-        profundidades.profundidad_cen > currentProfundidades.cen ||
-        profundidades.profundidad_ext > currentProfundidades.ext
-      ) {
-        alert(`Las profundidades no pueden ser mayores que las actuales para la llanta ${tire.llanta}.`);
-        return false;
-      }
     }
 
     return true;
@@ -119,6 +105,27 @@ const AgregarInspeccion = () => {
     if (proact >= profundidad_inicial) return 0; // Avoid division by zero
     const projectedKms = (kms / (profundidad_inicial - proact)) * profundidad_inicial;
     return projectedKms > 0 ? costo / projectedKms : 0;
+  };
+
+  const uploadImageToS3 = async (tireId, file) => {
+    try {
+      const { data } = await axios.post('http://localhost:5001/api/s3/presigned-url', {
+        tireId,
+        fileName: file.name,
+      });
+
+      await axios.put(data.url, file, {
+        headers: {
+          'Content-Type': file.type,
+        },
+      });
+
+      return data.url.split('?')[0]; // Return the uploaded file URL without query parameters
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Error al subir imagen.');
+      return null;
+    }
   };
 
   const handleSaveUpdates = async () => {
@@ -139,60 +146,70 @@ const AgregarInspeccion = () => {
 
       const currentKilometrajeActual = Number(kilometrajeActual);
 
-      const updates = filteredTires.map((tire) => {
-        const profundidades = profundidadUpdates[tire._id] || {};
-        const minProfundidad = Math.min(
-          profundidades.profundidad_int || 0,
-          profundidades.profundidad_cen || 0,
-          profundidades.profundidad_ext || 0
-        );
+      const updates = await Promise.all(
+        filteredTires.map(async (tire) => {
+          const profundidades = profundidadUpdates[tire._id] || {};
+          const minProfundidad = Math.min(
+            profundidades.profundidad_int || 0,
+            profundidades.profundidad_cen || 0,
+            profundidades.profundidad_ext || 0
+          );
 
-        const lastKilometrajeActual =
-          tire.kilometraje_actual?.[tire.kilometraje_actual.length - 1]?.value || 0;
-        const lastKms = tire.kms?.[tire.kms.length - 1]?.value || 0;
+          const lastKilometrajeActual =
+            tire.kilometraje_actual?.[tire.kilometraje_actual.length - 1]?.value || 0;
+          const lastKms = tire.kms?.[tire.kms.length - 1]?.value || 0;
 
-        const newKms = calculateKms(lastKilometrajeActual, currentKilometrajeActual, lastKms);
-        const cpk = calculateCPK(tire.costo, newKms);
-        const cpkProy = calculateProjectedCPK(
-          tire.costo,
-          newKms,
-          tire.profundidad_inicial,
-          minProfundidad
-        );
+          const newKms = calculateKms(lastKilometrajeActual, currentKilometrajeActual, lastKms);
+          const cpk = calculateCPK(tire.costo, newKms);
+          const cpkProy = calculateProjectedCPK(
+            tire.costo,
+            newKms,
+            tire.profundidad_inicial,
+            minProfundidad
+          );
 
-        const updatesArray = [
-          { tireId: tire._id, field: 'profundidad_int', newValue: profundidades.profundidad_int || 0 },
-          { tireId: tire._id, field: 'profundidad_cen', newValue: profundidades.profundidad_cen || 0 },
-          { tireId: tire._id, field: 'profundidad_ext', newValue: profundidades.profundidad_ext || 0 },
-          { tireId: tire._id, field: 'proact', newValue: minProfundidad },
-          { tireId: tire._id, field: 'kms', newValue: newKms },
-          { tireId: tire._id, field: 'cpk', newValue: cpk },
-          { tireId: tire._id, field: 'cpk_proy', newValue: cpkProy },
-        ];
+          const imageUrl = selectedFiles[tire._id]
+            ? await uploadImageToS3(tire._id, selectedFiles[tire._id])
+            : null;
 
-        if (addPressure) {
-          updatesArray.push({
-            tireId: tire._id,
-            field: 'presion',
-            newValue: presionUpdates[tire._id] || 0,
-          });
-        }
+          const updatesArray = [
+            { tireId: tire._id, field: 'profundidad_int', newValue: profundidades.profundidad_int || 0 },
+            { tireId: tire._id, field: 'profundidad_cen', newValue: profundidades.profundidad_cen || 0 },
+            { tireId: tire._id, field: 'profundidad_ext', newValue: profundidades.profundidad_ext || 0 },
+            { tireId: tire._id, field: 'proact', newValue: minProfundidad },
+            { tireId: tire._id, field: 'kms', newValue: newKms },
+            { tireId: tire._id, field: 'cpk', newValue: cpk },
+            { tireId: tire._id, field: 'cpk_proy', newValue: cpkProy },
+          ];
 
-        return updatesArray;
-      }).flat();
+          if (imageUrl) {
+            updatesArray.push({ tireId: tire._id, field: 'image_url', newValue: imageUrl });
+          }
+
+          if (addPressure) {
+            updatesArray.push({
+              tireId: tire._id,
+              field: 'presion',
+              newValue: presionUpdates[tire._id] || 0,
+            });
+          }
+
+          return updatesArray;
+        })
+      );
 
       const tireIds = filteredTires.map((tire) => tire._id);
 
       await axios.put(
-        'https://tirepro.onrender.com/api/tires/update-inspection-date',
+        'http://localhost:5001/api/tires/update-inspection-date',
         { tireIds, kilometrajeActual: currentKilometrajeActual },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      if (updates.length > 0) {
+      if (updates.flat().length > 0) {
         await axios.put(
-          'https://tirepro.onrender.com/api/tires/update-field',
-          { tireUpdates: updates },
+          'http://localhost:5001/api/tires/update-field',
+          { tireUpdates: updates.flat() },
           { headers: { Authorization: `Bearer ${token}` } }
         );
       }
@@ -287,6 +304,19 @@ const AgregarInspeccion = () => {
                     />
                   </div>
                 )}
+                <div>
+                  <label>Subir Imagen</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) =>
+                      setSelectedFiles((prev) => ({
+                        ...prev,
+                        [tire._id]: e.target.files[0],
+                      }))
+                    }
+                  />
+                </div>
               </div>
             );
           })}

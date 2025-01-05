@@ -1,4 +1,3 @@
-// server/server.js
 const express = require('express');
 const connectDB = require('./config/db');
 const cors = require('cors');
@@ -6,9 +5,9 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
 const tireDataRoutes = require('./routes/tireDataRoutes');
-const historicsRoutes = require('./routes/historicsRoutes'); // Import historics routes
+const historicsRoutes = require('./routes/historicsRoutes');
 const eventRoutes = require('./routes/eventRoutes');
-
+const s3Routes = require('./routes/s3Routes'); // Import the S3 routes
 
 const app = express();
 app.use(express.json());
@@ -17,8 +16,9 @@ connectDB();
 
 app.use('/api/auth', authRoutes);
 app.use('/api/tires', tireDataRoutes);
-app.use('/api/historics', historicsRoutes); // Use historics routes
+app.use('/api/historics', historicsRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api', s3Routes); // Add the S3 route
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
