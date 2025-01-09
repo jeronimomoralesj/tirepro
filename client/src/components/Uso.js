@@ -88,10 +88,12 @@ const Uso = () => {
         setProactValues(matchingTire.proact || []);
         setCpkValues(matchingTire.cpk || []);
         setCpkProyValues(matchingTire.cpk_proy || []);
+        setSelectedTire(matchingTire); // Set the full tire data including `images`
       } else {
         setProactValues([]);
         setCpkValues([]);
         setCpkProyValues([]);
+        setSelectedTire(null);
       }
     } catch (error) {
       console.error('Error fetching inspection values:', error);
@@ -148,18 +150,17 @@ const Uso = () => {
     if (proactValues.length === 0) {
       return <p>No hay datos de inspecciones disponibles.</p>;
     }
-  
-    // Combine proactValues, cpkValues, and cpkProyValues into a single array of objects
+
     const inspections = proactValues.map((entry, index) => ({
       date: new Date(entry.year, entry.month - 1, entry.day),
       proact: entry.value,
       cpk: cpkValues[index]?.value || 'N/A',
       cpkProy: cpkProyValues[index]?.value || 'N/A',
+      image: selectedTire.images?.[index]?.value || null, // Include image URL
     }));
-  
-    // Sort the inspections array by date in descending order
+
     inspections.sort((a, b) => b.date - a.date);
-  
+
     return (
       <div className="proact-section">
         <h4>Historial de Inspecciones:</h4>
@@ -170,6 +171,7 @@ const Uso = () => {
               <th>Proact</th>
               <th>CPK</th>
               <th>CPK Proy</th>
+              <th>Imagen</th>
             </tr>
           </thead>
           <tbody>
@@ -179,6 +181,19 @@ const Uso = () => {
                 <td>{inspection.proact}</td>
                 <td>{inspection.cpk}</td>
                 <td>{inspection.cpkProy}</td>
+                <td>
+                  {inspection.image ? (
+                    <a href={inspection.image} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={inspection.image}
+                        alt="Inspección"
+                        style={{ width: '50px', height: '50px', objectFit: 'cover' }}
+                      />
+                    </a>
+                  ) : (
+                    'No Disponible'
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -186,7 +201,6 @@ const Uso = () => {
       </div>
     );
   };
-  
 
   return (
     <div className="uso-container">

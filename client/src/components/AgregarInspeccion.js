@@ -29,7 +29,7 @@ const AgregarInspeccion = () => {
     }
 
     try {
-      const response = await axios.get(`http://localhost:5001/api/tires/user/${userId}`, {
+      const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -109,17 +109,18 @@ const AgregarInspeccion = () => {
 
   const uploadImageToS3 = async (tireId, file) => {
     try {
-      const { data } = await axios.post('http://localhost:5001/api/s3/presigned-url', {
+      const { data } = await axios.post('https://tirepro.onrender.com/api/s3/presigned-url', {
         tireId,
         fileName: file.name,
       });
-
+  
+      // Upload the file to the S3 presigned URL
       await axios.put(data.url, file, {
         headers: {
           'Content-Type': file.type,
         },
       });
-
+  
       return data.url.split('?')[0]; // Return the uploaded file URL without query parameters
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -127,25 +128,26 @@ const AgregarInspeccion = () => {
       return null;
     }
   };
+  
 
   const handleSaveUpdates = async () => {
     if (!validateFields()) {
       return;
     }
-
+  
     const token = localStorage.getItem('token');
     const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
-
+  
     if (!userId) {
       alert("Usuario no identificado.");
       return;
     }
-
+  
     try {
       setLoading(true);
-
+  
       const currentKilometrajeActual = Number(kilometrajeActual);
-
+  
       const updates = await Promise.all(
         filteredTires.map(async (tire) => {
           const profundidades = profundidadUpdates[tire._id] || {};
@@ -154,11 +156,11 @@ const AgregarInspeccion = () => {
             profundidades.profundidad_cen || 0,
             profundidades.profundidad_ext || 0
           );
-
+  
           const lastKilometrajeActual =
             tire.kilometraje_actual?.[tire.kilometraje_actual.length - 1]?.value || 0;
           const lastKms = tire.kms?.[tire.kms.length - 1]?.value || 0;
-
+  
           const newKms = calculateKms(lastKilometrajeActual, currentKilometrajeActual, lastKms);
           const cpk = calculateCPK(tire.costo, newKms);
           const cpkProy = calculateProjectedCPK(
@@ -167,11 +169,12 @@ const AgregarInspeccion = () => {
             tire.profundidad_inicial,
             minProfundidad
           );
-
+  
+          // Upload the image and get the URL
           const imageUrl = selectedFiles[tire._id]
             ? await uploadImageToS3(tire._id, selectedFiles[tire._id])
             : null;
-
+  
           const updatesArray = [
             { tireId: tire._id, field: 'profundidad_int', newValue: profundidades.profundidad_int || 0 },
             { tireId: tire._id, field: 'profundidad_cen', newValue: profundidades.profundidad_cen || 0 },
@@ -181,11 +184,11 @@ const AgregarInspeccion = () => {
             { tireId: tire._id, field: 'cpk', newValue: cpk },
             { tireId: tire._id, field: 'cpk_proy', newValue: cpkProy },
           ];
-
+  
           if (imageUrl) {
-            updatesArray.push({ tireId: tire._id, field: 'image_url', newValue: imageUrl });
+            updatesArray.push({ tireId: tire._id, field: 'images', newValue: imageUrl });
           }
-
+  
           if (addPressure) {
             updatesArray.push({
               tireId: tire._id,
@@ -193,27 +196,27 @@ const AgregarInspeccion = () => {
               newValue: presionUpdates[tire._id] || 0,
             });
           }
-
+  
           return updatesArray;
         })
       );
-
+  
       const tireIds = filteredTires.map((tire) => tire._id);
-
+  
       await axios.put(
-        'http://localhost:5001/api/tires/update-inspection-date',
+        'https://tirepro.onrender.com/api/tires/update-inspection-date',
         { tireIds, kilometrajeActual: currentKilometrajeActual },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
+  
       if (updates.flat().length > 0) {
         await axios.put(
-          'http://localhost:5001/api/tires/update-field',
+          'https://tirepro.onrender.com/api/tires/update-field',
           { tireUpdates: updates.flat() },
           { headers: { Authorization: `Bearer ${token}` } }
         );
       }
-
+  
       alert("Datos actualizados correctamente.");
       setKilometrajeActual('');
       setProfundidadUpdates({});
@@ -228,6 +231,7 @@ const AgregarInspeccion = () => {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="section inspeccion-section">
