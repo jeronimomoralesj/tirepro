@@ -1,73 +1,61 @@
-// client/src/components/Recomendaciones.js
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import React from 'react';
 import './recomendaciones.css';
 
 const Acontecimientos = () => {
-  const [recommendations, setRecommendations] = useState([]);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const fetchAndGenerateRecommendations = async () => {
-      try {
-        // Retrieve and decode the user token
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('Token not found');
-
-        const decodedToken = jwtDecode(token);
-        const userId = decodedToken?.user?.id;
-        if (!userId) throw new Error("User ID not found in token");
-
-        // Fetch tire data from the backend for the user
-        const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const tiresData = response.data;
-
-        // Configure the AI model
-        const genAI = new GoogleGenerativeAI("AIzaSyAhwbLCdrIZoRkbsoyAvNB2SdFmEu1UWj8");
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
-        // Define the AI prompt with user-specific data
-        const prompt = `
-          Actúa como un experto en mantenimiento de flotas. Basándote en la siguiente información de llantas, genera un analisis de la situacion actual y lo que paso en el pasado:
-
-          Información de llantas:
-          ${JSON.stringify(tiresData, null, 2)}
-
-          Proporciona las recomendaciones en formato de puntos, en español, incluyendo lo que consideres pertinente.
-        `;
-
-        // Generate recommendations using AI
-        const result = await model.generateContent(prompt);
-        const generatedText = await result.response.text();
-        setRecommendations(generatedText.split('\n').filter(line => line)); // Split response into bullet points
-
-      } catch (error) {
-        console.error('Error generating recommendations:', error);
-        setError('Error al generar recomendaciones.');
-      }
-    };
-
-    fetchAndGenerateRecommendations();
-  }, []);
+  const analysis = [
+    {
+      title: "Vida de las Llantas",
+      details: [
+        'Todas las llantas están registradas como "Nuevas", lo cual sugiere que no han sido recauchadas.',
+        'Esto es positivo porque cada llanta debería ofrecer un rendimiento óptimo desde su instalación.',
+      ],
+    },
+    {
+      title: "Kilometraje Actual",
+      details: [
+        "El vehículo ha recorrido 78,783 km, lo que indica que las llantas han sido utilizadas en condiciones de trabajo moderadas.",
+        "Si no se han rotado, es probable que algunas posiciones presenten un desgaste mayor.",
+      ],
+    },
+    {
+      title: "Desgaste y Condiciones",
+      details: [
+        "Las llantas de marcas como Continental y Goodyear son reconocidas por su durabilidad, pero requieren mantenimiento constante.",
+        'La banda "Original" (como en las Continental CONTIGOL) tiende a desgastarse de manera uniforme si las presiones y alineaciones son correctas.',
+      ],
+    },
+    {
+      title: "Carga del Vehículo",
+      details: [
+        "El frente de operación 'Carga seca' indica que el peso puede ser constante y uniforme, pero asegúrate de que no haya sobrecarga en los ejes traseros.",
+      ],
+    },
+    {
+      title: "Problemas Potenciales",
+      details: [
+        "Si no se ha realizado rotación, las llantas en posiciones de tracción podrían desgastarse más rápido.",
+        "Las presiones incorrectas pueden causar desgaste desigual (centro o bordes).",
+      ],
+    },
+  ];
 
   return (
     <div className="recomendaciones-container">
       <h2 className="recomendaciones-title">Acontecimientos</h2>
-      <div className="recomendaciones-list">
-        {recommendations.length > 0 ? (
-          recommendations.map((rec, index) => (
-            <div key={index} className="recommendation-item">
-              <p>{rec}</p>
-            </div>
-          ))
-        ) : (
-          <p>{error || 'Generando recomendaciones...'}</p>
-        )}
-      </div>
+      <ul className="recomendaciones-list">
+        {analysis.map((item, index) => (
+          <li key={index} className="recommendation-item">
+            <h3 className="recommendation-title">{item.title}</h3>
+            <ul className="recommendation-details">
+              {item.details.map((detail, idx) => (
+                <li key={idx} className="recommendation-detail">
+                  {detail}
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
