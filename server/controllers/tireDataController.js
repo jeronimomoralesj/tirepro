@@ -258,6 +258,7 @@ const updateTireField = async (req, res) => {
 
 
 
+
 // Update inspection date and kilometraje_actual
 const updateInspectionDate = async (req, res) => {
   try {
