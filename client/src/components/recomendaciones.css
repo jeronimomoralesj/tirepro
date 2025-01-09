@@ -1,6 +1,6 @@
 .recomendaciones-container {
     max-width: 600px;
-    max-height: 300px;
+    max-height: 400px;
     overflow-y: auto;
     margin: 20px;
     padding: 15px;
@@ -40,5 +40,63 @@
   .recomendaciones-container::-webkit-scrollbar-thumb {
     background: #ccc;
     border-radius: 5px;
+  }
+  
+
+  .recomendaciones-container {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    margin: 20px auto;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .recomendaciones-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #0a183a;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .recomendaciones-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .recommendation-item {
+    margin-bottom: 20px;
+    border: 1px solid #e1e8f0;
+    border-radius: 8px;
+    padding: 15px;
+    background-color: #ffffff;
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .recommendation-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .recommendation-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #173d68;
+    margin-bottom: 10px;
+  }
+  
+  .recommendation-details {
+    list-style-type: disc;
+    padding-left: 20px;
+    margin: 0;
+  }
+  
+  .recommendation-detail {
+    font-size: 16px;
+    color: #333333;
+    margin-bottom: 8px;
+    line-height: 1.5;
   }
   
