@@ -87,7 +87,7 @@ const CargaMasiva = () => {
 
         try {
           const response = await axios.post(
-            'https://tirepro.onrender.com/api/tires/upload',
+            'http://localhost:5001/api/tires/upload',
             formData,
             {
               headers: {

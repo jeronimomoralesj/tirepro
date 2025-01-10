@@ -25,37 +25,33 @@ const CargaIndividual = () => {
     kms: '',
     dimension: '',
   });
+  const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [isInventoryMode, setIsInventoryMode] = useState(false);
   const [isKilometrajeLocked, setIsKilometrajeLocked] = useState(false);
+  const [isFrenteLocked, setIsFrenteLocked] = useState(false);
 
-  // Handle individual tire input change
   const handleIndividualTireChange = async (field, value) => {
-    if (isInventoryMode && ['placa', 'pos', 'eje', 'kilometraje_actual', 'frente', 'tipovhc'].includes(field)) {
-      return; // Prevent editing when in inventory mode
-    }
+    if (isKilometrajeLocked && field === 'kilometraje_actual') return;
+    if (isFrenteLocked && field === 'frente') return;
 
     if (field === 'placa') {
       const placaValue = value.toLowerCase();
-      setIndividualTire((prevState) => ({
-        ...prevState,
-        placa: placaValue,
-      }));
-      fetchPlacaKilometraje(placaValue);
+      setIndividualTire((prevState) => ({ ...prevState, placa: placaValue }));
+      fetchPlacaDetails(placaValue);
     } else {
       setIndividualTire((prevState) => ({
         ...prevState,
         [field]: ['llanta', 'kilometraje_actual', 'pos', 'profundidad_int', 'profundidad_cen', 'profundidad_ext', 'profundidad_inicial', 'presion', 'costo', 'kms'].includes(field)
-          ? value.replace(/\D/g, '') // Only allow numbers
+          ? value.replace(/\D/g, '') // Allow only numbers
           : value.toLowerCase(), // Convert text fields to lowercase
       }));
     }
   };
 
-  // Fetch existing tire data with the same `placa`
-  const fetchPlacaKilometraje = async (placa) => {
+  const fetchPlacaDetails = async (placa) => {
     if (!placa) {
       setIsKilometrajeLocked(false);
+      setIsFrenteLocked(false);
       return;
     }
 
@@ -78,17 +74,19 @@ const CargaIndividual = () => {
         setIndividualTire((prevState) => ({
           ...prevState,
           kilometraje_actual: matchingTire.kilometraje_actual?.[0]?.value || '',
+          frente: matchingTire.frente || '',
         }));
         setIsKilometrajeLocked(true);
+        setIsFrenteLocked(true);
       } else {
         setIsKilometrajeLocked(false);
+        setIsFrenteLocked(false);
       }
     } catch (error) {
       console.error('Error fetching tire data for placa:', error);
     }
   };
 
-  // Validate the form before submission
   const validateForm = () => {
     const numericFields = [
       'llanta',
@@ -110,11 +108,8 @@ const CargaIndividual = () => {
         return false;
       }
 
-      // Validate profundidades to be within 0 and 30
       if (
-        ['profundidad_int', 'profundidad_cen', 'profundidad_ext', 'profundidad_inicial'].includes(
-          field
-        ) &&
+        ['profundidad_int', 'profundidad_cen', 'profundidad_ext', 'profundidad_inicial'].includes(field) &&
         (value < 0 || value > 30)
       ) {
         alert(`El campo "${field.replace('_', ' ')}" debe estar entre 0 y 30.`);
@@ -125,7 +120,61 @@ const CargaIndividual = () => {
     return true;
   };
 
-  // Upload individual tire
+  const checkForDuplicatePlacaAndPos = async () => {
+    const token = localStorage.getItem('token');
+    const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
+
+    if (!userId) {
+      alert('Usuario no identificado.');
+      return true;
+    }
+
+    try {
+      const response = await axios.get(
+        `https://tirepro.onrender.com/api/tires/user/${userId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const duplicates = response.data.find(
+        (tire) => tire.placa === individualTire.placa && tire.pos?.[0]?.value === Number(individualTire.pos)
+      );
+
+      if (duplicates) {
+        alert(
+          `Ya existe una llanta con la placa ${individualTire.placa} en la posición ${individualTire.pos}.`
+        );
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Error checking for duplicates:', error);
+      return true;
+    }
+  };
+
+  const uploadImageToS3 = async (file) => {
+    try {
+      const token = localStorage.getItem('token');
+      const { data } = await axios.post('https://tirepro.onrender.com/api/s3/presigned-url', {
+        tireId: individualTire.llanta,
+        fileName: file.name,
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      await axios.put(data.url, file, {
+        headers: { 'Content-Type': file.type },
+      });
+
+      return data.url.split('?')[0]; // Return the uploaded file URL without query parameters
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Error al subir imagen.');
+      return null;
+    }
+  };
+
   const handleSingleTireUpload = async () => {
     const token = localStorage.getItem('token');
     const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
@@ -135,15 +184,12 @@ const CargaIndividual = () => {
       return;
     }
 
-    // Validate the form
-    if (!validateForm()) {
-      return; // Stop submission if validation fails
-    }
+    if (!validateForm()) return;
+    if (await checkForDuplicatePlacaAndPos()) return;
 
     try {
       setLoading(true);
 
-      // Automatically calculate `proact` as the smallest value of the three profundidades
       const profundidades = [
         Number(individualTire.profundidad_int) || 0,
         Number(individualTire.profundidad_cen) || 0,
@@ -151,61 +197,59 @@ const CargaIndividual = () => {
       ];
       const proact = Math.min(...profundidades);
 
-      // Calculate projected KMS
-      const profundidadInicial = Number(individualTire.profundidad_inicial) || 20;
-      const kms = Number(individualTire.kms) || 0;
-      const projectedKms =
+      const currentDate = new Date();
+      const normalizeHistoricalValue = (value) => ({
+        day: currentDate.getDate(),
+        month: currentDate.getMonth() + 1,
+        year: currentDate.getFullYear(),
+        value,
+      });
+
+      const kms = Number(individualTire.kms || 0);
+      const costo = Number(individualTire.costo || 0);
+      const profundidadInicial = Number(individualTire.profundidad_inicial || 20);
+
+      const cpk = kms > 0 ? costo / kms : 0;
+      const cpkProy =
         proact < profundidadInicial
-          ? (kms / (profundidadInicial - proact)) * profundidadInicial
+          ? (kms / (profundidadInicial - proact)) * profundidadInicial > 0
+            ? costo / ((kms / (profundidadInicial - proact)) * profundidadInicial)
+            : 0
           : 0;
 
-      // Calculate CPK and Projected CPK
-      const costo = Number(individualTire.costo) || 0;
-      const cpk = kms >= 0 ? costo / kms : 0; // Ensure stored as number
-      const cpkProy = projectedKms > 0 ? costo / projectedKms : 0; // Ensure stored as number
+      const imageUrl = imageFile ? await uploadImageToS3(imageFile) : null;
 
-      // Prepare the new tire data
       const newTire = {
         ...individualTire,
-        kilometraje_actual: Number(individualTire.kilometraje_actual),
-        kms,
         user: userId,
-        proact,
-        cpk,
-        cpkProy,
+        vida: normalizeHistoricalValue(individualTire.vida || 'nueva'),
+        kilometraje_actual: normalizeHistoricalValue(Number(individualTire.kilometraje_actual)),
+        pos: normalizeHistoricalValue(Number(individualTire.pos || 1)),
+        proact: normalizeHistoricalValue(proact),
+        profundidad_int: normalizeHistoricalValue(Number(individualTire.profundidad_int)),
+        profundidad_cen: normalizeHistoricalValue(Number(individualTire.profundidad_cen)),
+        profundidad_ext: normalizeHistoricalValue(Number(individualTire.profundidad_ext)),
+        kms: normalizeHistoricalValue(kms),
+        presion: normalizeHistoricalValue(Number(individualTire.presion || 0)),
+        cpk: normalizeHistoricalValue(cpk),
+        cpk_proy: normalizeHistoricalValue(cpkProy),
+        images: imageUrl ? [normalizeHistoricalValue(imageUrl)] : [],
       };
 
-      // Make the POST request
       await axios.post(
         'https://tirepro.onrender.com/api/tires',
         newTire,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       alert('Llanta agregada exitosamente!');
       resetForm();
     } catch (error) {
       console.error('Error al cargar la llanta:', error);
-      const errorMessage = error.response?.data?.msg || 'Error al intentar cargar la llanta.';
-      alert(errorMessage);
+      alert('Error al intentar cargar la llanta.');
     } finally {
       setLoading(false);
     }
-  };
-
-  const saveToInventory = () => {
-    setIndividualTire((prev) => ({
-      ...prev,
-      placa: 'inventario',
-      pos: '1',
-      kilometraje_actual: 1,
-      frente: '1',
-      tipovhc: '1',
-      eje: '1',
-    }));
-    setIsInventoryMode(true);
   };
 
   const resetForm = () => {
@@ -230,39 +274,40 @@ const CargaIndividual = () => {
       kms: '',
       dimension: '',
     });
-    setIsInventoryMode(false);
+    setImageFile(null);
     setIsKilometrajeLocked(false);
+    setIsFrenteLocked(false);
   };
 
   return (
     <div className="section individual-section">
       <h3>Carga Individual</h3>
-      <button
-        className="upload-button"
-        onClick={isInventoryMode ? resetForm : saveToInventory}
-        disabled={loading}
-      >
-        {isInventoryMode ? 'Agregar a Vehículo' : 'Guardar en Inventario'}
-      </button>
       {Object.keys(individualTire).map((key) => (
         <input
           key={key}
           type={
             ['llanta', 'kilometraje_actual', 'pos', 'profundidad_int', 'profundidad_cen', 'profundidad_ext', 'profundidad_inicial', 'presion', 'costo', 'kms'].includes(key)
-              ? 'number' // Use number input type for numeric fields
-              : 'text' // Use text input type for other fields
+              ? 'number'
+              : 'text'
           }
           value={individualTire[key]}
           placeholder={`Ingresar ${key.replace('_', ' ')}`}
           onChange={(e) => handleIndividualTireChange(key, e.target.value)}
           className="input-field"
           disabled={
-            (isInventoryMode &&
-              ['placa', 'pos', 'eje', 'kilometraje_actual', 'frente', 'tipovhc'].includes(key)) ||
-            (isKilometrajeLocked && key === 'kilometraje_actual')
-          } // Disable fields in inventory mode or locked mode
+            (isKilometrajeLocked && key === 'kilometraje_actual') ||
+            (isFrenteLocked && key === 'frente')
+          }
         />
       ))}
+      <div>
+        <label>Subir Imagen</label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setImageFile(e.target.files[0])}
+        />
+      </div>
       <button className="upload-button" onClick={handleSingleTireUpload} disabled={loading}>
         {loading ? 'Cargando...' : 'Agregar'}
       </button>
