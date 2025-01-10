@@ -49,7 +49,17 @@ const TireDataSchema = new mongoose.Schema(
     ultima_inspeccion: { type: Date, required: true, default: Date.now },
     primera_vida: { type: [LifeSchema], default: [] }, // Array for primera_vida details
     additional_life: { type: [LifeSchema], default: [] }, // Array for additional life details
-    images: { type: [HistoricalValueSchema], default: [] }, // New field to store image links
+    images: {
+      type: [HistoricalValueSchema],
+      default: [
+        {
+          day: new Date().getDate(),
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear(),
+          value: 'https://d1bat1ruswunxz.cloudfront.net/app/uploads/2020/11/tire.png',
+        },
+      ],
+    }, // Default with a predefined image link
     user: { type: String, required: true },
   },
   { collection: 'tire_data' }
