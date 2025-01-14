@@ -12,10 +12,10 @@ const NuevaEmpleado = () => {
   const [placas, setPlacas] = useState([]);
   const [selectedPlaca, setSelectedPlaca] = useState('');
   const [selectedFiles, setSelectedFiles] = useState({});
-
   const token = localStorage.getItem('token');
   const decodedToken = token ? JSON.parse(atob(token.split('.')[1])) : null;
   const companyId = decodedToken?.user?.companyId;
+  const userId = decodedToken?.user?.id; // Extract userId from the decodedToken
 
   useEffect(() => {
     const fetchPlacas = async () => {
@@ -202,6 +202,20 @@ const NuevaEmpleado = () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
       }
+
+      try {
+        // Increment the user's pointcount
+        await axios.put(
+          'https://tirepro.onrender.com/api/auth/update-pointcount',
+          { userId, incrementBy: 1 }, // Pass the userId and incrementBy value
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        alert("Datos actualizados correctamente y punto añadido al usuario.");
+      } catch (error) {
+        console.error("Error updating user's pointcount:", error);
+        alert("Datos actualizados, pero hubo un problema al actualizar los puntos del usuario.");
+      }
+      
 
       alert("Datos actualizados correctamente.");
       setFilteredTires([]);
