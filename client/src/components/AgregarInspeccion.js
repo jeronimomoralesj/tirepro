@@ -217,7 +217,19 @@ const AgregarInspeccion = () => {
         );
       }
   
-      alert("Datos actualizados correctamente.");
+      try {
+        // Increment the user's pointcount
+        await axios.put(
+          'https://tirepro.onrender.com/api/auth/update-pointcount',
+          { userId, incrementBy: 1 }, // Pass the userId and incrementBy value
+          { headers: { Authorization: `Bearer ${token}` } }
+        );        
+        alert("Datos actualizados correctamente y punto añadido al usuario.");
+      } catch (error) {
+        console.error("Error updating user's pointcount:", error);
+        alert("Datos actualizados, pero hubo un problema al actualizar el puntaje del usuario.");
+      }
+      
       setKilometrajeActual('');
       setProfundidadUpdates({});
       setPresionUpdates({});
