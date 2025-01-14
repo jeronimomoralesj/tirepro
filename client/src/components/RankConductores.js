@@ -1,22 +1,55 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import './RankConductores.css';
 
 const RankConductores = () => {
-  // Dummy data for drivers and scores
-  const driverData = [
-    { rank: 1, name: 'Carlos Perez', score: 95 },
-    { rank: 2, name: 'Maria Lopez', score: 92 },
-    { rank: 3, name: 'Juan Gonzalez', score: 89 },
-    { rank: 4, name: 'Ana Martinez', score: 87 },
-    { rank: 5, name: 'Luis Ramirez', score: 85 },
-    { rank: 6, name: 'Diana Torres', score: 83 },
-    { rank: 7, name: 'Jorge Rivera', score: 81 },
-    { rank: 8, name: 'Gabriela Vega', score: 79 },
-    { rank: 9, name: 'Sofia Hernandez', score: 78 },
-    { rank: 10, name: 'Pablo Ortiz', score: 76 },
-    { rank: 11, name: 'Lucia Flores', score: 75 },
-    { rank: 12, name: 'Fernando Castillo', score: 74 },
-  ];
+  const [driverData, setDriverData] = useState([]); // State to store the ranked drivers
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState(null); // Error state
+
+  const token = localStorage.getItem('token'); // Get the JWT token
+  const decodedToken = token ? JSON.parse(atob(token.split('.')[1])) : null;
+  const companyId = decodedToken?.user?.companyId; // Get the companyId from the token
+
+  useEffect(() => {
+    const fetchDriverData = async () => {
+      try {
+        // Fetch users from the backend where companyId matches
+        const response = await axios.get(`https://tirepro.onrender.com/api/auth/users`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        // Filter users by companyId and sort by pointcount (descending)
+        const filteredAndSortedUsers = response.data
+          .filter((user) => user.companyId === companyId) // Match companyId
+          .sort((a, b) => b.pointcount - a.pointcount); // Sort by pointcount (descending)
+
+        // Map the sorted data into the format we need for the table
+        const formattedData = filteredAndSortedUsers.map((user, index) => ({
+          rank: index + 1, // Add ranking based on the index
+          name: user.name, // User's name
+          score: user.pointcount, // User's pointcount
+        }));
+
+        setDriverData(formattedData); // Update the state with ranked drivers
+        setLoading(false); // Turn off loading
+      } catch (err) {
+        console.error('Error fetching driver data:', err);
+        setError('Error fetching driver data. Please try again later.');
+        setLoading(false);
+      }
+    };
+
+    fetchDriverData();
+  }, [companyId, token]);
+
+  if (loading) {
+    return <p>Loading...</p>; // Show a loading message while fetching data
+  }
+
+  if (error) {
+    return <p className="error-message">{error}</p>; // Show an error message if something goes wrong
+  }
 
   return (
     <div className="revenue-updates-card">
