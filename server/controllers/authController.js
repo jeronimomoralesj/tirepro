@@ -117,6 +117,5 @@ module.exports = {
   registerUser,
   loginUser,
   getUserById,
-  updatePointCount, // Export the new controller
+  updatePointCount, // Export the function
 };
-
