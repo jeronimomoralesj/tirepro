@@ -7,6 +7,8 @@ import './RevenueUpdates.css';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, ChartDataLabels);
 
 const PromedioEje = ({ tires, onSelectEje, selectedEje }) => {
+  const isDarkMode = document.documentElement.classList.contains('dark-mode');
+
   // Use memoization to calculate average depths by "eje" only when `tires` changes
   const averageDepthData = useMemo(() => {
     const ejeGroups = {};
@@ -14,10 +16,9 @@ const PromedioEje = ({ tires, onSelectEje, selectedEje }) => {
     tires.forEach((tire) => {
       const eje = tire.eje || '';
 
-      // Get the latest `proact` value, assuming `proact` is sorted or use the last entry as latest
       const latestProactEntry = tire.proact?.length
         ? tire.proact[tire.proact.length - 1].value
-        : 0; // Default to 0 if `proact` is empty or undefined
+        : 0;
 
       if (!ejeGroups[eje]) {
         ejeGroups[eje] = { totalProact: 0, count: 0 };
@@ -27,7 +28,6 @@ const PromedioEje = ({ tires, onSelectEje, selectedEje }) => {
       ejeGroups[eje].count += 1;
     });
 
-    // Calculate the average `proact` for each `eje`
     return Object.entries(ejeGroups).map(([eje, data]) => ({
       eje,
       averageProact: data.count ? (data.totalProact / data.count).toFixed(2) : 0,
@@ -51,9 +51,19 @@ const PromedioEje = ({ tires, onSelectEje, selectedEje }) => {
   const options = {
     plugins: {
       legend: { display: false },
-      tooltip: { enabled: false },
+      tooltip: {
+        enabled: true,
+        callbacks: {
+          label: (tooltipItem) => `${tooltipItem.raw}`,
+        },
+        backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
+        titleColor: isDarkMode ? '#ffffff' : '#1a202c',
+        bodyColor: isDarkMode ? '#ffffff' : '#1a202c',
+        borderColor: isDarkMode ? '#ffffff' : '#1a202c',
+        borderWidth: 1,
+      },
       datalabels: {
-        color: '#1a202c',
+        color: isDarkMode ? '#ffffff' : '#1a202c',
         anchor: 'end',
         align: 'end',
         offset: -20,
@@ -68,7 +78,7 @@ const PromedioEje = ({ tires, onSelectEje, selectedEje }) => {
       x: {
         display: true,
         ticks: {
-          color: '#1a202c',
+          color: isDarkMode ? '#ffffff' : '#1a202c',
           font: {
             size: 12,
             weight: '500',
@@ -81,13 +91,13 @@ const PromedioEje = ({ tires, onSelectEje, selectedEje }) => {
         max: 25,
         ticks: {
           stepSize: 5,
-          color: '#A0AEC0',
+          color: isDarkMode ? '#ffffff' : '#A0AEC0',
           font: {
             size: 10,
           },
         },
         grid: {
-          color: 'rgba(160, 174, 192, 0.3)',
+          color: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(160, 174, 192, 0.3)',
         },
       },
     },
@@ -97,7 +107,7 @@ const PromedioEje = ({ tires, onSelectEje, selectedEje }) => {
       if (elements.length > 0) {
         const index = elements[0].index;
         const eje = data.labels[index];
-        onSelectEje(eje === selectedEje ? null : eje); // Toggle selection
+        onSelectEje(eje === selectedEje ? null : eje);
       }
     },
   };

@@ -1,27 +1,69 @@
 /* RevenueUpdates.css */
 
-
-
+/* Light Mode (Default) */
 .revenue-updates-card {
-    width: 100%;
-    max-width: 600px;
-    background-color: #ffffff;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    text-align: left;
+  width: 100%;
+  max-width: 600px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+.revenue-updates-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a202c;
+  margin-bottom: 20px;
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 200px; /* Adjust height for larger chart */
+}
+
+/* Dark Mode */
+.dark-mode .revenue-updates-card {
+  background-color: #1a1a1a;
+  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .revenue-updates-title {
+  color: #e0e0e0;
+}
+
+.dark-mode .chart-container {
+  background-color: transparent; /* Ensures no background clashes with the card */
+  color: white;
+}
+
+/* Responsive styles (unchanged) */
+@media (max-width: 768px) {
+  .revenue-updates-card {
+    padding: 16px;
   }
-  
+
   .revenue-updates-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1a202c;
-    margin-bottom: 20px;
+    font-size: 14px;
   }
-  
+
   .chart-container {
-    position: relative;
-    width: 100%;
-    height: 200px; /* Adjust height for larger chart */
+    height: 150px;
   }
-  
+}
+
+@media (max-width: 480px) {
+  .revenue-updates-card {
+    padding: 12px;
+  }
+
+  .revenue-updates-title {
+    font-size: 12px;
+  }
+
+  .chart-container {
+    height: 120px;
+  }
+}

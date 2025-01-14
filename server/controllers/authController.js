@@ -14,11 +14,11 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ msg: 'User already exists' });
     }
 
-    // Validate role input if needed, fallback to 'regular' for security
+    // Validate role input
     const validRoles = ['admin', 'regular'];
     const userRole = validRoles.includes(role) ? role : 'regular';
 
-    // Validate placa input only if the role is 'regular'
+    // Validate placa input for 'regular' users
     let placasArray = [];
     if (userRole === 'regular') {
       if (placa && Array.isArray(placa)) {
@@ -38,7 +38,8 @@ const registerUser = async (req, res) => {
       password: hashedPassword,
       company,
       role: userRole,
-      placa: placasArray, // Include placa only if user role is 'regular'
+      placa: placasArray,
+      pointcount: 0, // Initialize pointcount to 0
     });
 
     await newUser.save();
@@ -74,7 +75,7 @@ const loginUser = async (req, res) => {
 // Get user by ID controller
 const getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.userId).select('name role email company companyId placa');
+    const user = await User.findById(req.params.userId).select('name role email company companyId placa pointcount');
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
@@ -85,6 +86,7 @@ const getUserById = async (req, res) => {
       company: user.company,
       companyId: user.companyId,
       placa: user.placa,
+      pointcount: user.pointcount, // Include pointcount in response
     });
   } catch (error) {
     console.error('Error fetching user:', error.message);
@@ -92,9 +94,29 @@ const getUserById = async (req, res) => {
   }
 };
 
+const updatePointCount = async (req, res) => {
+  const { userId, newPointCount } = req.body;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    user.pointcount = newPointCount;
+    await user.save();
+
+    res.status(200).json({ msg: 'Pointcount updated successfully', pointcount: user.pointcount });
+  } catch (error) {
+    console.error('Error updating pointcount:', error.message);
+    res.status(500).json({ msg: 'Server error' });
+  }
+};
 
 module.exports = {
   registerUser,
   loginUser,
   getUserById,
+  updatePointCount, // Export the new controller
 };
+

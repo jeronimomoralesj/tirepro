@@ -8,6 +8,10 @@ import PorVida from './PorVida';
 import PromedioEje from './PromedioEje';
 import Inspecciones from './Inspecciones';
 import CpkTable from './CpkTable';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import logo from "../img/logo_text.png";
+import html2canvas from 'html2canvas';
 
 const Flota = () => {
   const [tires, setTires] = useState([]);
@@ -148,9 +152,48 @@ const Flota = () => {
     setSelectedCondition(null);
   };
 
+  const generatePDF = async () => {
+    const doc = new jsPDF();
+    let yOffset = 10;
+
+    // Add logo
+    const imgWidth = 50;
+    const imgHeight = 20;
+    doc.addImage(logo, 'PNG', 10, yOffset, imgWidth, imgHeight);
+    yOffset += 30;
+
+    // Add title
+    doc.setFontSize(16);
+    doc.text('TirePro Report', 14, yOffset);
+    yOffset += 10;
+
+    // Add charts and sections
+    const sections = document.querySelectorAll('.cards-container > div');
+    for (let i = 0; i < sections.length; i++) {
+      const canvas = await html2canvas(sections[i]);
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = 180; // Fit within PDF width
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      if (yOffset + imgHeight > 280) {
+        doc.addPage();
+        yOffset = 10;
+      }
+      doc.addImage(imgData, 'PNG', 10, yOffset, imgWidth, imgHeight);
+      yOffset += imgHeight + 10;
+    }
+
+    doc.save('TirePro_flota.pdf');
+  };
+
   return (
     <div className="home">
-      {/* Summary Section */}
+
+      <header className="home-header">
+      <button className="generate-pdf-btn" onClick={generatePDF}>
+          Generar PDF
+        </button>
+      </header>
+
       <div className="sales-card">
         <h2 className="sales-title">Mi Flota</h2>
         <div className="sales-stats">
@@ -162,7 +205,7 @@ const Flota = () => {
           <div className="stat-box">
             <span className="stat-value">{metrics.placaCount}</span>
             <br />
-            <span className="stat-label">Recuento de Placas</span>
+            <span className="stat-label">Cantidad de vehiculos</span>
           </div>
           <div className="stat-box">
             <span className="stat-value">{metrics.llantasCount}</span>
@@ -172,12 +215,12 @@ const Flota = () => {
           <div className="stat-box">
             <span className="stat-value">${averageCPK.toFixed(2)}</span>
             <br />
-            <span className="stat-label">CPK</span>
+            <span className="stat-label">CPK Promedio</span>
           </div>
           <div className="stat-box">
             <span className="stat-value">${averageProjectedCPK.toFixed(2)}</span>
             <br />
-            <span className="stat-label">CPK Proyectado</span>
+            <span className="stat-label">CPK Proyectado Promedio</span>
           </div>
         </div>
 

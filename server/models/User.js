@@ -8,7 +8,8 @@ const UserSchema = new mongoose.Schema({
   company: { type: String, required: true },
   role: { type: String, default: 'regular' },
   companyId: { type: String, required: false },
-  placa: { type: [String], default: [] }, // Add placa as an array of strings with a default empty array
+  placa: { type: [String], default: [] }, // Array of placas
+  pointcount: { type: Number, default: 0 }, // New field for tracking points
 });
 
 // Method to check password validity

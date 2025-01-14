@@ -8,14 +8,16 @@ import PorVida from './PorVida';
 import Inspecciones from './Inspecciones';
 import SemaforoTabla from './SemaforoTabla';
 import DetallesLlantas from './DetallesLlantas';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import logo from "../img/logo_text.png";
+import html2canvas from 'html2canvas';
 
 const Estado = () => {
   const [tires, setTires] = useState([]);
   const [selectedEje, setSelectedEje] = useState(null);
   const [selectedCondition, setSelectedCondition] = useState(null);
   const [selectedVida, setSelectedVida] = useState(null);
-  const [isPopupVisible, setIsPopupVisible] = useState(false);
-  const [cambioInmediatoTires, setCambioInmediatoTires] = useState([]);
   const [totalCost, setTotalCost] = useState(0);
   const [averageCPK, setAverageCPK] = useState(0);
   const [averageProjectedCPK, setAverageProjectedCPK] = useState(0);
@@ -47,17 +49,6 @@ const Estado = () => {
           });
           const tireData = response.data;
           setTires(tireData);
-
-          // Identify "Cambio Inmediato" tires based on latest depth values
-          const cambioInmediato = tireData.filter((tire) => {
-            const minDepth = Math.min(
-              ...tire.profundidad_int.map((p) => p.value),
-              ...tire.profundidad_cen.map((p) => p.value),
-              ...tire.profundidad_ext.map((p) => p.value)
-            );
-            return minDepth <= 5;
-          });
-          setCambioInmediatoTires(cambioInmediato);
         }
       } catch (error) {
         console.error('Error fetching tire data:', error);
@@ -153,52 +144,46 @@ const Estado = () => {
     setSelectedVida(null);
   };
 
+  const generatePDF = async () => {
+    const doc = new jsPDF();
+    let yOffset = 10;
+
+    // Add logo
+    const imgWidth = 50;
+    const imgHeight = 20;
+    doc.addImage(logo, 'PNG', 10, yOffset, imgWidth, imgHeight);
+    yOffset += 30;
+
+    // Add title
+    doc.setFontSize(16);
+    doc.text('TirePro Report', 14, yOffset);
+    yOffset += 10;
+
+    // Add charts and sections
+    const sections = document.querySelectorAll('.cards-container > div');
+    for (let i = 0; i < sections.length; i++) {
+      const canvas = await html2canvas(sections[i]);
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = 180; // Fit within PDF width
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      if (yOffset + imgHeight > 280) {
+        doc.addPage();
+        yOffset = 10;
+      }
+      doc.addImage(imgData, 'PNG', 10, yOffset, imgWidth, imgHeight);
+      yOffset += imgHeight + 10;
+    }
+
+    doc.save('TirePro_estado.pdf');
+  };
+
   return (
     <div className="home">
       <header className="home-header">
-        <button className="generate-pdf-btn">PDF</button>
-        <button className="generate-pdf-btn" onClick={() => setIsPopupVisible(!isPopupVisible)}>
-          <i className="bx bx-bell"></i>
+      <button className="generate-pdf-btn" onClick={generatePDF}>
+          Generar PDF
         </button>
       </header>
-
-      {/* Popup for "Cambio Inmediato" tires */}
-      {isPopupVisible && (
-        <div className="popup-overlay" onClick={() => setIsPopupVisible(false)}>
-          <div className="popup-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Que debo pedir</h3>
-            {cambioInmediatoTires.length > 0 ? (
-              <div className="popup-table-container">
-                <table className="popup-table">
-                  <thead>
-                    <tr>
-                      <th>Placa</th>
-                      <th>Pos</th>
-                      <th>Llanta</th>
-                      <th>Vida</th>
-                      <th>Marca</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {cambioInmediatoTires.map((tire, index) => (
-                      <tr key={index}>
-                        <td>{tire.placa}</td>
-                        <td>{tire.pos.at(-1)?.value || 'Unknown'}</td>
-                        <td>{tire.llanta}</td>
-                        <td>{tire.vida.at(-1)?.value || 'N/A'}</td>
-                        <td>{tire.marca}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p>No hay llantas en "Cambio Inmediato".</p>
-            )}
-            <button className="close-button" onClick={() => setIsPopupVisible(false)}>Cerrar</button>
-          </div>
-        </div>
-      )}
 
       {/* Summary Section */}
       <div className="sales-card">
@@ -222,12 +207,12 @@ const Estado = () => {
           <div className="stat-box">
             <span className="stat-value">${averageCPK.toFixed(2)}</span>
             <br />
-            <span className="stat-label">CPK</span>
+            <span className="stat-label">CPK Promedio</span>
           </div>
           <div className="stat-box">
             <span className="stat-value">${averageProjectedCPK.toFixed(2)}</span>
             <br />
-            <span className="stat-label">CPK Proyectado</span>
+            <span className="stat-label">CPK Proyectado Promedio</span>
           </div>
         </div>
 
@@ -263,6 +248,12 @@ const Estado = () => {
           selectedTire={selectedTire}
         />
         <DetallesLlantas tires={filteredTires} />
+        
+        <SemaforoPie 
+          tires={filteredTires}
+          onSelectCondition={setSelectedCondition}
+          selectedCondition={selectedCondition}
+        />
         <PorVida 
           tires={filteredTires}
           onSelectVida={setSelectedVida}
@@ -273,11 +264,7 @@ const Estado = () => {
           onSelectEje={setSelectedEje}
           selectedEje={selectedEje}
         />
-        <SemaforoPie 
-          tires={filteredTires}
-          onSelectCondition={setSelectedCondition}
-          selectedCondition={selectedCondition}
-        />
+        
       </div>
     </div>
   );

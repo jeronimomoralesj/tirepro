@@ -12,7 +12,8 @@ import {
   Filler,
 } from 'chart.js';
 import './HistoricChart.css';
-
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+ChartJS.register(ChartDataLabels);
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 const HistoricChart = ({ tires }) => {
@@ -23,20 +24,20 @@ const HistoricChart = ({ tires }) => {
   const processHistoricData = (tires, field) => {
     const groupedByDate = {};
     const lastValues = {};
-
+  
     // Group all entries by date and keep only the last value for each tire on that day
     tires.forEach((tire) => {
       if (tire[field]) {
         tire[field].forEach((entry) => {
           const key = `${entry.year}-${entry.month}-${entry.day}`;
           if (!groupedByDate[key]) groupedByDate[key] = {};
-
+  
           // Keep only the last value of the day for this tire
           groupedByDate[key][tire._id] = entry.value;
         });
       }
     });
-
+  
     // Sort dates and process missing values
     const sortedDates = Object.keys(groupedByDate)
       .map((key) => {
@@ -44,29 +45,33 @@ const HistoricChart = ({ tires }) => {
         return new Date(year, month - 1, day);
       })
       .sort((a, b) => a - b);
-
+  
     const processedData = [];
-
+  
     sortedDates.forEach((date) => {
       const key = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
       const dayData = groupedByDate[key];
-
+  
       // Carry forward last known values for each tire
       Object.entries(dayData).forEach(([tireId, value]) => {
         lastValues[tireId] = value;
       });
-
-      // Compute the average value for this day
+  
+      // Compute the average value for this day and round to 2 decimal places
       const averageValue =
         Object.values(lastValues).reduce((sum, value) => sum + Number(value), 0) /
         Object.keys(lastValues).length;
-
-      processedData.push({ date, value: averageValue });
+  
+      processedData.push({
+        date,
+        value: parseFloat(averageValue.toFixed(2)), // Round to 2 decimals
+      });
     });
-
+  
     // Return the last 60 (or fewer if there are less) entries
     return processedData.slice(-60);
   };
+  
 
   useEffect(() => {
     const processedData = processHistoricData(tires, selectedData);
@@ -87,17 +92,53 @@ const HistoricChart = ({ tires }) => {
         fill: true,
         tension: chartDataPoints.length === 1 ? 0 : 0.4,
         borderWidth: 2,
-        pointRadius: chartDataPoints.length === 1 ? 8 : 3,
-        pointBackgroundColor: '#4A90E2',
+        pointRadius: chartDataPoints.map((_, index) =>
+          index === 0 || index === Math.floor(chartDataPoints.length / 2) || index === chartDataPoints.length - 1
+            ? 6 // Larger radius for selected points
+            : 3
+        ),
+        pointBackgroundColor: chartDataPoints.map((_, index) =>
+          index === 0 || index === Math.floor(chartDataPoints.length / 2) || index === chartDataPoints.length - 1
+            ? '#FF5733' // Highlight selected points
+            : '#4A90E2'
+        ),
       },
     ],
   };
+  
 
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const value = context.raw;
+            return `${context.dataset.label}: ${value.toFixed(2)}`;
+          },
+        },
+        displayColors: false,
+      },
+      datalabels: {
+        align: 'top',
+        anchor: 'end',
+        offset: 10,
+        formatter: (value, context) => {
+          const index = context.dataIndex;
+          const dataLength = context.dataset.data.length;
+          if (index === 0 || index === Math.floor(dataLength / 2) || index === dataLength - 1) {
+            return value.toFixed(2); // Display label for first, middle, and last points
+          }
+          return ''; // No label for other points
+        },
+        font: {
+          size: 10,
+          weight: 'bold',
+        },
+        color: '#333',
+      },
     },
     scales: {
       x: {
@@ -119,6 +160,9 @@ const HistoricChart = ({ tires }) => {
       },
     },
   };
+  
+  
+  
 
   const toggleDropdown = () => setDropdownOpen((prev) => !prev);
 

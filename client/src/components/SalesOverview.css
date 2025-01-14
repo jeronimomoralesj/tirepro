@@ -1,5 +1,6 @@
 /* SalesOverview.css */
 
+/* Light Mode (Default) */
 .sales-overview-card {
   width: 100%;
   max-width: 600px;
@@ -12,20 +13,20 @@
 }
 
 .sales-overview-title {
-  font-size: 1.25rem; /* Responsive font size */
+  font-size: 1.25rem;
   font-weight: 600;
   color: #1a202c;
   margin-bottom: 20px;
-  text-align: center; /* Center the title for a balanced look on small screens */
+  text-align: center;
 }
 
 .chart-container {
   position: relative;
-  width: 80%; /* Make chart width responsive */
-  max-width: 300px; /* Limit max width */
+  width: 80%;
+  max-width: 300px;
   height: auto;
   margin: 0 auto;
-  aspect-ratio: 1; /* Maintain a square aspect ratio */
+  aspect-ratio: 1;
 }
 
 .chart-center-text {
@@ -42,15 +43,15 @@
   margin-top: 20px;
   display: flex;
   flex-wrap: wrap;
-  justify-content: center; /* Center legend items for small screens */
+  justify-content: center;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  margin: 5px 10px; /* Adjust spacing for responsiveness */
-  font-size: 0.875rem; /* Responsive font size */
-  cursor: pointer; /* Indicate clickability */
+  margin: 5px 10px;
+  font-size: 0.875rem;
+  cursor: pointer;
 }
 
 .legend-color {
@@ -62,53 +63,75 @@
 }
 
 .legend-value {
-  margin-left: 8px; /* Adjust spacing for consistency */
+  margin-left: 8px;
   font-size: 0.875rem;
   color: #6b7280;
 }
 
-/* Media queries for smaller screens */
+/* Dark Mode */
+.dark-mode .sales-overview-card {
+  background-color: #1a1a1a;
+  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .sales-overview-title {
+  color: #e0e0e0;
+}
+
+.dark-mode .chart-center-text {
+  color: #e0e0e0;
+}
+
+.dark-mode .legend-item {
+  color: #e0e0e0;
+}
+
+.dark-mode .legend-value {
+  color: #a0a0a0;
+}
+
+/* Responsive styles (unchanged) */
 @media (max-width: 768px) {
   .sales-overview-card {
-      padding: 16px;
+    padding: 16px;
   }
 
   .sales-overview-title {
-      font-size: 1.125rem;
+    font-size: 1.125rem;
   }
 
   .chart-container {
-      width: 70%;
-      max-width: 250px;
+    width: 70%;
+    max-width: 250px;
   }
 
   .legend-item {
-      font-size: 0.8rem;
-      margin: 3px 5px;
+    font-size: 0.8rem;
+    margin: 3px 5px;
   }
 }
 
 @media (max-width: 480px) {
   .sales-overview-title {
-      font-size: 1rem;
+    font-size: 1rem;
   }
 
   .chart-container {
-      width: 90%;
-      max-width: 200px;
+    width: 90%;
+    max-width: 200px;
   }
 
   .legend-item {
-      font-size: 0.75rem;
-      margin: 2px 4px;
+    font-size: 0.75rem;
+    margin: 2px 4px;
   }
 
   .legend-color {
-      width: 10px;
-      height: 10px;
+    width: 10px;
+    height: 10px;
   }
 
   .legend-value {
-      font-size: 0.75rem;
+    font-size: 0.75rem;
   }
 }

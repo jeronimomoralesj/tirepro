@@ -12,15 +12,21 @@ import MonthlyCPKChart from './MonthlyCPKChart';
 import PorVida from './PorVida';
 import HistoricChart from './HistoricChart';
 import { FaPlus } from 'react-icons/fa';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import logo from "../img/logo_text.png";
+import html2canvas from 'html2canvas';
+import RankConductores from './RankConductores';
+import Notificaciones from './Notificaciones';
 
 const Home = () => {
   const [tires, setTires] = useState([]);
   const [selectedEje, setSelectedEje] = useState(null);
   const [selectedCondition, setSelectedCondition] = useState(null);
-  const [isPopupVisible, setIsPopupVisible] = useState(false);
-  const [cambioInmediatoTires, setCambioInmediatoTires] = useState([]);
   const [totalCost, setTotalCost] = useState(0);
   const [averageCPK, setAverageCPK] = useState(0);
+  const [cambioInmediatoCount, setCambioInmediatoCount] = useState(0);
+  const [showNotificaciones, setShowNotificaciones] = useState(false);
   const [averageProjectedCPK, setAverageProjectedCPK] = useState(0);
   const [lastMonthInvestment, setLastMonthInvestment] = useState(10000000); // Static for now
   const [charts, setCharts] = useState([{ id: 0 }]); // Array to store chart configurations
@@ -34,36 +40,46 @@ const Home = () => {
         if (token) {
           const decodedToken = jwtDecode(token);
           const userId = decodedToken?.user?.id;
-
+    
           if (!userId) {
             console.error('User ID not found in token');
             return;
           }
-
+    
           const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           const tireData = response.data;
           setTires(tireData);
-
-          // Separate "Cambio Inmediato" tires for popup display
-          const cambioInmediato = tireData.filter((tire) => {
-            const minDepth = Math.min(
-              ...tire.profundidad_int.map((p) => p.value),
-              ...tire.profundidad_cen.map((p) => p.value),
-              ...tire.profundidad_ext.map((p) => p.value)
-            );
-            return minDepth <= 5;
-          });
-          setCambioInmediatoTires(cambioInmediato);
+    
+          // Calculate "Inversión Mes"
+          const currentMonth = new Date().getMonth() + 1;
+          const currentYear = new Date().getFullYear();
+          const investmentThisMonth = tireData.reduce((sum, tire) => {
+            const latestVida = tire.vida?.at(-1); // Get the latest `vida` entry
+            if (
+              latestVida &&
+              latestVida.month === currentMonth &&
+              latestVida.year === currentYear
+            ) {
+              return sum + tire.costo; // Add the tire's cost if the latest `vida` entry is in the same month/year
+            }
+            return sum;
+          }, 0);
+    
+          setLastMonthInvestment(investmentThisMonth);
         }
       } catch (error) {
         console.error('Error fetching tire data:', error);
       }
     };
+    
 
     fetchTireData();
   }, []);
+
+  // notifications popup
+  const toggleNotificaciones = () => setShowNotificaciones((prev) => !prev);
 
   // Filter tires by selected "Eje" and "Condition"
   const filteredTires = useMemo(() => {
@@ -95,6 +111,7 @@ const Home = () => {
     });
   }, [tires, selectedEje, selectedCondition, includeEndOfLife]);
 
+  
   // Calculate summary metrics based on filtered data
   useEffect(() => {
     const calculateMetrics = () => {
@@ -142,50 +159,67 @@ const Home = () => {
     setCharts((prevCharts) => [...prevCharts, { id: prevCharts.length }]);
   };
 
-  // Toggle the popup visibility
-  const togglePopup = () => setIsPopupVisible(!isPopupVisible);
+  const generatePDF = async () => {
+    const doc = new jsPDF();
+    let yOffset = 10;
+
+    // Add logo
+    const imgWidth = 50;
+    const imgHeight = 20;
+    doc.addImage(logo, 'PNG', 10, yOffset, imgWidth, imgHeight);
+    yOffset += 30;
+
+    // Add title
+    doc.setFontSize(16);
+    doc.text('TirePro Report', 14, yOffset);
+    yOffset += 10;
+
+    // Add charts and sections
+    const sections = document.querySelectorAll('.cards-container > div');
+    for (let i = 0; i < sections.length; i++) {
+      const canvas = await html2canvas(sections[i]);
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = 180; // Fit within PDF width
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      if (yOffset + imgHeight > 280) {
+        doc.addPage();
+        yOffset = 10;
+      }
+      doc.addImage(imgData, 'PNG', 10, yOffset, imgWidth, imgHeight);
+      yOffset += imgHeight + 10;
+    }
+
+    doc.save('TirePro_resumen.pdf');
+  };
 
   return (
     <div className="home">
-      <header className="home-header">
-        <button className="generate-pdf-btn">PDF</button>
-        <button className="generate-pdf-btn" onClick={togglePopup}>
-          <i className="bx bx-bell"></i>
+       <header className="home-header">
+        <button className="generate-pdf-btn">
+          Generar PDF
+        </button>
+        <button
+          className={`generate-pdf-btn notificaciones-btn ${cambioInmediatoCount > 0 ? 'has-notifications' : ''}`}
+          onClick={toggleNotificaciones}
+        >
+          Notificaciones (
+          {cambioInmediatoCount > 0 && (
+            <span style={{color:"red"}} className="notification-badge">{cambioInmediatoCount}</span>
+          )}
+          )
         </button>
       </header>
-
-      {/* Popup for "Cambio Inmediato" tires */}
-      {isPopupVisible && (
-        <div className="popup-overlay" onClick={togglePopup}>
+      
+      {showNotificaciones && (
+        <div className="popup-overlay" onClick={toggleNotificaciones}>
           <div className="popup-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Que debo pedir</h3>
-            {cambioInmediatoTires.length > 0 ? (
-              <div className="popup-table-container">
-                <table className="popup-table">
-                  <thead>
-                    <tr>
-                      <th>Placa</th>
-                      <th>Pos</th>
-                      <th>Llanta</th>
-                      <th>Marca</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {cambioInmediatoTires.map((tire, index) => (
-                      <tr key={index}>
-                        <td>{tire.placa}</td>
-                        <td>{tire.pos[0]?.value || 'Unknown'}</td>
-                        <td>{tire.llanta}</td>
-                        <td>{tire.marca}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p>No hay llantas en "Cambio Inmediato".</p>
-            )}
-            <button className="close-button" onClick={togglePopup}>Cerrar</button>
+            <Notificaciones
+              tires={tires}
+              onCambioInmediatoCount={(count) => setCambioInmediatoCount(count)}
+            />
+            <button className="close-button" onClick={toggleNotificaciones}>
+              Cerrar
+            </button>
           </div>
         </div>
       )}
@@ -207,12 +241,12 @@ const Home = () => {
           <div className="stat-box">
             <span className="stat-value">${averageCPK.toFixed(2)}</span>
             <br />
-            <span className="stat-label">CPK</span>
+            <span className="stat-label">CPK Promedio</span>
           </div>
           <div className="stat-box">
             <span className="stat-value">${averageProjectedCPK.toFixed(2)}</span>
             <br />
-            <span className="stat-label">CPK Proyectado</span>
+            <span className="stat-label">CPK Proyectado Promedio</span>
           </div>
         </div>
 
@@ -229,29 +263,31 @@ const Home = () => {
 
       {/* Cards Container with Filtered Tires */}
       <div className="cards-container">
-        <Acontecimientos />
-        <Recomendaciones />
-        <SemaforoPie
-          tires={filteredTires}
-          onSelectCondition={setSelectedCondition}
-          selectedCondition={selectedCondition}
-        />
-        <PromedioEje
-          tires={filteredTires}
-          onSelectEje={setSelectedEje}
-          selectedEje={selectedEje}
-        />
-        <ReencuacheTotal />
-        <ProgressBar />
-        {charts.map((chart) => (
-          <HistoricChart key={chart.id} tires={filteredTires} />
-        ))}
-        {/* Add Button */}
-        <button className="add-chart-btn" onClick={addHistoricChart}>
-          <FaPlus className="add-icon" />
-          Agregar
-        </button>
-      </div>
+  <Acontecimientos />
+  <Recomendaciones />
+  <SemaforoPie
+    tires={filteredTires}
+    onSelectCondition={setSelectedCondition}
+    selectedCondition={selectedCondition}
+  />
+  <PromedioEje
+    tires={filteredTires}
+    onSelectEje={setSelectedEje}
+    selectedEje={selectedEje}
+  />
+  <ReencuacheTotal tires={filteredTires} /> {/* Pass filteredTires */}
+  <ProgressBar tires={filteredTires} /> {/* Pass filteredTires */}
+  <RankConductores />
+  {charts.map((chart) => (
+    <HistoricChart key={chart.id} tires={filteredTires} />
+  ))}
+  {/* Add Button */}
+  <button className="add-chart-btn" onClick={addHistoricChart}>
+    <FaPlus className="add-icon" />
+    Agregar
+  </button>
+</div>
+
 
       {/* Reset Filters Button */}
       {isFilterActive && (

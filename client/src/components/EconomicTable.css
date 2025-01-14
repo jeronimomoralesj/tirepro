@@ -1,6 +1,6 @@
 /* Economic Table */
 .economic-table-container {
-  max-width: 600px; /* Updated to match the width of other components */
+  max-width: 600px;
   max-height: 500px;
   overflow: auto;
   border-radius: 8px;
@@ -8,6 +8,8 @@
   border: 1px solid #ddd;
   margin: 20px;
   scroll-behavior: smooth;
+  background-color: #ffffff;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .economic-table {
@@ -21,6 +23,7 @@
   text-align: center;
   font-size: 14px;
   font-weight: bold;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .economic-table thead th {
@@ -60,7 +63,7 @@
 
 /* Detalles Llantas Table */
 .detalles-llantas-container {
-  max-width: 600px; /* Updated to match the width of other components */
+  max-width: 600px;
   max-height: 500px;
   overflow-y: auto;
   border-radius: 8px;
@@ -68,6 +71,8 @@
   border: 1px solid #ddd;
   margin: 20px;
   scroll-behavior: smooth;
+  background-color: #ffffff;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .detalles-llantas-table {
@@ -81,6 +86,7 @@
   padding: 12px;
   text-align: center;
   font-size: 14px;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .detalles-llantas-table thead th {
@@ -136,7 +142,7 @@
   background: #555;
 }
 
-
+/* Color Counts */
 .color-counts {
   display: flex;
   justify-content: space-around;
@@ -166,4 +172,45 @@
   margin-top: 5px;
   background-color: #4caf50;
   color: white;
+}
+
+/* Dark Mode Support */
+.dark-mode .economic-table-container,
+.dark-mode .detalles-llantas-container {
+  background-color: #1a1a1a;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode .economic-table th,
+.dark-mode .economic-index,
+.dark-mode .detalles-llantas-table th {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+}
+
+.dark-mode .economic-table td,
+.dark-mode .detalles-llantas-table td {
+  color: #e0e0e0;
+}
+
+.dark-mode .economic-table tr:nth-child(even),
+.dark-mode .detalles-llantas-table tbody tr:nth-child(even) {
+  background-color: #2a2a2a;
+}
+
+.dark-mode .economic-table tr:hover td,
+.dark-mode .detalles-llantas-table tbody tr:hover td {
+  background-color: #353535;
+}
+
+.dark-mode .date-past {
+  color: #ff6b6b;
+}
+
+.dark-mode .date-future {
+  color: #63b3ed;
+}
+
+.dark-mode .scrollbar {
+  scrollbar-color: #4a90e2 #1a1a1a;
 }

@@ -29,6 +29,7 @@ const CargaIndividual = () => {
   const [loading, setLoading] = useState(false);
   const [isKilometrajeLocked, setIsKilometrajeLocked] = useState(false);
   const [isFrenteLocked, setIsFrenteLocked] = useState(false);
+  const [isInventoryMode, setIsInventoryMode] = useState(false);
 
   const handleIndividualTireChange = async (field, value) => {
     if (isKilometrajeLocked && field === 'kilometraje_actual') return;
@@ -121,37 +122,43 @@ const CargaIndividual = () => {
   };
 
   const checkForDuplicatePlacaAndPos = async () => {
+    // Skip duplicate check if placa is "inventario"
+    if (individualTire.placa === 'inventario') {
+      return false; // No duplicates in this case
+    }
+  
     const token = localStorage.getItem('token');
     const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
-
+  
     if (!userId) {
       alert('Usuario no identificado.');
       return true;
     }
-
+  
     try {
       const response = await axios.get(
         `https://tirepro.onrender.com/api/tires/user/${userId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
+  
       const duplicates = response.data.find(
         (tire) => tire.placa === individualTire.placa && tire.pos?.[0]?.value === Number(individualTire.pos)
       );
-
+  
       if (duplicates) {
         alert(
           `Ya existe una llanta con la placa ${individualTire.placa} en la posición ${individualTire.pos}.`
         );
         return true;
       }
-
+  
       return false;
     } catch (error) {
       console.error('Error checking for duplicates:', error);
       return true;
     }
   };
+  
 
   const uploadImageToS3 = async (file) => {
     try {
@@ -178,79 +185,97 @@ const CargaIndividual = () => {
   const handleSingleTireUpload = async () => {
     const token = localStorage.getItem('token');
     const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
-
+  
     if (!userId) {
       alert('Usuario no identificado.');
       return;
     }
-
+  
     if (!validateForm()) return;
-    if (await checkForDuplicatePlacaAndPos()) return;
-
-    try {
-      setLoading(true);
-
-      const profundidades = [
-        Number(individualTire.profundidad_int) || 0,
-        Number(individualTire.profundidad_cen) || 0,
-        Number(individualTire.profundidad_ext) || 0,
-      ];
-      const proact = Math.min(...profundidades);
-
-      const currentDate = new Date();
-      const normalizeHistoricalValue = (value) => ({
-        day: currentDate.getDate(),
-        month: currentDate.getMonth() + 1,
-        year: currentDate.getFullYear(),
-        value,
-      });
-
-      const kms = Number(individualTire.kms || 0);
-      const costo = Number(individualTire.costo || 0);
-      const profundidadInicial = Number(individualTire.profundidad_inicial || 20);
-
-      const cpk = kms > 0 ? costo / kms : 0;
-      const cpkProy =
-        proact < profundidadInicial
-          ? (kms / (profundidadInicial - proact)) * profundidadInicial > 0
-            ? costo / ((kms / (profundidadInicial - proact)) * profundidadInicial)
-            : 0
-          : 0;
-
-      const imageUrl = imageFile ? await uploadImageToS3(imageFile) : null;
-
-      const newTire = {
-        ...individualTire,
-        user: userId,
-        vida: normalizeHistoricalValue(individualTire.vida || 'nueva'),
-        kilometraje_actual: normalizeHistoricalValue(Number(individualTire.kilometraje_actual)),
-        pos: normalizeHistoricalValue(Number(individualTire.pos || 1)),
-        proact: normalizeHistoricalValue(proact),
-        profundidad_int: normalizeHistoricalValue(Number(individualTire.profundidad_int)),
-        profundidad_cen: normalizeHistoricalValue(Number(individualTire.profundidad_cen)),
-        profundidad_ext: normalizeHistoricalValue(Number(individualTire.profundidad_ext)),
-        kms: normalizeHistoricalValue(kms),
-        presion: normalizeHistoricalValue(Number(individualTire.presion || 0)),
-        cpk: normalizeHistoricalValue(cpk),
-        cpk_proy: normalizeHistoricalValue(cpkProy),
-        images: imageUrl ? [normalizeHistoricalValue(imageUrl)] : [],
-      };
-
-      await axios.post(
-        'https://tirepro.onrender.com/api/tires',
-        newTire,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      alert('Llanta agregada exitosamente!');
-      resetForm();
-    } catch (error) {
-      console.error('Error al cargar la llanta:', error);
-      alert('Error al intentar cargar la llanta.');
-    } finally {
-      setLoading(false);
+  
+    // Skip duplicate check if in inventory mode
+    if (!(await checkForDuplicatePlacaAndPos())) {
+      try {
+        setLoading(true);
+  
+        const profundidades = [
+          Number(individualTire.profundidad_int) || 0,
+          Number(individualTire.profundidad_cen) || 0,
+          Number(individualTire.profundidad_ext) || 0,
+        ];
+        const proact = Math.min(...profundidades);
+  
+        const currentDate = new Date();
+        const normalizeHistoricalValue = (value) => ({
+          day: currentDate.getDate(),
+          month: currentDate.getMonth() + 1,
+          year: currentDate.getFullYear(),
+          value,
+        });
+  
+        const kms = Number(individualTire.kms || 0) === 0 ? 1 : Number(individualTire.kms); // Convert 0 to 1
+        const costo = Number(individualTire.costo || 0);
+        const profundidadInicial = Number(individualTire.profundidad_inicial || 20);
+  
+        const cpk = kms > 0 ? costo / kms : 0;
+        const cpkProy =
+          proact < profundidadInicial
+            ? (kms / (profundidadInicial - proact)) * profundidadInicial > 0
+              ? costo / ((kms / (profundidadInicial - proact)) * profundidadInicial)
+              : 0
+            : 0;
+  
+        const imageUrl = imageFile ? await uploadImageToS3(imageFile) : null;
+  
+        const newTire = {
+          ...individualTire,
+          user: userId,
+          vida: normalizeHistoricalValue(individualTire.vida || 'nueva'),
+          kilometraje_actual: normalizeHistoricalValue(Number(individualTire.kilometraje_actual)),
+          pos: normalizeHistoricalValue(Number(individualTire.pos || 1)),
+          proact: normalizeHistoricalValue(proact),
+          profundidad_int: normalizeHistoricalValue(Number(individualTire.profundidad_int)),
+          profundidad_cen: normalizeHistoricalValue(Number(individualTire.profundidad_cen)),
+          profundidad_ext: normalizeHistoricalValue(Number(individualTire.profundidad_ext)),
+          kms: normalizeHistoricalValue(kms), // Ensure kms is at least 1
+          presion: normalizeHistoricalValue(Number(individualTire.presion || 0)),
+          cpk: normalizeHistoricalValue(cpk),
+          cpk_proy: normalizeHistoricalValue(cpkProy),
+          images: imageUrl ? [normalizeHistoricalValue(imageUrl)] : [],
+        };
+  
+        await axios.post(
+          'https://tirepro.onrender.com/api/tires',
+          newTire,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+  
+        alert('Llanta agregada exitosamente!');
+        resetForm();
+      } catch (error) {
+        console.error('Error al cargar la llanta:', error);
+        alert('Error al intentar cargar la llanta.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
+  
+  
+
+  const saveToInventory = () => {
+    setIndividualTire((prev) => ({
+      ...prev,
+      placa: 'inventario',
+      pos: '1',
+      kilometraje_actual: 1,
+      frente: '1',
+      tipovhc: '1',
+      eje: '1',
+    }));
+    setIsInventoryMode(true);
+  };
+  
 
   const resetForm = () => {
     setIndividualTire({
@@ -277,16 +302,41 @@ const CargaIndividual = () => {
     setImageFile(null);
     setIsKilometrajeLocked(false);
     setIsFrenteLocked(false);
+    setIsInventoryMode(false);
   };
+
+  
 
   return (
     <div className="section individual-section">
       <h3>Carga Individual</h3>
+  
+      {/* Toggle between Inventory Mode and Vehicle Mode */}
+      <button
+        className="upload-button"
+        onClick={isInventoryMode ? resetForm : saveToInventory}
+        disabled={loading}
+      >
+        {isInventoryMode ? 'Agregar a Vehículo' : 'Guardar en Inventario'}
+      </button>
+  
+      {/* Input Fields */}
       {Object.keys(individualTire).map((key) => (
         <input
           key={key}
           type={
-            ['llanta', 'kilometraje_actual', 'pos', 'profundidad_int', 'profundidad_cen', 'profundidad_ext', 'profundidad_inicial', 'presion', 'costo', 'kms'].includes(key)
+            [
+              'llanta',
+              'kilometraje_actual',
+              'pos',
+              'profundidad_int',
+              'profundidad_cen',
+              'profundidad_ext',
+              'profundidad_inicial',
+              'presion',
+              'costo',
+              'kms',
+            ].includes(key)
               ? 'number'
               : 'text'
           }
@@ -295,11 +345,16 @@ const CargaIndividual = () => {
           onChange={(e) => handleIndividualTireChange(key, e.target.value)}
           className="input-field"
           disabled={
-            (isKilometrajeLocked && key === 'kilometraje_actual') ||
-            (isFrenteLocked && key === 'frente')
+            isInventoryMode && 
+            ['placa', 'pos', 'kilometraje_actual', 'frente', 'tipovhc', 'eje'].includes(key)
+              ? true // Disable these fields in inventory mode
+              : (isKilometrajeLocked && key === 'kilometraje_actual') ||
+                (isFrenteLocked && key === 'frente')
           }
         />
       ))}
+  
+      {/* Image Upload */}
       <div>
         <label>Subir Imagen</label>
         <input
@@ -308,11 +363,18 @@ const CargaIndividual = () => {
           onChange={(e) => setImageFile(e.target.files[0])}
         />
       </div>
-      <button className="upload-button" onClick={handleSingleTireUpload} disabled={loading}>
+  
+      {/* Add Tire Button */}
+      <button
+        className="upload-button"
+        onClick={handleSingleTireUpload}
+        disabled={loading}
+      >
         {loading ? 'Cargando...' : 'Agregar'}
       </button>
     </div>
   );
+  
 };
 
 export default CargaIndividual;

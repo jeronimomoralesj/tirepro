@@ -150,17 +150,17 @@ const Uso = () => {
     if (proactValues.length === 0) {
       return <p>No hay datos de inspecciones disponibles.</p>;
     }
-
+  
     const inspections = proactValues.map((entry, index) => ({
       date: new Date(entry.year, entry.month - 1, entry.day),
       proact: entry.value,
-      cpk: cpkValues[index]?.value || 'N/A',
-      cpkProy: cpkProyValues[index]?.value || 'N/A',
+      cpk: cpkValues[index]?.value ? Number(cpkValues[index].value).toFixed(2) : 'N/A',
+      cpkProy: cpkProyValues[index]?.value ? Number(cpkProyValues[index].value).toFixed(2) : 'N/A',
       image: selectedTire.images?.[index]?.value || null, // Include image URL
     }));
-
+  
     inspections.sort((a, b) => b.date - a.date);
-
+  
     return (
       <div className="proact-section">
         <h4>Historial de Inspecciones:</h4>
@@ -201,6 +201,7 @@ const Uso = () => {
       </div>
     );
   };
+  
 
   return (
     <div className="uso-container">

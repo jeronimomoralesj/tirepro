@@ -7,6 +7,7 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   text-align: left;
   overflow-x: auto;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .reencuache-title {
@@ -14,6 +15,7 @@
   font-weight: 600;
   color: #1a202c;
   margin-bottom: 20px;
+  transition: color 0.3s ease;
 }
 
 .reencuache-table {
@@ -28,6 +30,7 @@
   text-align: center;
   font-size: 14px;
   border-bottom: 1px solid #ddd;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .reencuache-table th {
@@ -38,4 +41,29 @@
 
 .reencuache-table tbody tr:nth-child(even) {
   background-color: #f9f9f9;
+  transition: background-color 0.3s ease;
+}
+
+/* Dark Mode Styles */
+.dark-mode .reencuache-card {
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+}
+
+.dark-mode .reencuache-title {
+  color: #e0e0e0;
+}
+
+.dark-mode .reencuache-table th {
+  background-color: #2d3748;
+  color: #e0e0e0;
+}
+
+.dark-mode .reencuache-table td {
+  color: #e0e0e0;
+  border-color: #2d3748;
+}
+
+.dark-mode .reencuache-table tbody tr:nth-child(even) {
+  background-color: #2d2d2d;
 }
