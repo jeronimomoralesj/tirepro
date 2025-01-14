@@ -95,15 +95,17 @@ const getUserById = async (req, res) => {
 };
 
 const updatePointCount = async (req, res) => {
-  const { userId, newPointCount } = req.body;
+  const { userId, incrementBy } = req.body; // Accept `incrementBy` from request
 
   try {
+    // Find the user by ID
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
 
-    user.pointcount = newPointCount;
+    // Increment the user's pointcount
+    user.pointcount += incrementBy;
     await user.save();
 
     res.status(200).json({ msg: 'Pointcount updated successfully', pointcount: user.pointcount });
@@ -112,6 +114,7 @@ const updatePointCount = async (req, res) => {
     res.status(500).json({ msg: 'Server error' });
   }
 };
+
 
 module.exports = {
   registerUser,
