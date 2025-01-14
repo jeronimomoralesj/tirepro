@@ -32,3 +32,44 @@
     color: #0a183a;
   }
   
+  .company-users-section {
+    margin-top: 30px;
+  }
+  
+  .company-users-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+  
+  .scrollable-table-container {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+  
+  .company-users-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .company-users-table th,
+  .company-users-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .company-users-table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+  }
+  
+  .no-users-message {
+    font-size: 16px;
+    color: #666;
+    text-align: center;
+    margin-top: 20px;
+  }
+  
