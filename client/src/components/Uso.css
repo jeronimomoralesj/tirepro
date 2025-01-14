@@ -11,8 +11,10 @@
   color: #0a183a;
   margin-bottom: 15px;
   font-weight: bold;
+  transition: color 0.3s ease;
 }
 
+/* Search Bar */
 .search-bar {
   display: flex;
   align-items: center;
@@ -22,12 +24,14 @@
   width: 100%;
   max-width: 400px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .search-icon {
   color: #4361ee;
   font-size: 18px;
   margin-right: 10px;
+  transition: color 0.3s ease;
 }
 
 .search-input {
@@ -37,10 +41,12 @@
   outline: none;
   font-size: 16px;
   color: #0a183a;
+  transition: color 0.3s ease;
 }
 
 .search-input::placeholder {
   color: #aaa;
+  transition: color 0.3s ease;
 }
 
 .search-button {
@@ -59,6 +65,7 @@
   background-color: #3b4ccc;
 }
 
+/* Results Table */
 .results-container {
   margin-top: 20px;
   width: 100%;
@@ -67,6 +74,8 @@
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #ddd;
+  background-color: #ffffff;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .results-table {
@@ -79,6 +88,7 @@
   padding: 12px;
   text-align: center;
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 .results-table thead th {
@@ -94,6 +104,7 @@
   color: #e53935;
   font-weight: bold;
   margin-top: 10px;
+  transition: color 0.3s ease;
 }
 
 /* Tire History Map styling */
@@ -110,6 +121,7 @@
   color: #0a183a;
   margin-bottom: 10px;
   padding: 20px;
+  transition: color 0.3s ease;
 }
 
 /* Road map layout */
@@ -130,6 +142,7 @@
   border-radius: 2px;
   margin: 0 auto;
   z-index: 1;
+  transition: background-color 0.3s ease;
 }
 
 .step {
@@ -168,6 +181,7 @@
   font-weight: bold;
   color: #0a183a;
   margin-top: 5px; /* Add margin to avoid overlap */
+  transition: color 0.3s ease;
 }
 
 .view-button {
@@ -184,7 +198,6 @@
   background-color: #2b6bb3;
 }
 
-
 /* Historial Inspecciones Styling */
 .proact-section {
   margin-top: 20px;
@@ -193,6 +206,7 @@
   padding: 15px;
   background-color: #f8f9fa;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .proact-section h4 {
@@ -201,6 +215,7 @@
   color: #0a183a;
   margin-bottom: 10px;
   text-align: center;
+  transition: color 0.3s ease;
 }
 
 .proact-table {
@@ -213,6 +228,7 @@
   padding: 10px;
   text-align: center;
   font-size: 14px;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .proact-table th {
@@ -232,5 +248,44 @@
   font-size: 14px;
   color: #555;
   text-align: center;
+  transition: color 0.3s ease;
 }
 
+/* Dark Mode Support */
+.dark-mode .uso-title,
+.dark-mode .history-title,
+.dark-mode .step-label,
+.dark-mode .proact-section h4 {
+  color: #e0e0e0;
+}
+
+.dark-mode .search-bar {
+  background-color: #2a2a2a;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode .search-input {
+  color: #e0e0e0;
+}
+
+.dark-mode .search-input::placeholder {
+  color: #888;
+}
+
+.dark-mode .results-container,
+.dark-mode .proact-section {
+  background-color: #1a1a1a;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode .results-table th {
+  background-color: #2d2d2d;
+}
+
+.dark-mode .results-table td {
+  color: #e0e0e0;
+}
+
+.dark-mode .results-table tbody tr:nth-child(even) {
+  background-color: #2a2a2a;
+}

@@ -6,6 +6,7 @@
   background-color: #ffffff;
   border-radius: 16px;
   box-shadow: 0 8px 16px rgba(10, 24, 58, 0.08);
+  transition: all 0.3s ease;
 }
 
 .agregar-evento-container h2 {
@@ -77,6 +78,54 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Dark Mode Styles */
+.dark-mode .agregar-evento-container {
+  background-color: #1a1a1a;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .agregar-evento-container h2 {
+  color: #7e7e7e;
+}
+.dark-mode .info-item, .dark-mode .tire-info h3{
+  color:black;
+}
+
+.dark-mode .option-select-container {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .option-select-label {
+  color: #a0aec0;
+}
+
+.dark-mode .option-select {
+  background-color: #2a2a2a;
+  color: #e0e0e0;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23a0aec0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+.dark-mode .option-select:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+}
+
+.dark-mode .option-select:hover {
+  border-color: #4a90e2;
+}
+
+.dark-mode .agregar-evento-content {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Transition Effect for Dark Mode */
+.dark-mode .agregar-evento-container,
+.dark-mode .option-select {
+  transition: all 0.3s ease;
 }
 
 /* Responsive styles */

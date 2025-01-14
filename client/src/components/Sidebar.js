@@ -1,13 +1,38 @@
-// Sidebar.js
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import './Sidebar.css';
-import logo from "../img/logo.png";
-import logo_text from "../img/logo_text.png"
+import logo from '../img/logo.png';
+import logo_text from '../img/logo_text.png';
+import AIChat from './AIChat';
 
-const Sidebar = () => {
+const Layout = ({ children }) => {
+  const [darkMode, setDarkMode] = useState(() => {
+    const savedMode = localStorage.getItem('darkMode');
+    return savedMode ? JSON.parse(savedMode) : false;
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark-mode');
+    } else {
+      document.documentElement.classList.remove('dark-mode');
+    }
+    localStorage.setItem('darkMode', JSON.stringify(darkMode));
+  }, [darkMode]);
+
+  return (
+    <div className="app-wrapper">
+      <Sidebar darkMode={darkMode} setDarkMode={setDarkMode} />
+      <div className="main-content">
+        {children}
+      </div>
+    </div>
+  );
+};
+
+const Sidebar = ({ darkMode, setDarkMode }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -24,6 +49,30 @@ const Sidebar = () => {
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const sidebar = document.querySelector('.sidebar');
+      const burgerIcon = document.querySelector('.burger-icon');
+      
+      if (isMenuOpen && sidebar && !sidebar.contains(event.target) && !burgerIcon.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
+
+  // Close menu when route changes
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location]);
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -48,57 +97,67 @@ const Sidebar = () => {
     fetchUserDetails();
   }, []);
 
+  const renderMenuItem = (path, icon, text) => (
+    <Link
+      to={path}
+      className={`menu-item ${isActive(path) ? 'active' : ''}`}
+      onClick={() => setIsMenuOpen(false)}
+    >
+      <i className={`menu-icon bx ${icon}`}></i>
+      <span className="menu-text">{text}</span>
+    </Link>
+  );
+
   return (
-    <div className="sidebar">
+    <aside className="sidebar">
       <div className="logo-section">
         <div className="logo">
-          <img src={logo} alt="Catalog Logo" />
-          <span className="logo-text"><img src={logo_text} alt="Catalog Logo" style={{ height: "20px" }} /></span>
+          <img src={logo} alt="Logo" />
+          <span className="logo-text">
+            <img src={logo_text} alt="Logo text" style={{ height: '20px' }} />
+          </span>
         </div>
+        
+        <div className="mobile-actions">
+          <div className="theme-toggle" onClick={toggleDarkMode}>
+            <i className={`bx ${darkMode ? 'bx-sun' : 'bx-moon'}`}></i>
+          </div>
+          <Link to="/ajustes" className="mobile-action-icon">
+            <i className="bx bx-cog"></i>
+          </Link>
+          <div className="mobile-action-icon" onClick={handleLogout}>
+            <i className="bx bx-log-out"></i>
+          </div>
+        </div>
+
         <div className="burger-icon" onClick={toggleMenu}>
           <i className="bx bx-menu"></i>
         </div>
       </div>
 
-      <div className={`menu ${isMenuOpen ? 'menu-open' : ''}`}>
-        {userRole === 'admin' ? (
-          <>
-            <Link to="/home" className={`menu-item ${isActive('/home') ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>
-              <i className="menu-icon bx bx-home"></i>
-              <span className="menu-text">Resumen</span>
-            </Link>
-            <Link to="/flota" className={`menu-item ${isActive('/flota') ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>
-              <i className="menu-icon bx bx-car"></i>
-              <span className="menu-text">Flota</span>
-            </Link>
-            <Link to="/estado" className={`menu-item ${isActive('/estado') ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>
-              <i className="menu-icon bx bx-briefcase"></i>
-              <span className="menu-text">Estado</span>
-            </Link>
-            <Link to="/uso" className={`menu-item ${isActive('/uso') ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>
-              <i className="menu-icon bx bx-map"></i>
-              <span className="menu-text">Uso</span>
-            </Link>
-            <Link to="/nueva" className={`menu-item ${isActive('/nueva') ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>
-              <i className="menu-icon bx bx-plus"></i>
-              <span className="menu-text">Nueva</span>
-            </Link>
-            <Link to="/soporte" className={`menu-item ${isActive('/soporte') ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>
-              <i className="menu-icon bx bx-phone"></i>
-              <span className="menu-text">Soporte</span>
-            </Link>
-          </>
-        ) : (
-          <Link to="/nuevanormal" className={`menu-item ${isActive('/nuevanormal') ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>
-            <i className="menu-icon bx bx-plus"></i>
-            <span className="menu-text">Nueva</span>
-          </Link>
-        )}
-      </div>
+      <nav className={`menu ${isMenuOpen ? 'menu-open' : ''}`}>
+  {userRole === 'admin' ? (
+    <>
+      {renderMenuItem('/home', 'bx-home', 'Resumen')}
+      {renderMenuItem('/flota', 'bx-car', 'Flota')}
+      {renderMenuItem('/estado', 'bx-pie-chart-alt-2', 'Semáforo')}
+      {renderMenuItem('/uso', 'bx-search', 'Buscar')}
+      {renderMenuItem('/nueva', 'bx-plus', 'Agregar')}
+      {renderMenuItem('/analista', 'bx-glasses', 'Analista')} {/* Updated path here */}
+    </>
+  ) : (
+    renderMenuItem('/nuevanormal', 'bx-plus', 'Nueva')
+  )}
+</nav>
+
 
       <div className="profile-section">
         <div className="profile">
-          <img src="https://marketplace.canva.com/EAFEits4-uw/1/0/1600w/canva-boy-cartoon-gamer-animated-twitch-profile-photo-oEqs2yqaL8s.jpg" alt="User" className="profile-image" />
+          <img
+            src="https://images.pexels.com/photos/12261472/pexels-photo-12261472.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+            alt="User"
+            className="profile-image"
+          />
           <div className="profile-info">
             <span className="profile-name">{userName}</span>
             <span className="profile-role">{userRole === 'admin' ? 'Admin' : 'Usuario'}</span>
@@ -106,16 +165,24 @@ const Sidebar = () => {
         </div>
 
         <div className="profile-actions">
-          <div className="profile-action-icon">
-            <Link to="/ajustes"><i className="bx bx-cog"></i></Link>
+          <div className="theme-toggle" onClick={toggleDarkMode}>
+            <i className={`bx ${darkMode ? 'bx-sun' : 'bx-moon'}`}></i>
           </div>
-          <div className="profile-action-icon" onClick={handleLogout} style={{ cursor: 'pointer' }}>
+          <div className="profile-action-icon">
+            <Link to="/ajustes">
+              <i className="bx bx-cog"></i>
+            </Link>
+          </div>
+          <div className="profile-action-icon" onClick={handleLogout}>
             <i className="bx bx-log-out"></i>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Conditionally render AIChat */}
+      {userRole === 'admin' && <AIChat userName={userName} />}
+    </aside>
   );
 };
 
-export default Sidebar;
+export default Layout;

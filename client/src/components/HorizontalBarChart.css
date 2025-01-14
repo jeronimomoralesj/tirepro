@@ -8,6 +8,7 @@
   text-align: left;
   overflow: hidden;
   margin: 0 auto; /* Centering the card */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .horizontal-bar-chart-title {
@@ -15,6 +16,7 @@
   font-weight: 600;
   color: #1a202c;
   margin-bottom: 20px;
+  transition: color 0.3s ease;
 }
 
 .chart-container {
@@ -25,12 +27,15 @@
 .proact-result {
   font-size: 14px;
   color: #4a5568;
+  transition: color 0.3s ease;
 }
 
 .proact-result h4 {
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 10px;
+  color: #1a202c;
+  transition: color 0.3s ease;
 }
 
 .proact-result ul {
@@ -40,9 +45,38 @@
 
 .proact-result li {
   margin: 5px 0;
+  color: #4a5568;
+  transition: color 0.3s ease;
 }
 
 .no-data-message {
   color: red;
   font-size: 1.2em;
+  transition: color 0.3s ease;
+}
+
+/* Dark Mode Styles */
+.dark-mode .horizontal-bar-chart-card {
+  background-color: #1a1a1a;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode .horizontal-bar-chart-title {
+  color: #e0e0e0;
+}
+
+.dark-mode .proact-result {
+  color: #e0e0e0;
+}
+
+.dark-mode .proact-result h4 {
+  color: #63b3ed;
+}
+
+.dark-mode .proact-result li {
+  color: #a0aec0;
+}
+
+.dark-mode .no-data-message {
+  color: #ff6b6b;
 }

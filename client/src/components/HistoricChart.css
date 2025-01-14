@@ -6,6 +6,7 @@
   padding: 24px;
   box-shadow: 0 8px 16px rgba(10, 24, 58, 0.08);
   text-align: center;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .historic-chart-title {
@@ -14,6 +15,7 @@
   font-weight: 600;
   text-align: center;
   margin-bottom: 24px;
+  transition: color 0.3s ease;
 }
 
 .data-selection {
@@ -51,6 +53,7 @@
   border-radius: 8px;
   box-shadow: 0 8px 16px rgba(10, 24, 58, 0.1);
   z-index: 100;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .dropdown-item {
@@ -58,7 +61,7 @@
   font-size: 1rem;
   color: #173d68;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s ease, background-color 0.3s ease, color 0.3s ease;
   border-bottom: 1px solid rgba(23, 61, 104, 0.05);
 }
 
@@ -102,4 +105,44 @@
   .chart-container {
     height: 300px;
   }
+}
+
+/* Dark Mode Styles */
+.dark-mode .historic-chart-card {
+  background-color: #1a1a1a;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode .historic-chart-title {
+  color: #e0e0e0;
+}
+
+.dark-mode .data-selection-btn {
+  background-color: #2d3748;
+  color: #e0e0e0;
+  box-shadow: 0 2px 4px rgba(45, 55, 72, 0.2);
+}
+
+.dark-mode .data-selection-btn:hover {
+  background-color: #1a202c;
+  box-shadow: 0 4px 6px rgba(26, 32, 44, 0.3);
+}
+
+.dark-mode .dropdown-menu {
+  background-color: #2d3748;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode .dropdown-item {
+  color: #e0e0e0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .dropdown-item:hover:not(.active) {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .dropdown-item.active {
+  background-color: #3182ce;
+  color: #ffffff;
 }

@@ -33,6 +33,25 @@
   background-color: #3498db;
 }
 
+/* Dark Mode Support */
+.dark-mode .section.individual-section {
+  background-color: #1a1a1a;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.dark-mode .section.individual-section:hover {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+}
+
+.dark-mode .section.individual-section h3 {
+  color: #e0e0e0;
+}
+
+.dark-mode .section.individual-section h3::after {
+  background-color: #4a90e2;
+}
+
+/* Input Field */
 .input-field {
   display: block;
   width: 100%;
@@ -57,6 +76,24 @@
   color: #a0a0a0;
 }
 
+/* Dark Mode Input Field */
+.dark-mode .input-field {
+  background-color: #2a2a2a;
+  border-color: #444444;
+  color: #e0e0e0;
+}
+
+.dark-mode .input-field:focus {
+  border-color: #4a90e2;
+  background-color: #1a1a1a;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+}
+
+.dark-mode .input-field::placeholder {
+  color: #888888;
+}
+
+/* Upload Button */
 .upload-button {
   display: block;
   width: 100%;
@@ -91,20 +128,16 @@
   box-shadow: none;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .section.individual-section {
-      margin: 20px;
-      padding: 20px;
-  }
-
-  .input-field {
-      font-size: 14px;
-      padding: 10px 12px;
-  }
+/* Dark Mode Upload Button */
+.dark-mode .upload-button {
+  background-color: #4a90e2;
 }
 
-/* Input Validation Styles */
+.dark-mode .upload-button:hover:not(:disabled) {
+  background-color: #1e76b6;
+}
+
+/* Input Validation */
 .input-field:invalid {
   border-color: #e74c3c;
   background-color: rgba(231, 76, 60, 0.05);
@@ -112,10 +145,35 @@
 
 /* Subtle Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .input-field {
   animation: fadeIn 0.3s ease forwards;
+}
+
+/* Dark Mode Validation */
+.dark-mode .input-field:invalid {
+  border-color: #e74c3c;
+  background-color: rgba(231, 76, 60, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .section.individual-section {
+    margin: 20px;
+    padding: 20px;
+  }
+
+  .input-field {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
 }

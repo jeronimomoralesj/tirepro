@@ -1,5 +1,4 @@
 /* Sidebar.css */
-
 * {
   box-sizing: border-box;
   margin: 0;
@@ -7,6 +6,24 @@
   font-family: 'Poppins', sans-serif;
 }
 
+/* Layout wrapper */
+.app-wrapper {
+  display: flex;
+  min-height: 100vh;
+  padding-left: 200px; /* Match sidebar width */
+  background-color: #f5f5f5; /* Base background color */
+}
+
+/* Main content area */
+.main-content {
+  flex: 1;
+  padding: 20px;
+  width: 100%;
+  min-height: 100vh;
+  background-color: inherit; /* Inherits from app-wrapper */
+}
+
+/* Sidebar base styles */
 .sidebar {
   width: 260px;
   background-color: #fff;
@@ -15,54 +32,83 @@
   display: flex;
   flex-direction: column;
   padding: 20px;
-  border-radius: 10px;
+  border-radius: 0 10px 10px 0;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  left: 0;
+  top: 0;
+  transition: transform 0.3s ease;
+  z-index: 1000;
+  overflow-y: auto;
 }
 
 /* Logo Section */
 .logo-section {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 30px;
+  height: 50px;
+  min-height: 50px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
 }
 
 .logo img {
-  height: 50px;
+  height: 40px;
+  width: auto;
 }
 
 .logo-text {
   margin-left: 10px;
+  transition: opacity 0.3s ease;
 }
 
 /* Menu Section */
 .menu {
   flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  padding-right: 4px; /* Space for scrollbar */
 }
 
 .menu-item {
   display: flex;
   align-items: center;
-  padding: 10px;
+  padding: 12px;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
   text-decoration: none;
+  color: #707070;
 }
 
 .menu-item.active,
 .menu-item:hover {
   background-color: #f0f4ff;
+
 }
 
 .menu-icon {
-  font-size: 18px;
-  color: #1a202c;
-  margin-right: 10px;
+  font-size: 20px;
+  color: currentColor;
+  margin-right: 12px;
+  min-width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .menu-text {
   font-size: 14px;
-  color: #707070;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 0.3s ease;
 }
 
 /* Profile Section */
@@ -70,24 +116,27 @@
   margin-top: auto;
   border-top: 1px solid #e0e0e0;
   padding-top: 20px;
+  min-height: 120px;
 }
 
 .profile {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .profile-image {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  margin-right: 10px;
+  object-fit: cover;
 }
 
 .profile-info {
   display: flex;
   flex-direction: column;
+  gap: 4px;
 }
 
 .profile-name {
@@ -103,111 +152,249 @@
 
 .profile-actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
+  align-items: center;
+  padding-top: 8px;
 }
 
-.profile-action {
+.profile-action-icon,
+.theme-toggle {
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
   display: flex;
   align-items: center;
-  font-size: 14px;
+  justify-content: center;
+}
+
+.profile-action-icon:hover {
+  background-color: #f0f4ff;
+}
+
+.profile-action-icon i {
+  font-size: 20px;
   color: #707070;
-  cursor: pointer;
 }
 
-.profile-action i {
-  font-size: 16px;
-  margin-right: 5px;
+.profile-action-icon i,
+.theme-toggle i {
+  font-size: 20px;
+  color: #707070;
 }
 
-/* Burger icon styling for mobile */
+/* Burger icon */
 .burger-icon {
   display: none;
   font-size: 24px;
   cursor: pointer;
   color: #1a202c;
+  padding: 8px;
+  border-radius: 8px;
 }
 
-/* Responsive Sidebar for Small Screens */
+/* Responsive Styles */
+@media (max-width: 1024px) {
+  .app-wrapper {
+    padding-left: 80px; /* Match collapsed sidebar width */
+  }
+
+  .sidebar {
+    width: 80px;
+    padding: 16px 8px;
+  }
+
+  .logo-text {
+    opacity: 0;
+    width: 0;
+  }
+
+  .menu-text {
+    opacity: 0;
+    width: 0;
+  }
+
+  .profile-info,
+  .profile-actions {
+    display: none;
+  }
+
+  .profile {
+    justify-content: center;
+  }
+}
+
 @media (max-width: 768px) {
+  .app-wrapper {
+    padding-left: 0px;
+    padding-top: 60px;
+    min-height: 100vh;
+  }
+
   .sidebar {
     width: 100%;
     height: 60px;
-    display: flex;
+    padding: 0 16px;
+    flex-direction: row;
     align-items: center;
-    justify-content: space-between; /* Space out logo and burger icon */
-    padding: 0 20px;
-    position: fixed;
-    top: 0;
-    background-color: #fff;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     border-radius: 0;
-    z-index: 9999;
   }
 
-  /* Show logo aligned to the far left */
-  .logo-section {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    flex-grow: 1;
-    padding-top: 10px;
-    height: 50px;
-  }
-
-  .logo img {
-    height: 35px;
-  }
-
-  /* Hide logo text on smaller screens */
-  .logo-text {
-    display: none;
-  }
-
-  /* Show burger icon aligned to the far right */
   .burger-icon {
     display: block;
-    font-size: 30px;
-    cursor: pointer;
-    padding-left: 200px;
   }
 
-  /* Hide menu by default on small screens */
   .menu {
-    display: none;
     position: fixed;
     top: 60px;
     left: 0;
     right: 0;
     background-color: #fff;
-    border-top: 1px solid #e0e0e0;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    border-radius: 10px 10px 0 0;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    z-index: 9998;
+    padding: 16px;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: none;
+    max-height: calc(100vh - 60px);
+    overflow-y: auto;
   }
 
-  /* Show menu when 'menu-open' class is active */
   .menu.menu-open {
     display: flex;
   }
 
-  .menu-item {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 10px;
+  .menu-text {
+    opacity: 1;
+    width: auto;
   }
 
-  .menu-icon {
-    margin: 0;
-    font-size: 24px;
+  .menu-item {
+    padding: 16px;
+    width: 100%;
   }
 
   .profile-section {
     display: none;
   }
+
+  .logo-section {
+    margin-bottom: 0;
+    flex: 1;
+  }
+
+  .logo img {
+    height: 30px;
+  }
 }
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .sidebar {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+  }
+
+  .main-content {
+    background-color: #121212;
+  }
+
+  .menu-item.active,
+  .menu-item:hover,
+  .profile-action-icon:hover {
+    background-color: #2d2d2d;
+  }
+
+  .profile-name {
+    color: #e0e0e0;
+  }
+
+  .profile-role {
+    color: #909090;
+  }
+}
+
+
+
+/* Previous CSS remains the same until the mobile styles */
+
+/* Dark mode class */
+.dark-mode {
+  color-scheme: dark;
+}
+
+.dark-mode .sidebar {
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+}
+
+.dark-mode .main-content {
+  background-color: #121212;
+}
+
+.dark-mode .menu-item.active,
+.dark-mode .menu-item:hover,
+.dark-mode .profile-action-icon:hover {
+  background-color: #2d2d2d;
+}
+
+.dark-mode .profile-name {
+  color: #e0e0e0;
+}
+
+.dark-mode .profile-role {
+  color: #909090;
+}
+
+/* Mobile action buttons */
+.mobile-actions {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .main-content{
+    padding: 0px;
+  }
+  .mobile-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    padding-left: 16px;
+  }
+
+  .mobile-action-icon {
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+    color: #707070;
+  }
+
+  .mobile-action-icon:hover {
+    background-color: #f0f4ff;
+  }
+
+  .mobile-action-icon i {
+    font-size: 20px;
+  }
+
+  .dark-mode .mobile-action-icon:hover {
+    background-color: #2d2d2d;
+  }
+
+  .theme-toggle {
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+  }
+
+  .theme-toggle i {
+    font-size: 20px;
+  }
+
+  .logo-section {
+    margin-right: auto;
+  }
+}
+
+

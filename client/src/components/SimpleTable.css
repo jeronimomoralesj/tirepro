@@ -8,6 +8,7 @@
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* Summary Section */
@@ -26,12 +27,14 @@
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   width: 40%;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .summary-card h3 {
   font-size: 1.2em;
   color: #0a183a;
   margin-bottom: 5px;
+  transition: color 0.3s ease;
 }
 
 .summary-card p {
@@ -39,6 +42,7 @@
   font-weight: bold;
   color: #4a90e2;
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* Table Section */
@@ -69,6 +73,7 @@
   border-collapse: collapse;
   font-family: 'Poppins', sans-serif;
   color: #0a183a;
+  transition: color 0.3s ease;
 }
 
 .simple-table th,
@@ -82,20 +87,24 @@
   background-color: #f7f7f7;
   font-weight: 600;
   color: #1a202c;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .simple-table tr:hover {
   background-color: #f9f9f9;
+  transition: background-color 0.3s ease;
 }
 
 .simple-table .date-past {
   color: #e53e3e; /* Red color for past dates */
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 .simple-table .date-future {
   color: #3182ce; /* Blue color for future dates */
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 /* Filter Button */
@@ -107,6 +116,7 @@
   background: #4a90e2;
   color: white;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .filter-expired-btn:hover {
@@ -117,5 +127,64 @@
 .no-data-row td {
   text-align: center;
   padding: 20px 0;
+  color: #a0aec0;
+  transition: color 0.3s ease;
+}
+
+/* Dark Mode Styles */
+.dark-mode .inspecciones-container {
+  background-color: #1a1a1a;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode .summary-card {
+  background-color: #2d2d2d;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode .summary-card h3 {
+  color: #e0e0e0;
+}
+
+.dark-mode .summary-card p {
+  color: #63b3ed;
+}
+
+.dark-mode .table-container::-webkit-scrollbar-track {
+  background: #2d2d2d;
+}
+
+.dark-mode .table-container::-webkit-scrollbar-thumb {
+  background-color: #4a90e2;
+  border: 3px solid #2d2d2d;
+}
+
+.dark-mode .simple-table {
+  color: #e0e0e0;
+}
+
+.dark-mode .simple-table th {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+}
+
+.dark-mode .simple-table .date-past {
+  color: #f56565; /* Lighter red */
+}
+
+.dark-mode .simple-table .date-future {
+  color: #63b3ed; /* Lighter blue */
+}
+
+.dark-mode .filter-expired-btn {
+  background: #63b3ed;
+  color: #ffffff;
+}
+
+.dark-mode .filter-expired-btn:hover {
+  background: #3182ce;
+}
+
+.dark-mode .no-data-row td {
   color: #a0aec0;
 }

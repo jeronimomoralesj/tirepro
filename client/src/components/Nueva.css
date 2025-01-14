@@ -5,7 +5,7 @@
   padding: 20px;
   font-family: Arial, sans-serif;
   text-align: center;
-  background-color: #f9f9f9;
+  background-color: #ffffff;
   border: 1px solid #ddd;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
@@ -16,6 +16,17 @@
   font-weight: bold;
   margin-bottom: 20px;
   color: #0a183a;
+}
+
+/* Dark Mode */
+.dark-mode .nueva-container {
+  background-color: #1a1a1a;
+  border-color: #333333;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.dark-mode .nueva-title {
+  color: #e0e0e0;
 }
 
 /* Button Navigation */
@@ -52,6 +63,17 @@
   color: white;
 }
 
+.dark-mode .section-button {
+  background-color: #2a2a2a;
+  color: #e0e0e0;
+  border-color: #444444;
+}
+
+.dark-mode .section-button:hover {
+  background-color: #4a90e2;
+  color: #ffffff;
+}
+
 /* Section Content */
 .section {
   margin-top: 20px;
@@ -66,6 +88,16 @@
   font-size: 20px;
   margin-bottom: 15px;
   color: #444;
+}
+
+.dark-mode .section {
+  background-color: #2a2a2a;
+  border-color: #444444;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.dark-mode .section h3 {
+  color: #e0e0e0;
 }
 
 /* File Upload Section */
@@ -106,29 +138,23 @@
   background-color: #2667b1;
 }
 
-/* Individual Tire Section */
-.single-tire-section input.single-tire-input {
-  width: 100%;
-  padding: 8px;
-  margin: 8px 0;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+.dark-mode .upload-label {
+  color: #bbbbbb;
 }
 
-.single-upload-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  font-weight: bold;
-  color: white;
+.dark-mode .file-input {
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+  border-color: #444444;
+}
+
+.dark-mode .upload-button {
   background-color: #4a90e2;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+  color: white;
 }
 
-.single-upload-button:hover {
-  background-color: #336aaa;
+.dark-mode .upload-button:hover {
+  background-color: #1e76b6;
 }
 
 /* Search Section */
@@ -170,53 +196,24 @@
   background-color: #2360a5;
 }
 
-/* Filtered Tires Section */
-.filtered-tires-container {
-  margin-top: 20px;
+.dark-mode .search-label {
+  color: #bbbbbb;
 }
 
-.filtered-tires-container h3 {
-  font-size: 18px;
-  font-weight: bold;
-  color: #0a183a;
-  margin-bottom: 10px;
+.dark-mode .placa-input,
+.dark-mode .kilometraje-input {
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+  border-color: #444444;
 }
 
-.tire-card {
-  padding: 15px;
-  margin-bottom: 15px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #f7f7f7;
-  text-align: left;
-}
-
-.tire-card p {
-  margin: 5px 0;
-}
-
-.proact-input {
-  width: 100%;
-  padding: 8px;
-  margin-top: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-.save-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  font-weight: bold;
-  color: white;
+.dark-mode .search-button {
   background-color: #4a90e2;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+  color: white;
 }
 
-.save-button:hover {
-  background-color: #2f70ba;
+.dark-mode .search-button:hover {
+  background-color: #2360a5;
 }
 
 /* Responsive Design */

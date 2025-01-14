@@ -1,19 +1,24 @@
+/* Main Container */
 .detalles-llantas-container {
   padding: 20px;
   background-color: #f9f9f9;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin: 20px 0;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* Heading */
 .detalles-llantas-container h2 {
   text-align: center;
   margin-bottom: 15px;
   color: #0a183a;
   font-family: Arial, sans-serif;
   font-size: 1.5rem;
+  transition: color 0.3s ease;
 }
 
+/* Search Bar */
 .search-bar {
   display: flex;
   justify-content: space-between;
@@ -37,6 +42,7 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Download Button */
 .download-button {
   background-color: #4a90e2;
   color: white;
@@ -55,12 +61,14 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* Table */
 .detalles-llantas-table {
   width: 100%;
   border-collapse: collapse;
   font-family: Arial, sans-serif;
   font-size: 14px;
   margin-top: 10px;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .detalles-llantas-table th,
@@ -68,6 +76,7 @@
   padding: 12px;
   border: 1px solid #ddd;
   text-align: center;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .detalles-llantas-table th {
@@ -75,10 +84,12 @@
   color: white;
   text-transform: uppercase;
   font-size: 14px;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .detalles-llantas-table tr:nth-child(even) {
   background-color: #f2f2f2;
+  transition: background-color 0.3s ease;
 }
 
 .detalles-llantas-table tr:hover {
@@ -88,9 +99,66 @@
 
 .detalles-llantas-table td {
   color: #0a183a;
+  transition: color 0.3s ease;
 }
 
 .detalles-llantas-table td:last-child {
   font-weight: bold;
   color: #0a183a;
+  transition: color 0.3s ease;
+}
+
+/* Dark Mode */
+.dark-mode .detalles-llantas-container {
+  background-color: #1a1a1a;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode .detalles-llantas-container h2 {
+  color: #e0e0e0;
+}
+
+.dark-mode .search-input {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  border: 1px solid #4a90e2;
+}
+
+.dark-mode .search-input:focus {
+  border-color: #63b3ed;
+  box-shadow: 0 2px 4px rgba(99, 179, 237, 0.4);
+}
+
+.dark-mode .download-button {
+  background-color: #63b3ed;
+  color: #ffffff;
+}
+
+.dark-mode .download-button:hover {
+  background-color: #3182ce;
+}
+
+.dark-mode .detalles-llantas-table {
+  color: #e0e0e0;
+}
+
+.dark-mode .detalles-llantas-table th {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+}
+
+.dark-mode .detalles-llantas-table tr:nth-child(even) {
+  background-color: #2a2a2a;
+}
+
+.dark-mode .detalles-llantas-table tr:hover {
+  background-color: #353535;
+}
+
+.dark-mode .detalles-llantas-table td {
+  color: #e0e0e0;
+}
+
+.dark-mode .detalles-llantas-table td:last-child {
+  color: #63b3ed;
 }

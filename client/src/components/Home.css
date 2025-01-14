@@ -280,8 +280,8 @@
 
 .reset-filters-btn {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: 40px;
+  right: 100px;
   background-color: #ff4d4f;
   color: white;
   padding: 10px 20px;
@@ -351,4 +351,28 @@
 
 .toggle-filter-btn:focus {
   outline: 2px solid #366fb0; /* Outline to indicate focus */
+}
+
+
+.navigate-button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.navigate-button:hover {
+  background-color: #0056b3;
+}
+
+.notificaciones-container {
+  padding: 20px;
+  text-align: center;
+}
+
+.notificaciones-content {
+  margin-top: 10px;
 }

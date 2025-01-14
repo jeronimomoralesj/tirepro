@@ -15,6 +15,7 @@ import Nueva from './components/Nueva';
 import Soporte from './components/Soporte';
 import Ajustes from './components/Ajustes';
 import NuevaEmpleado from './components/NuevaEmpleado';
+import Analista from './components/Analista';
 
 function App() {
   return (
@@ -64,6 +65,7 @@ function App() {
           <Route path="soporte" element={<Soporte />} />
           <Route path="ajustes" element={<Ajustes />} />
           <Route path="nuevanormal" element={<NuevaEmpleado />} />
+          <Route path="analista" element={<Analista />} />
           {/* Add other nested routes here */}
         </Route>
       </Routes>

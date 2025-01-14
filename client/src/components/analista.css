@@ -1,0 +1,145 @@
+/* Main container styling */
+.analista-container {
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(74, 144, 226, 0.12);
+    max-width: 1200px;
+    margin: 2rem auto;
+  }
+  
+  /* Title styling */
+  .analista-title {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    color: #2a2a2a;
+    text-align: center;
+    position: relative;
+    padding-bottom: 1rem;
+  }
+  
+  .analista-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #4a90e2, #1c6fce);
+    border-radius: 2px;
+  }
+  
+  /* Table container with responsive design */
+  .table-container {
+    overflow-x: auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* Table styling */
+  .analista-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 1.5rem;
+  }
+  
+  /* Header styling */
+  .analista-table th {
+    background: linear-gradient(135deg, #4a90e2, #1c6fce);
+    color: white;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    border: none;
+    position: sticky;
+    top: 0;
+  }
+  
+  .analista-table th:first-child {
+    border-top-left-radius: 8px;
+  }
+  
+  .analista-table th:last-child {
+    border-top-right-radius: 8px;
+  }
+  
+  /* Cell styling */
+  .analista-table td {
+    padding: 1rem 1.5rem;
+    color: #2a2a2a;
+    border-bottom: 1px solid rgba(74, 144, 226, 0.15);
+    font-size: 0.95rem;
+  }
+  
+  /* Row styling */
+  .analista-table tr:nth-child(even) {
+    background-color: rgba(74, 144, 226, 0.05);
+  }
+  
+  .analista-table tr:hover {
+    background-color: rgba(74, 144, 226, 0.1);
+    transition: background-color 0.2s ease;
+  }
+  
+  /* Input field styling */
+  .editable-price-input {
+    width: 120px;
+    padding: 0.75rem;
+    border: 2px solid rgba(74, 144, 226, 0.2);
+    border-radius: 6px;
+    text-align: right;
+    font-size: 0.95rem;
+    color: #2a2a2a;
+    transition: all 0.2s ease;
+    background-color: #fff;
+  }
+  
+  .editable-price-input:hover {
+    border-color: rgba(74, 144, 226, 0.4);
+  }
+  
+  .editable-price-input:focus {
+    border-color: #4a90e2;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.15);
+  }
+  
+  /* Empty state message */
+  .analista-container > p {
+    text-align: center;
+    color: #2a2a2a;
+    padding: 2rem;
+    font-size: 1.1rem;
+    background-color: rgba(74, 144, 226, 0.05);
+    border-radius: 8px;
+    border: 1px dashed rgba(74, 144, 226, 0.3);
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .analista-container {
+      padding: 1rem;
+      margin: 1rem;
+    }
+    
+    .analista-table th,
+    .analista-table td {
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+    }
+    
+    .analista-title {
+      font-size: 24px;
+    }
+    
+    .editable-price-input {
+      width: 100px;
+      padding: 0.5rem;
+    }
+  }

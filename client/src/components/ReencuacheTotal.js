@@ -1,47 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import {jwtDecode} from 'jwt-decode';
+import React, { useMemo } from 'react';
 import './PaymentGateway.css';
 
-const ReencuacheTotal = () => {
-  const [reencaucheHistory, setReencaucheHistory] = useState([]);
-
-  useEffect(() => {
-    const fetchReencaucheData = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          console.error('No token found.');
-          return;
-        }
-
-        const decodedToken = jwtDecode(token);
-        const userId = decodedToken?.user?.id;
-
-        if (!userId) {
-          console.error('User ID not found in token');
-          return;
-        }
-
-        const response = await axios.get(
-          `https://tirepro.onrender.com/api/tires/user/${userId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        const tires = response.data;
-
-        // Extract and process reencauche history with cumulative counts
-        const processedHistory = extractReencaucheHistory(tires);
-        setReencaucheHistory(processedHistory);
-      } catch (error) {
-        console.error('Error fetching tire data:', error);
-      }
-    };
-
-    fetchReencaucheData();
-  }, []);
-
-  const extractReencaucheHistory = (tires) => {
+const ReencuacheTotal = ({ tires }) => {
+  const reencaucheHistory = useMemo(() => {
     const reencaucheValues = ['reencauche', 'reencauche1', 'reencauche2'];
 
     // Extract and group reencauche entries by month and year
@@ -92,7 +53,7 @@ const ReencuacheTotal = () => {
     return groupedArray
       .filter((entry) => entry.year >= fiveYearsAgo)
       .slice(-60); // Only include last 60 months (5 years)
-  };
+  }, [tires]);
 
   return (
     <div className="reencuache-card">
