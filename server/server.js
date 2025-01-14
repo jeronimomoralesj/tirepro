@@ -11,7 +11,12 @@ const s3Routes = require('./routes/s3Routes'); // Import the S3 routes
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:3000', 'https://tirepro.netlify.app/'], // Allowed origins
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
+    credentials: true, // Allow sending cookies or authorization headers
+  }));
+  
 connectDB();
 
 app.use('/api/auth', authRoutes);
