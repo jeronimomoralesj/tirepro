@@ -120,11 +120,12 @@ const [selectedBanda, setSelectedBanda] = useState('');
   };
 
   const handleKmsChange = (recommendationKey, value) => {
-    setEditableKms(prev => ({
+    setEditableKms((prev) => ({
       ...prev,
-      [recommendationKey]: value.replace(/\D/g, '')
+      [recommendationKey]: value, // Allow users to freely edit "rendimiento"
     }));
   };
+  
 
   const handleTireSelection = () => {
     if (!selectedTireKey) return;
@@ -335,6 +336,7 @@ const [selectedBanda, setSelectedBanda] = useState('');
       rendimiento: editableKms[data.recommendationKey] || data.totalKms,
     }));
   };
+  
 
   const generatePDF = () => {
     const doc = new jsPDF();
@@ -407,38 +409,42 @@ const [selectedBanda, setSelectedBanda] = useState('');
               </tr>
             </thead>
             <tbody>
-              {groupByRecommendation().map((row, index) => (
-                <tr key={index}>
-                  <td>
-                    <div onClick={() => {
-                      setSelectedTireKey(row.recommendationKey);
-                      setShowTireModal(true);
-                    }} style={{ cursor: 'pointer', textDecoration: 'underline' }}>
-                      {row.recommendation}
-                    </div>
-                  </td>
-                  <td>
-                    <input
-                      type="number"
-                      value={row.price}
-                      onChange={(e) => handlePriceChange(row.recommendationKey, e.target.value)}
-                      className="editable-price-input"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="number"
-                      value={row.rendimiento}
-                      onChange={(e) => handleKmsChange(row.recommendationKey, e.target.value)}
-                      className="editable-kms-input"
-                    />
-                  </td>
-                  <td>{row.cpk}</td>
-                  <td>{row.quantity}</td>
-                  <td>${row.totalCost.toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
+  {groupByRecommendation().map((row, index) => (
+    <tr key={index}>
+      <td>
+        <div
+          onClick={() => {
+            setSelectedTireKey(row.recommendationKey);
+            setShowTireModal(true);
+          }}
+          style={{ cursor: 'pointer', textDecoration: 'underline' }}
+        >
+          {row.recommendation}
+        </div>
+      </td>
+      <td>
+        <input
+          type="number"
+          value={row.price}
+          onChange={(e) => handlePriceChange(row.recommendationKey, e.target.value)}
+          className="editable-price-input"
+        />
+      </td>
+      <td>
+        <input
+          type="number"
+          value={editableKms[row.recommendationKey] || row.rendimiento || 1}
+          onChange={(e) => handleKmsChange(row.recommendationKey, e.target.value)}
+          className="editable-kms-input"
+        />
+      </td>
+      <td>{row.cpk}</td>
+      <td>{row.quantity}</td>
+      <td>${row.totalCost.toFixed(2)}</td>
+    </tr>
+  ))}
+</tbody>
+
           </table>
         </div>
       ) : (
@@ -487,13 +493,14 @@ const [selectedBanda, setSelectedBanda] = useState('');
                       />
                     </td>
                     <td>
-                      <input
-                        type="number"
-                        value={editableKms[recommendationKey] || recommendation.kms || 1}
-                        onChange={(e) => handleKmsChange(recommendationKey, e.target.value)}
-                        className="editable-kms-input"
-                      />
-                    </td>
+  <input
+    type="number"
+    value={editableKms[recommendationKey] || recommendation.kms || 1}
+    onChange={(e) => handleKmsChange(recommendationKey, e.target.value)}
+    className="editable-kms-input"
+  />
+</td>
+
                     <td>
                       {calculateCPK(
                         editablePrices[recommendationKey] || recommendation.costo || 0,

@@ -39,7 +39,7 @@ const AIChat = ({ userName }) => {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found');
 
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://tirepro.onrender.com';
       const response = await axios.post(
         `${backendUrl}/api/ai-chat`,
         { userMessage: trimmedMessage },
