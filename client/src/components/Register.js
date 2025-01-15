@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import "./register.css"
 
-const Register = () => {
+const Register = ({ companyId, token, companyName, onUserCreated }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    company: '',
-    role: 'regular', // Default to 'regular'
-    placa: [], // Placa as an array of strings
+    role: 'regular',
+    placa: [],
   });
 
   const [loading, setLoading] = useState(false);
@@ -38,15 +38,41 @@ const Register = () => {
     setMessage('');
 
     try {
+      // Include companyId and company name in the request
+      const requestData = {
+        ...formData,
+        companyId,
+        company: companyName,
+      };
+
       const res = await axios.post(
-        'https://tirepro.onrender.com/api/auth/register',
-        formData
+        'https://tirepro.onrender.com//api/auth/register',
+        requestData,
+        {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+        }
       );
-      setMessage(res.data.msg || 'Registration successful!');
+
+      setMessage(res.data.msg || 'Usuario registrado con éxito');
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+        role: 'regular',
+        placa: [],
+      });
+
+      // Call the callback function if provided
+      if (onUserCreated) {
+        onUserCreated();
+      }
     } catch (err) {
-      console.error('Error during registration:', err.response?.data || err);
+      console.error('Error registering user:', err.response?.data || err);
       setMessage(
-        err.response?.data?.msg || 'Error registering user. Please try again.'
+        err.response?.data?.msg || 'Error registrando al usuario. Por favor intente nuevamente.'
       );
     } finally {
       setLoading(false);
@@ -55,54 +81,73 @@ const Register = () => {
 
   return (
     <div className="register-container">
-      <h2>Register</h2>
       <form onSubmit={handleSubmit} className="register-form">
-        <input
-          type="text"
-          name="name"
-          placeholder="Name"
-          value={formData.name}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="text"
-          name="company"
-          placeholder="Company"
-          value={formData.company}
-          onChange={handleChange}
-          required
-        />
-        <select
-          name="role"
-          value={formData.role}
-          onChange={handleChange}
-          required
-        >
-          <option value="regular">Regular</option>
-          <option value="admin">Admin</option>
-        </select>
+        <div className="form-group">
+          <label htmlFor="name">Nombre:</label>
+          <input
+            id="name"
+            type="text"
+            name="name"
+            placeholder="Nombre"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-        {/* Conditionally render placa inputs if role is 'regular' */}
+        <div className="form-group">
+          <label htmlFor="email">Email:</label>
+          <input
+            id="email"
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="password">Contraseña:</label>
+          <input
+            id="password"
+            type="password"
+            name="password"
+            placeholder="Contraseña"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="role">Rol:</label>
+          <select
+            id="role"
+            name="role"
+            value={formData.role}
+            onChange={handleChange}
+            required
+          >
+            <option value="regular">Usuario Regular</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Empresa:</label>
+          <input
+            type="text"
+            value={companyName}
+            disabled
+            className="disabled-input"
+          />
+        </div>
+
         {formData.role === 'regular' && (
           <div className="placa-inputs">
-            <label>Placa:</label>
+            <label>Placas:</label>
             {formData.placa.map((value, index) => (
               <div key={index} className="placa-field">
                 <input
@@ -115,19 +160,24 @@ const Register = () => {
                 <button
                   type="button"
                   onClick={() => handleRemovePlaca(index)}
+                  className="remove-placa-btn"
                 >
-                  Remove
+                  &times;
                 </button>
               </div>
             ))}
-            <button type="button" onClick={handleAddPlaca}>
-              Add Placa
+            <button
+              type="button"
+              onClick={handleAddPlaca}
+              className="add-placa-btn"
+            >
+              Agregar Placa
             </button>
           </div>
         )}
 
-        <button type="submit" disabled={loading}>
-          {loading ? 'Registering...' : 'Register'}
+        <button type="submit" disabled={loading} className="submit-btn">
+          {loading ? 'Registrando...' : 'Registrar Usuario'}
         </button>
       </form>
       {message && <p className="register-message">{message}</p>}

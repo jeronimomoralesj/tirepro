@@ -5,7 +5,7 @@ const { generateToken } = require('../utils/authUtils');
 // Registration controller
 // Registration controller
 const registerUser = async (req, res) => {
-  const { name, email, password, company, role, placa } = req.body;
+  const { name, email, password, company, role, placa, companyId } = req.body;
 
   try {
     // Check if user already exists
@@ -28,6 +28,16 @@ const registerUser = async (req, res) => {
       }
     }
 
+    // Check if companyId is provided
+    if (!companyId) {
+      return res.status(400).json({ msg: 'Company ID is required.' });
+    }
+
+    // Ensure the company field is provided
+    if (!company) {
+      return res.status(400).json({ msg: 'Company name is required.' });
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -37,18 +47,20 @@ const registerUser = async (req, res) => {
       email,
       password: hashedPassword,
       company,
+      companyId,
       role: userRole,
       placa: placasArray,
-      pointcount: 0, // Initialize pointcount to 0
+      pointcount: 0
     });
 
     await newUser.save();
-    res.status(201).json({ msg: 'User registered successfully' });
+    res.status(201).json({ msg: 'User registered successfully', user: newUser });
   } catch (error) {
     console.error('Error registering user:', error.message);
     res.status(500).json({ msg: 'Server error' });
   }
 };
+
 
 
 // Login controller
@@ -125,6 +137,33 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+const updatePlaca = async (req, res) => {
+  try {
+    const { userId, placa } = req.body;
+
+    // Validate input
+    if (!userId || !placa) {
+      return res.status(400).json({ msg: 'Missing userId or placa in request.' });
+    }
+
+    // Find and update the user's placa
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found.' });
+    }
+
+    user.placa = placa;
+    await user.save();
+
+    res.status(200).json({ msg: 'Placa updated successfully.', placa: user.placa });
+  } catch (error) {
+    console.error('Error updating placa:', error.message);
+    res.status(500).json({ msg: 'Server error' });
+  }
+};
+
+
+
 
 
 module.exports = {
@@ -133,4 +172,5 @@ module.exports = {
   getUserById,
   updatePointCount, // Export the function
   getAllUsers,
+  updatePlaca,
 };

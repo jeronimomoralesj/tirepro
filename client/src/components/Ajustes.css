@@ -1,75 +1,185 @@
 .ajustes-container {
-    padding: 20px;
-    max-width: 500px;
-    margin: 50px auto;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .ajustes-title {
-    text-align: center;
-    font-size: 1.8rem;
-    margin-bottom: 20px;
-    color: #0a183a;
-  }
-  
-  .ajustes-card {
-    padding: 20px;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    font-family: Arial, sans-serif;
-    font-size: 1rem;
-    color: #0a183a;
-  }
-  
-  .ajustes-card p {
-    margin: 10px 0;
-  }
-  
-  .ajustes-card strong {
-    color: #0a183a;
-  }
-  
-  .company-users-section {
-    margin-top: 30px;
-  }
-  
-  .company-users-title {
-    font-size: 20px;
-    font-weight: bold;
-    margin-bottom: 15px;
-  }
-  
-  .scrollable-table-container {
-    max-height: 300px;
-    overflow-y: auto;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-  }
-  
-  .company-users-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .company-users-table th,
-  .company-users-table td {
-    padding: 10px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-  }
-  
-  .company-users-table th {
-    background-color: #f4f4f4;
-    font-weight: bold;
-  }
-  
-  .no-users-message {
-    font-size: 16px;
-    color: #666;
-    text-align: center;
-    margin-top: 20px;
-  }
-  
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.ajustes-title {
+  color: #333;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+}
+
+.ajustes-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.card-section-title {
+  color: #444;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.ajustes-card p {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  color: #666;
+}
+
+.ajustes-card strong {
+  color: #333;
+}
+
+.section-title {
+  color: #444;
+  margin: 2rem 0 1rem;
+  font-size: 1.5rem;
+}
+
+.user-placas {
+  margin-top: 1rem;
+}
+
+.placas-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.placa-tag {
+  background: #e9ecef;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.delete-placa-btn {
+  background: none;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1.2rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-placa-btn:hover {
+  color: #c82333;
+}
+
+.add-placa-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 0.375rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.add-placa-btn:hover {
+  background: #0056b3;
+}
+
+.scrollable-table-container {
+  overflow-x: auto;
+  margin-top: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.company-users-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.company-users-table th,
+.company-users-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.company-users-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+}
+
+.company-users-table tr:last-child td {
+  border-bottom: none;
+}
+
+.placas-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.no-users-message {
+  text-align: center;
+  color: #666;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading and Error States */
+.loading-message,
+.error-message {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.error-message {
+  color: #dc3545;
+}
+
+/* Add these styles to your existing Ajustes.css file */
+
+.user-count {
+  font-size: 0.9rem;
+  color: #666;
+  margin-left: 0.5rem;
+  font-weight: normal;
+}
+
+.user-limit-warning {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.user-limit-warning p {
+  margin: 0.5rem 0;
+  color: #856404;
+}
+
+.user-limit-warning p:first-child {
+  font-weight: bold;
+}
+
+/* Update the existing section-title to accommodate the user count */
+.section-title {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
