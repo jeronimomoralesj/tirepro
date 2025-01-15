@@ -7,9 +7,24 @@ import './analista.css';
 
 const Analista = () => {
   const [cambioInmediatoTires, setCambioInmediatoTires] = useState([]);
-  const [recommendedTires, setRecommendedTires] = useState({}); // Store recommended tires
-  const [editablePrices, setEditablePrices] = useState({}); // Track editable prices for recommendations
-  const [groupedView, setGroupedView] = useState(false); // Toggle between individual and grouped views
+  const [recommendedTires, setRecommendedTires] = useState({});
+  const [editablePrices, setEditablePrices] = useState({});
+  const [editableKms, setEditableKms] = useState({});
+  const [groupedView, setGroupedView] = useState(false);
+  const [showTireModal, setShowTireModal] = useState(false);
+  const [selectedTireKey, setSelectedTireKey] = useState(null);
+  const [availableTires, setAvailableTires] = useState([]);
+  const [selectedMarca, setSelectedMarca] = useState('');
+const [selectedDimension, setSelectedDimension] = useState('');
+const [selectedBanda, setSelectedBanda] = useState('');
+
+  
+  // Add state for modal fields
+  const [tireOptions, setTireOptions] = useState({
+    marcas: [],
+    dimensiones: [],
+    bandas: []
+  });
 
   useEffect(() => {
     const fetchTireData = async () => {
@@ -27,11 +42,18 @@ const Analista = () => {
         });
   
         const tireData = response.data;
-  
-        // Filter out tires with `placa` value of "fin"
+        
+        // Extract unique tire options
+        const marcas = [...new Set(tireData.map(tire => tire.marca))];
+        const dimensiones = [...new Set(tireData.map(tire => tire.dimension))];
+        const bandas = [...new Set(tireData.map(tire => tire.banda))];
+        
+        setTireOptions({ marcas, dimensiones, bandas });
+        setAvailableTires(tireData);
+
+        // Rest of your existing fetchTireData logic...
         const filteredTires = tireData.filter((tire) => tire.placa !== "fin");
   
-        // Filter for "Cambio Inmediato" tires
         const cambioInmediato = filteredTires.filter((tire) => {
           const minDepth = Math.min(
             ...tire.profundidad_int.map((p) => p.value),
@@ -43,7 +65,6 @@ const Analista = () => {
   
         setCambioInmediatoTires(cambioInmediato);
   
-        // Group tires by `tipovhc` and `eje`
         const groups = cambioInmediato.reduce((acc, tire) => {
           const key = `${tire.tipovhc}-${tire.eje}`;
           if (!acc[key]) acc[key] = [];
@@ -51,7 +72,6 @@ const Analista = () => {
           return acc;
         }, {});
   
-        // Fetch recommendations for each group
         const recommendations = {};
         for (const [key, group] of Object.entries(groups)) {
           const tipovhc = group[0]?.tipovhc;
@@ -77,6 +97,13 @@ const Analista = () => {
         }
   
         setRecommendedTires(recommendations);
+        
+        // Initialize editable KMs
+        const initialKms = {};
+        Object.entries(recommendations).forEach(([key, tire]) => {
+          initialKms[key] = tire.kms || 1;
+        });
+        setEditableKms(initialKms);
       } catch (error) {
         console.error('Error fetching tire data and recommendations:', error);
       }
@@ -84,23 +111,62 @@ const Analista = () => {
   
     fetchTireData();
   }, []);
-  
 
   const handlePriceChange = (recommendationKey, value) => {
-    setEditablePrices((prevPrices) => ({
-      ...prevPrices,
-      [recommendationKey]: value.replace(/\D/g, ''), // Allow only numbers
+    setEditablePrices(prev => ({
+      ...prev,
+      [recommendationKey]: value.replace(/\D/g, '')
     }));
   };
 
-  const initializeEditablePrice = (recommendationKey, defaultCost) => {
-    if (!editablePrices[recommendationKey]) {
-      setEditablePrices((prevPrices) => ({
-        ...prevPrices,
-        [recommendationKey]: defaultCost || 0,
+  const handleKmsChange = (recommendationKey, value) => {
+    setEditableKms(prev => ({
+      ...prev,
+      [recommendationKey]: value.replace(/\D/g, '')
+    }));
+  };
+
+  const handleTireSelection = () => {
+    if (!selectedTireKey) return;
+  
+    const selectedTire = availableTires.find(
+      (tire) =>
+        tire.marca === selectedMarca &&
+        tire.dimension === selectedDimension &&
+        tire.banda === selectedBanda
+    );
+  
+    if (selectedTire) {
+      setRecommendedTires((prev) => ({
+        ...prev,
+        [selectedTireKey]: {
+          ...prev[selectedTireKey],
+          marca: selectedTire.marca,
+          dimension: selectedTire.dimension,
+          banda: selectedTire.banda,
+          costo: selectedTire.costo || 0,
+          kms: selectedTire.kms?.[0]?.value || 1,
+        },
       }));
+  
+      setEditablePrices((prev) => ({
+        ...prev,
+        [selectedTireKey]: selectedTire.costo || 0,
+      }));
+  
+      setEditableKms((prev) => ({
+        ...prev,
+        [selectedTireKey]: selectedTire.kms?.[0]?.value || 1,
+      }));
+  
+      // Reset modal state only after successful selection
+      setShowTireModal(false);
+      setSelectedMarca('');
+      setSelectedDimension('');
+      setSelectedBanda('');
     }
   };
+  
   
 
   const calculateCPK = (price, kms) => {
@@ -108,6 +174,130 @@ const Analista = () => {
     const validKms = Number(kms) === 0 ? 1 : Number(kms);
     return (validPrice / validKms).toFixed(2);
   };
+
+  const TireSelectionModal = () => (
+    <div
+      className="modal-overlay"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        zIndex: 1000, // Ensure the overlay is behind the modal
+      }}
+      onClick={() => {
+        setShowTireModal(false); // Close the modal on overlay click
+        setSelectedMarca('');
+        setSelectedDimension('');
+        setSelectedBanda('');
+      }}
+    >
+      <div
+        className="modal"
+        style={{
+          display: showTireModal ? 'block' : 'none',
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          backgroundColor: 'white',
+          padding: '20px',
+          borderRadius: '8px',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+          zIndex: 1001,
+          minWidth: '300px',
+        }}
+        onClick={(e) => e.stopPropagation()} // Prevent overlay clicks from propagating
+      >
+        <h3>Seleccionar Llanta</h3>
+        <div style={{ marginBottom: '15px' }}>
+          <label>Marca:</label>
+          <select
+            value={selectedMarca}
+            onChange={(e) => setSelectedMarca(e.target.value)}
+            style={{ width: '100%', marginTop: '5px', padding: '5px' }}
+          >
+            <option value="">Seleccionar Marca</option>
+            {tireOptions.marcas.map((marca) => (
+              <option key={marca} value={marca}>
+                {marca}
+              </option>
+            ))}
+          </select>
+        </div>
+  
+        <div style={{ marginBottom: '15px' }}>
+          <label>Dimensión:</label>
+          <select
+            value={selectedDimension}
+            onChange={(e) => setSelectedDimension(e.target.value)}
+            style={{ width: '100%', marginTop: '5px', padding: '5px' }}
+          >
+            <option value="">Seleccionar Dimensión</option>
+            {tireOptions.dimensiones.map((dimension) => (
+              <option key={dimension} value={dimension}>
+                {dimension}
+              </option>
+            ))}
+          </select>
+        </div>
+  
+        <div style={{ marginBottom: '15px' }}>
+          <label>Banda:</label>
+          <select
+            value={selectedBanda}
+            onChange={(e) => setSelectedBanda(e.target.value)}
+            style={{ width: '100%', marginTop: '5px', padding: '5px' }}
+          >
+            <option value="">Seleccionar Banda</option>
+            {tireOptions.bandas.map((banda) => (
+              <option key={banda} value={banda}>
+                {banda}
+              </option>
+            ))}
+          </select>
+        </div>
+  
+        <button
+          onClick={handleTireSelection}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            marginRight: '10px',
+          }}
+        >
+          Confirmar
+        </button>
+        <button
+  onClick={() => {
+    setShowTireModal(false);
+    setSelectedMarca('');
+    setSelectedDimension('');
+    setSelectedBanda('');
+  }}
+  style={{
+    padding: '8px 16px',
+    backgroundColor: '#ff4444',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  }}
+>
+  Cancelar
+</button>
+
+      </div>
+    </div>
+  );
+  
+  
 
   const groupByRecommendation = () => {
     const grouped = {};
@@ -123,7 +313,7 @@ const Analista = () => {
           recommendationKey,
           quantity: 0,
           totalCost: 0,
-          totalKms: recommendation.kms || 1, // Use KMs from recommended tire
+          totalKms: editableKms[recommendationKey] || recommendation.kms || 1,
         };
       }
   
@@ -134,31 +324,26 @@ const Analista = () => {
     return Object.entries(grouped).map(([key, data]) => ({
       recommendation: key,
       price: editablePrices[data.recommendationKey] || data.recommendation.costo || 0,
-      originalPrice: data.recommendation.costo || 0, // Keep track of the original price
-      recommendationKey: data.recommendationKey, // Include recommendationKey for updates
+      originalPrice: data.recommendation.costo || 0,
+      recommendationKey: data.recommendationKey,
       quantity: data.quantity,
       totalCost: data.totalCost,
       cpk: calculateCPK(
         editablePrices[data.recommendationKey] || data.recommendation.costo || 0,
-        data.totalKms
+        editableKms[data.recommendationKey] || data.totalKms
       ),
-      rendimiento: data.totalKms,
+      rendimiento: editableKms[data.recommendationKey] || data.totalKms,
     }));
   };
-  
-  
 
   const generatePDF = () => {
     const doc = new jsPDF();
   
     if (groupedView) {
-      // Generate PDF for Grouped View
-      const groupedData = groupByRecommendation();
-  
       doc.text('Que Debo Pedir - Resumen (Agrupado)', 14, 10);
       doc.autoTable({
         head: [['Recomendación IA', 'Precio Llanta', 'Rendimiento Esperado', 'CPK Esperado', 'Cantidad de Llantas', 'Costo Total']],
-        body: groupedData.map((row) => [
+        body: groupByRecommendation().map((row) => [
           row.recommendation,
           `$${row.price}`,
           `${row.rendimiento.toFixed(2)} km`,
@@ -168,7 +353,6 @@ const Analista = () => {
         ]),
       });
     } else {
-      // Generate PDF for Detailed View
       doc.text('Que Debo Pedir - Resumen (Detalle)', 14, 10);
       doc.autoTable({
         head: [['Placa', 'Posición', 'Llanta', 'Marca Actual', 'Recomendación IA', 'Precio Llanta', 'Rendimiento Esperado', 'CPK Esperado']],
@@ -183,10 +367,11 @@ const Analista = () => {
             tire.marca,
             `${recommendation.marca}, ${recommendation.dimension}, ${recommendation.banda}`,
             `$${editablePrices[recommendationKey] || recommendation.costo || 0}`,
-            `${recommendation.kms ? recommendation.kms.toFixed(2) : 'N/A'} km`,
-            recommendation
-              ? calculateCPK(editablePrices[recommendationKey], recommendation.kms || 1)
-              : 'N/A',
+            `${editableKms[recommendationKey] ? editableKms[recommendationKey].toFixed(2) : 'N/A'} km`,
+            calculateCPK(
+              editablePrices[recommendationKey] || recommendation.costo || 0,
+              editableKms[recommendationKey] || recommendation.kms || 1
+            ),
           ];
         }),
       });
@@ -194,13 +379,11 @@ const Analista = () => {
   
     doc.save(`QueDeboPedir_${groupedView ? 'Agrupado' : 'Detalle'}.pdf`);
   };
-  
 
   return (
     <div className="analista-container">
       <h2 className="analista-title">Que Debo Pedir</h2>
 
-      {/* Action Buttons */}
       <div className="actions">
         <button className="generate-pdf-btn" onClick={generatePDF} style={{margin:"10px"}}>
           Generar PDF
@@ -211,47 +394,54 @@ const Analista = () => {
       </div>
 
       {groupedView ? (
-        // Grouped View
         <div className="table-container">
           <table className="analista-table">
-          <thead>
-        <tr>
-          <th>Recomendación IA</th>
-          <th>Precio Llanta</th>
-          <th>Rendimiento Esperado</th>
-          <th>CPK Esperado</th>
-          <th>Cantidad de Llantas</th>
-          <th>Costo Total</th>
-        </tr>
-      </thead>
+            <thead>
+              <tr>
+                <th>Recomendación IA</th>
+                <th>Precio Llanta</th>
+                <th>Rendimiento Esperado</th>
+                <th>CPK Esperado</th>
+                <th>Cantidad de Llantas</th>
+                <th>Costo Total</th>
+              </tr>
+            </thead>
             <tbody>
-        {groupByRecommendation().map((row, index) => (
-          <tr key={index}>
-            <td>{row.recommendation}</td>
-            <td>
-            <td>
-  <div className="price-edit-container">
-    <input
-      type="number"
-      value={row.price}
-      onChange={(e) => handlePriceChange(row.recommendationKey, e.target.value)}
-      className="editable-price-input"
-    />
-  </div>
-</td>
-
-            </td>
-            <td>{row.rendimiento.toFixed(2)} km</td>
-            <td>{row.cpk}</td>
-            <td>{row.quantity}</td>
-            <td>${row.totalCost.toFixed(2)}</td>
-          </tr>
-        ))}
-      </tbody>
+              {groupByRecommendation().map((row, index) => (
+                <tr key={index}>
+                  <td>
+                    <div onClick={() => {
+                      setSelectedTireKey(row.recommendationKey);
+                      setShowTireModal(true);
+                    }} style={{ cursor: 'pointer', textDecoration: 'underline' }}>
+                      {row.recommendation}
+                    </div>
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      value={row.price}
+                      onChange={(e) => handlePriceChange(row.recommendationKey, e.target.value)}
+                      className="editable-price-input"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      value={row.rendimiento}
+                      onChange={(e) => handleKmsChange(row.recommendationKey, e.target.value)}
+                      className="editable-kms-input"
+                    />
+                  </td>
+                  <td>{row.cpk}</td>
+                  <td>{row.quantity}</td>
+                  <td>${row.totalCost.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         </div>
       ) : (
-        // Detailed View
         <div className="table-container">
           <table className="analista-table">
             <thead>
@@ -269,6 +459,7 @@ const Analista = () => {
             <tbody>
               {cambioInmediatoTires.map((tire, index) => {
                 const recommendationKey = `${tire.tipovhc}-${tire.eje}`;
+                const recommendation = recommendedTires[recommendationKey] || {};
 
                 return (
                   <tr key={index}>
@@ -277,33 +468,37 @@ const Analista = () => {
                     <td>{tire.llanta}</td>
                     <td>{tire.marca}</td>
                     <td>
-                    <td>
-  {recommendedTires[recommendationKey]
-    ? `${recommendedTires[recommendationKey].marca}, ${recommendedTires[recommendationKey].dimension}, ${recommendedTires[recommendationKey].banda}`
-    : 'Cargando...'}
-</td>
-
+                      <div 
+                        onClick={() => {
+                          setSelectedTireKey(recommendationKey);
+                          setShowTireModal(true);
+                        }} 
+                        style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                      >
+                        {recommendation.marca}, {recommendation.dimension}, {recommendation.banda}
+                      </div>
                     </td>
                     <td>
-  <div className="price-edit-container">
-    <input
-      type="number"
-      value={editablePrices[recommendationKey] || recommendedTires[recommendationKey]?.costo || 0}
-      onChange={(e) => handlePriceChange(recommendationKey, e.target.value)}
-      className="editable-price-input"
-    />
-  </div>
-</td>
-
-                    <td>
-                      {recommendedTires[recommendationKey]?.kms
-                        ? `${recommendedTires[recommendationKey]?.kms.toFixed(2)} km`
-                        : 'N/A'}
+                      <input
+                        type="number"
+                        value={editablePrices[recommendationKey] || recommendation.costo || 0}
+                        onChange={(e) => handlePriceChange(recommendationKey, e.target.value)}
+                        className="editable-price-input"
+                      />
                     </td>
                     <td>
-                      {recommendedTires[recommendationKey]
-                        ? calculateCPK(editablePrices[recommendationKey], recommendedTires[recommendationKey]?.kms || 1)
-                        : 'N/A'}
+                      <input
+                        type="number"
+                        value={editableKms[recommendationKey] || recommendation.kms || 1}
+                        onChange={(e) => handleKmsChange(recommendationKey, e.target.value)}
+                        className="editable-kms-input"
+                      />
+                    </td>
+                    <td>
+                      {calculateCPK(
+                        editablePrices[recommendationKey] || recommendation.costo || 0,
+                        editableKms[recommendationKey] || recommendation.kms || 1
+                      )}
                     </td>
                   </tr>
                 );
@@ -312,6 +507,110 @@ const Analista = () => {
           </table>
         </div>
       )}
+
+{showTireModal && (
+  <div
+    className={`modal-overlay ${showTireModal ? 'active' : ''}`}
+    onClick={() => {
+      setShowTireModal(false); // Close the modal on overlay click
+      setSelectedMarca('');
+      setSelectedDimension('');
+      setSelectedBanda('');
+    }}
+  >
+    <div
+      className={`modal ${showTireModal ? 'active' : ''}`}
+      onClick={(e) => e.stopPropagation()} // Prevent overlay clicks from propagating
+    >
+      <h3>Seleccionar Llanta</h3>
+      <div style={{ marginBottom: '15px' }}>
+        <label>Marca:</label>
+        <select
+          value={selectedMarca}
+          onChange={(e) => setSelectedMarca(e.target.value)}
+          style={{ width: '100%', marginTop: '5px', padding: '5px' }}
+        >
+          <option value="">Seleccionar Marca</option>
+          {tireOptions.marcas.map((marca) => (
+            <option key={marca} value={marca}>
+              {marca}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div style={{ marginBottom: '15px' }}>
+        <label>Dimensión:</label>
+        <select
+          value={selectedDimension}
+          onChange={(e) => setSelectedDimension(e.target.value)}
+          style={{ width: '100%', marginTop: '5px', padding: '5px' }}
+        >
+          <option value="">Seleccionar Dimensión</option>
+          {tireOptions.dimensiones.map((dimension) => (
+            <option key={dimension} value={dimension}>
+              {dimension}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div style={{ marginBottom: '15px' }}>
+        <label>Banda:</label>
+        <select
+          value={selectedBanda}
+          onChange={(e) => setSelectedBanda(e.target.value)}
+          style={{ width: '100%', marginTop: '5px', padding: '5px' }}
+        >
+          <option value="">Seleccionar Banda</option>
+          {tireOptions.bandas.map((banda) => (
+            <option key={banda} value={banda}>
+              {banda}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <button
+        onClick={handleTireSelection}
+        style={{
+          padding: '8px 16px',
+          backgroundColor: '#4CAF50',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          marginRight: '10px',
+        }}
+      >
+        Confirmar
+      </button>
+      <button
+        onClick={() => {
+          setShowTireModal(false);
+          setSelectedMarca('');
+          setSelectedDimension('');
+          setSelectedBanda('');
+        }}
+        style={{
+          padding: '8px 16px',
+          backgroundColor: '#ff4444',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+        }}
+      >
+        Cancelar
+      </button>
+    </div>
+  </div>
+)}
+
+
+<TireSelectionModal />
+
+
     </div>
   );
 };

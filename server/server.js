@@ -13,9 +13,9 @@ const aiChatRoutes = require('./routes/aiChatRoutes'); // Import the AI chat rou
 const app = express();
 app.use(express.json());
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://tirepro.netlify.app'], // Allowed origins
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
-  credentials: true, // Allow cookies or authorization headers
+  origin: ['http://localhost:3000', 'https://tirepro.netlify.app'], // Correct origin(s)
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
 }));
 
 connectDB();
