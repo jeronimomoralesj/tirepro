@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { handleAIChat } = require('../controllers/aiChatController'); // Import the controller
+const { handleAIChat } = require('../controllers/aiChatController'); // Import the AI Chat controller
 
-router.post('/ai-chat', handleAIChat); // POST route for AI chat at '/api/ai-chat'
+// POST route for AI chat
+router.post('/', handleAIChat);
 
 module.exports = router;
