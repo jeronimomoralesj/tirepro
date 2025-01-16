@@ -4,6 +4,7 @@ import { jwtDecode } from 'jwt-decode';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import './analista.css';
+import AnalistaPlacas from './AnalistaPlacas'; 
 
 const Analista = () => {
   const [cambioInmediatoTires, setCambioInmediatoTires] = useState([]);
@@ -617,7 +618,9 @@ const [selectedBanda, setSelectedBanda] = useState('');
 
 <TireSelectionModal />
 
-
+<div className="analisis-placas-wrapper">
+  <AnalistaPlacas />
+</div>
     </div>
   );
 };

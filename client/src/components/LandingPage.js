@@ -1,40 +1,95 @@
-// LandingPage.js
-
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './LandingPage.css';
-import logo from '../img/logo.png';
-import landing from '../img/landing.png';
+import { ChevronRight, BarChart2, PieChart, TrendingUp, Users } from 'lucide-react';
+import './LandingPage.css'; // Import the CSS file
 
 const LandingPage = () => {
   return (
-    <div className="landingPage-container">
-      {/* Top Navigation Bar */}
-      <header className="landingPage-topBar">
-        <div className="landingPage-logoSection">
-          <img src={logo} alt="Logo" className="landingPage-logo" />
+    <div className="landing-page-container"> {/* Root container */}
+      {/* Navigation */}
+      <nav className="navigation">
+        <div className="navigation-wrapper">
+          <div className="logo">FleetMetrics</div>
+          <div className="nav-links">
+            <Link to="/features" className="nav-link">Funcionalidades</Link>
+            <Link to="/pricing" className="nav-link">Precios</Link>
+            <Link to="/about" className="nav-link">Nosotros</Link>
+            <Link to="/login" className="nav-link">Iniciar Sesión</Link>
+            <Link to="/signup" className="nav-button">
+              Prueba Gratis
+              <ChevronRight className="icon" />
+            </Link>
+          </div>
         </div>
-        <nav className="landingPage-navLinks">
-          <Link to="/login" className="landingPage-navLink">Uso</Link>
-          <Link to="/login" className="landingPage-navLink">Flota</Link>
-          <Link to="/login" className="landingPage-navLink">Estado</Link>
-        </nav>
-        <div className="landingPage-authButtons">
-          <Link to="/login"><button className="landingPage-loginBtn">Inicia Sesión</button></Link>
-        </div>
-      </header>
+      </nav>
 
-      {/* Gradient Background Section with Title and Image */}
-      <section className="landingPage-heroSection">
-        <div className="landingPage-heroContent">
-          <h1 className="landingPage-heroTitle">Gestione Su Flota Con Facilidad</h1>
-          <p className="landingPage-heroSubtitle">Optimiza tus llantas.</p>
-          <Link to="/login"><button className="landingPage-ctaButton">Empieza hoy!</button></Link>
+      {/* Hero Section */}
+      <div className="hero-section">
+        <div className="hero-content">
+          <h1 className="hero-title">
+            Gestione su Flota con <span className="highlight">Inteligencia</span>
+          </h1>
+          <p className="hero-description">
+            Optimice el rendimiento de sus llantas y reduzca costos operativos con nuestra plataforma integral de gestión de flotas.
+          </p>
+          <div className="hero-buttons">
+            <button className="primary-button">Comenzar Ahora <ChevronRight className="icon" /></button>
+            <button className="secondary-button">Ver Demo</button>
+          </div>
         </div>
-        <div className="landingPage-heroImage">
-          <img src={landing} alt="Vista previa del panel" className="landingPage-landingImage" />
+
+        {/* Dashboard Preview */}
+        <div className="dashboard-preview">
+          <div className="dashboard-container">
+            <div className="grid grid-cols-12">
+              {/* Sidebar */}
+              
+
+              {/* Main Content */}
+              <div className="dashboard-content col-span-10">
+                <div className="dashboard-stats">
+                  {['Total Flota', 'En Mantenimiento', 'Alertas', 'Eficiencia'].map((stat, i) => (
+                    <div key={i} className="stat-card">
+                      <div className="stat-title">{stat}</div>
+                      <div className="stat-value">{Math.floor(Math.random() * 100)}%</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="chart-area"></div>
+                <div className="bottom-charts">
+                  <div className="chart"></div>
+                  <div className="chart"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </section>
+      </div>
+
+      {/* Features Section */}
+      <div className="features-section">
+        <div className="features-container">
+          {[
+            {
+              title: 'Monitoreo en Tiempo Real',
+              description: 'Seguimiento continuo del estado y rendimiento de su flota con actualizaciones instantáneas.'
+            },
+            {
+              title: 'Análisis Predictivo',
+              description: 'Anticipe necesidades de mantenimiento y optimice la vida útil de sus neumáticos.'
+            },
+            {
+              title: 'Reportes Detallados',
+              description: 'Informes completos y personalizables para una mejor toma de decisiones.'
+            }
+          ].map((feature, i) => (
+            <div key={i} className="feature-card">
+              <h3 className="feature-title">{feature.title}</h3>
+              <p className="feature-description">{feature.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

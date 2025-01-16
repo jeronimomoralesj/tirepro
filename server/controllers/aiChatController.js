@@ -20,15 +20,30 @@ function getLastNMonthsValues(arr, months) {
   }));
 }
 
-async function askGeminiAI(prompt) {
-  try {
-    const result = await model.generateContent(prompt);
-    return result.response.text();
-  } catch (error) {
-    console.error('Gemini AI error:', error);
-    throw new Error('Failed to get AI response: ' + error.message);
+async function askGeminiAIWithRetries(prompt, retries = 3) {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const result = await model.generateContent(prompt);
+      const responseText = result.response.text();
+
+      console.log(`AI Response on attempt ${attempt + 1}:`, responseText);
+
+      return responseText;
+    } catch (error) {
+      console.error(`Gemini AI error on attempt ${attempt + 1}:`, error.message);
+
+      if ((error.status === 429 || error.status >= 500) && attempt < retries - 1) {
+        const backoffTime = Math.pow(2, attempt) * 1000; // Exponential backoff
+        console.log(`Retrying in ${backoffTime / 1000} seconds...`);
+        await new Promise((resolve) => setTimeout(resolve, backoffTime));
+      } else {
+        throw new Error(`Failed to get AI response on attempt ${attempt + 1}: ${error.message}`);
+      }
+    }
   }
 }
+
+
 
 function sanitizeAIResponse(response) {
   try {
@@ -333,4 +348,192 @@ Datos disponibles: ${JSON.stringify(resultDetails)}
   }
 };
 
-module.exports = { handleAIChat };
+
+
+
+
+// Cache to store analysis results for repeated queries
+const analysisCache = new Map();
+
+// Helper: Chunk data into smaller parts
+function chunkData(array, chunkSize) {
+  const chunks = [];
+  for (let i = 0; i < array.length; i += chunkSize) {
+    chunks.push(array.slice(i, i + chunkSize));
+  }
+  return chunks;
+}
+
+// Helper: Get the latest value from a historical array
+function getLatestValue(arr) {
+  if (!Array.isArray(arr) || arr.length === 0) return null;
+  return arr[arr.length - 1].value;
+}
+
+// Helper: Send a prompt to Google Generative AI with retry logic
+async function askGeminiAIWithRetries(prompt, retries = 3) {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const result = await model.generateContent(prompt);
+      return result.response.text();
+    } catch (error) {
+      console.error('Gemini AI error:', error);
+
+      if (attempt < retries - 1) {
+        console.log(`Retrying... Attempt ${attempt + 1}`);
+        await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1))); // Exponential backoff
+      } else {
+        throw new Error('Failed to get AI response: ' + error.message);
+      }
+    }
+  }
+}
+
+// Helper: Generate analysis prompt
+function generatePrompt(placa, tireData) {
+  return `
+    Analiza los datos de las llantas asociadas a la placa "${placa}".
+    Datos: ${JSON.stringify(tireData, null, 2)}
+
+    Proporciona recomendaciones basadas en:
+    - CPK > 600 COP indica costos operativos altos.
+    - Profundidad < 4mm requiere atención inmediata.
+    - Costo > 3,000,000 COP sugiere revisar alternativas.
+
+    Genera un JSON con este formato:
+    {
+      "recommendations": [
+        "recomendación 1",
+        "recomendación 2"
+      ]
+    }
+  `;
+}
+
+
+// Main Analysis Function
+const analyzeDataByPlaca = async (req, res) => {
+  try {
+    console.log('Starting analysis...');
+
+    // Fetch all tire data
+    const allTires = await TireData.find().lean();
+    console.log(`Found ${allTires.length} tires`);
+
+    // Group tire data by "placa"
+    const groupedByPlaca = allTires.reduce((acc, tire) => {
+      if (!acc[tire.placa]) acc[tire.placa] = [];
+      acc[tire.placa].push(tire);
+      return acc;
+    }, {});
+
+    console.log(`Grouped into ${Object.keys(groupedByPlaca).length} placas`);
+
+    const analysisResults = [];
+    const batchedPlacas = [];
+    const batchSize = 3;
+
+    for (let i = 0; i < Object.keys(groupedByPlaca).length; i += batchSize) {
+      batchedPlacas.push(Object.keys(groupedByPlaca).slice(i, i + batchSize));
+    }
+
+    for (const batch of batchedPlacas) {
+      const batchData = batch.map((placa) => ({
+        placa,
+        tires: groupedByPlaca[placa].map((tire) => ({
+          llanta: tire.llanta,
+          marca: tire.marca,
+          profundidad: {
+            interna: getLatestValue(tire.profundidad_int),
+            central: getLatestValue(tire.profundidad_cen),
+            externa: getLatestValue(tire.profundidad_ext),
+          },
+          kilometraje_actual: getLatestValue(tire.kilometraje_actual),
+          costo: tire.costo,
+          cpk: getLatestValue(tire.cpk),
+          eje: tire.eje,
+          tipovhc: tire.tipovhc,
+        })),
+      }));
+
+      const analysisPrompt = `
+        Analiza los datos de las siguientes placas y sus llantas:
+        ${JSON.stringify(batchData, null, 2)}
+
+        Basándote en las siguientes reglas:
+        - CPK > 600 COP indica costos operativos altos.
+        - Profundidad < 4mm requiere atención inmediata.
+        - Costo > 3,000,000 COP sugiere revisar alternativas.
+
+        Si no encuentras problemas críticos, proporciona recomendaciones generales para optimizar el mantenimiento, los costos y el rendimiento.
+
+        Genera un JSON con este formato:
+        {
+          "results": [
+            {
+              "placa": "placa1",
+              "recommendations": [
+                "recomendación 1",
+                "recomendación 2"
+              ]
+            },
+            ...
+          ]
+        }
+      `;
+
+      try {
+        const aiResponse = await askGeminiAIWithRetries(analysisPrompt);
+
+        // Validate and parse the AI response
+        const analysis = sanitizeAIResponse(aiResponse);
+
+        console.log('Parsed AI response:', analysis);
+
+        if (analysis.results) {
+          analysis.results.forEach((result) => {
+            // Add fallback recommendations if empty
+            if (!result.recommendations || result.recommendations.length === 0) {
+              result.recommendations = [
+                "Realiza revisiones periódicas de presión para optimizar la vida útil.",
+                "Asegúrate de rotar las llantas cada 10,000 kilómetros.",
+                "Revisa la alineación y balanceo de las ruedas para evitar desgaste desigual.",
+                "Monitorea el costo por kilómetro (CPK) para identificar posibles ineficiencias.",
+              ];
+            }
+            analysisResults.push(result);
+          });
+        }
+      } catch (error) {
+        console.error('Error analyzing batch:', error.message);
+
+        // Add fallback recommendations for failed batches
+        batch.forEach((placa) => {
+          analysisResults.push({
+            placa,
+            recommendations: [
+              "No se pudo analizar los datos de esta placa debido a un error. Revisa los datos o intenta nuevamente.",
+            ],
+          });
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      results: analysisResults,
+    });
+  } catch (error) {
+    console.error('Analysis error:', error);
+    res.status(500).json({
+      error: 'No se pudo analizar los datos de las placas.',
+      details: error.message,
+    });
+  }
+};
+
+
+
+
+
+module.exports = { handleAIChat, analyzeDataByPlaca };
