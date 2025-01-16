@@ -1,203 +1,290 @@
-/* Main container styling */
+/* Enhanced Main Container */
 .analista-container {
-    padding: 2rem;
-    background-color: #fff;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(74, 144, 226, 0.12);
-    max-width: 1200px;
-    margin: 2rem auto;
-  }
-  
-  /* Title styling */
-  .analista-title {
-    font-size: 28px;
-    font-weight: 600;
-    margin-bottom: 2rem;
-    color: #2a2a2a;
-    text-align: center;
-    position: relative;
-    padding-bottom: 1rem;
-  }
-  
-  .analista-title::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60px;
-    height: 3px;
-    background: linear-gradient(90deg, #4a90e2, #1c6fce);
-    border-radius: 2px;
-  }
-  
-  /* Table container with responsive design */
-  .table-container {
-    overflow-x: auto;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  }
-  
-  /* Table styling */
-  .analista-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    margin-top: 1.5rem;
-  }
-  
-  /* Header styling */
-  .analista-table th {
-    background: linear-gradient(135deg, #4a90e2, #1c6fce);
-    color: white;
-    padding: 1rem 1.5rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.9rem;
-    letter-spacing: 0.5px;
-    border: none;
-    position: sticky;
-    top: 0;
-  }
-  
-  .analista-table th:first-child {
-    border-top-left-radius: 8px;
-  }
-  
-  .analista-table th:last-child {
-    border-top-right-radius: 8px;
-  }
-  
-  /* Cell styling */
-  .analista-table td {
-    padding: 1rem 1.5rem;
-    color: #2a2a2a;
-    border-bottom: 1px solid rgba(74, 144, 226, 0.15);
-    font-size: 0.95rem;
-  }
-  
-  /* Row styling */
-  .analista-table tr:nth-child(even) {
-    background-color: rgba(74, 144, 226, 0.05);
-  }
-  
-  .analista-table tr:hover {
-    background-color: rgba(74, 144, 226, 0.1);
-    transition: background-color 0.2s ease;
-  }
-  
-  /* Input field styling */
-  .editable-price-input {
-    width: 120px;
-    padding: 0.75rem;
-    border: 2px solid rgba(74, 144, 226, 0.2);
-    border-radius: 6px;
-    text-align: right;
-    font-size: 0.95rem;
-    color: #2a2a2a;
-    transition: all 0.2s ease;
-    background-color: #fff;
-  }
-  
-  .editable-price-input:hover {
-    border-color: rgba(74, 144, 226, 0.4);
-  }
-  
-  .editable-price-input:focus {
-    border-color: #4a90e2;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.15);
-  }
-  
-  /* Empty state message */
-  .analista-container > p {
-    text-align: center;
-    color: #2a2a2a;
-    padding: 2rem;
-    font-size: 1.1rem;
-    background-color: rgba(74, 144, 226, 0.05);
-    border-radius: 8px;
-    border: 1px dashed rgba(74, 144, 226, 0.3);
-  }
-  
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .analista-container {
-      padding: 1rem;
-      margin: 1rem;
-    }
-    
-    .analista-table th,
-    .analista-table td {
-      padding: 0.75rem 1rem;
-      font-size: 0.9rem;
-    }
-    
-    .analista-title {
-      font-size: 24px;
-    }
-    
-    .editable-price-input {
-      width: 100px;
-      padding: 0.5rem;
-    }
-  }
+  padding: 2.5rem;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(74, 144, 226, 0.15);
+  max-width: 1400px;
+  margin: 2.5rem auto;
+  transition: all 0.3s ease;
+}
 
-  .editable-price-input,
-.editable-kms-input {
-  width: 100px;
-  padding: 4px 8px;
-  border: 1px solid #ccc;
+/* Enhanced Title */
+.analista-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 2.5rem;
+  color: #1a1a1a;
+  text-align: center;
+  position: relative;
+  padding-bottom: 1.2rem;
+  letter-spacing: -0.5px;
+}
+
+.analista-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, #4a90e2, #1c6fce);
   border-radius: 4px;
-  font-size: 14px;
+  transition: width 0.3s ease;
+}
+
+.analista-title:hover::after {
+  width: 120px;
+}
+
+/* Action Buttons */
+.actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+}
+
+.generate-pdf-btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, #4a90e2, #1c6fce);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
+}
+
+.generate-pdf-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(74, 144, 226, 0.3);
+}
+
+.generate-pdf-btn:active {
+  transform: translateY(0);
+}
+
+/* Enhanced Table Container */
+.table-container {
+  overflow-x: auto;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  margin-top: 2rem;
+}
+
+/* Enhanced Table */
+.analista-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 0;
+}
+
+/* Enhanced Header */
+.analista-table th {
+  background: linear-gradient(135deg, #4a90e2, #1c6fce);
+  color: #ffffff;
+  padding: 1.2rem 1.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+  letter-spacing: 0.8px;
+  border: none;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.analista-table th:first-child {
+  border-top-left-radius: 12px;
+}
+
+.analista-table th:last-child {
+  border-top-right-radius: 12px;
+}
+
+/* Enhanced Cells */
+.analista-table td {
+  padding: 1.2rem 1.8rem;
+  color: #2a2a2a;
+  border-bottom: 1px solid rgba(74, 144, 226, 0.12);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+/* Enhanced Row Styling */
+.analista-table tr:nth-child(even) {
+  background-color: rgba(74, 144, 226, 0.03);
+}
+
+.analista-table tr:hover {
+  background-color: rgba(74, 144, 226, 0.08);
+}
+
+/* Enhanced Input Fields */
+.editable-price-input,
+.editable-kms-input {
+  width: 130px;
+  padding: 0.8rem 1rem;
+  border: 2px solid rgba(74, 144, 226, 0.15);
+  border-radius: 8px;
+  text-align: right;
+  font-size: 1rem;
+  color: #2a2a2a;
+  transition: all 0.25s ease;
+  background-color: #ffffff;
+}
+
+.editable-price-input:hover,
+.editable-kms-input:hover {
+  border-color: rgba(74, 144, 226, 0.3);
 }
 
 .editable-price-input:focus,
 .editable-kms-input:focus {
+  border-color: #4a90e2;
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
 }
 
-.modal {
-  z-index: 1001; /* Ensure the modal is on top */
-}
-.modal-overlay {
-  z-index: 1000; /* Ensure the overlay is behind the modal */
-}
-
-/* Overlay styling (only visible when modal is active) */
+/* Enhanced Modal */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-  z-index: 1000; /* Behind the modal */
-  display: none; /* Hide by default */
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
 }
 
-/* Modal styling */
+.modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
 .modal {
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  z-index: 1001; /* On top of the overlay */
-  min-width: 300px;
-}
-
-/* Display modal and overlay when active */
-.modal-overlay.active {
-  display: block;
+  transform: translate(-50%, -50%) scale(0.9);
+  background-color: #ffffff;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  min-width: 380px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
 }
 
 .modal.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Modal Content Styling */
+.modal h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 1.5rem;
+}
+
+.modal label {
   display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2a2a2a;
+  margin-bottom: 0.5rem;
+}
+
+.modal select {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 2px solid rgba(74, 144, 226, 0.15);
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #2a2a2a;
+  background-color: #ffffff;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.modal select:hover {
+  border-color: rgba(74, 144, 226, 0.3);
+}
+
+.modal select:focus {
+  border-color: #4a90e2;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .analista-container {
+    padding: 2rem;
+    margin: 2rem 1rem;
+  }
+  
+  .analista-title {
+    font-size: 28px;
+  }
+  
+  .modal {
+    min-width: 320px;
+    margin: 0 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .analista-container {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+  
+  .analista-table th,
+  .analista-table td {
+    padding: 1rem 1.2rem;
+    font-size: 0.9rem;
+  }
+  
+  .editable-price-input,
+  .editable-kms-input {
+    width: 110px;
+    padding: 0.6rem 0.8rem;
+  }
+  
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .generate-pdf-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .analista-title {
+    font-size: 24px;
+  }
+  
+  .modal {
+    min-width: 280px;
+    padding: 1.5rem;
+  }
 }
