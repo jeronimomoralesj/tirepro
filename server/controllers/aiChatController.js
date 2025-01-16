@@ -74,49 +74,54 @@ const handleAIChat = async (req, res) => {
     const userId = decodedToken.user.id;
 
     const queryPrompt = `
-      Eres un asistente AI especializado en gestión de flotas y llantas para una empresa de transporte.
-      Analiza esta consulta: "${userMessage}"
+Eres un asistente AI especializado en gestión de flotas y llantas para una empresa de transporte, tu especialidad es extraer el intent de user queries.
+Analiza esta consulta: "${userMessage}"
 
-      La base de datos tiene esta estructura:
-      - llanta: número identificador, si dicen dame infomracion sobre la llanta x se refiere a llanta con numero identificador x
-      - marca: marca de la llanta (ejemplos: continental, pirelli, bridgestone, etc)
-      - costo: costo de la llanta 
-      - vida: estado de la llanta (ejemplos: nueva, reencauche, reencauche2, reencauche3, fin, etc) una llanta reencauchada apareced con vida reencauche(1,2,3,etc)
-      - kilometraje_actual: array con histórico de kilometraje del vehiculo
-      - profundidad_int/cen/ext: arrays con histórico de profundidades
-      - kms: array con histórico de kilómetros recorridos por la llanta, se le dice rendimiento tmabien.
-      - cpk: array con histórico de costo por kilómetro
-      - proact: array con histórico de scores proact
-      - dimension: dimensión de la llanta
-      - placa: placa del vehículo
-      - pos: array con histórico de posición
-      - eje: eje del carro en el que se encuentra la llanta (ejemplos: direccion, traccion, remolque, etc)
-      - tipovhc: es el tipo de vehiculo en que esta la llanta (trailer (1,2,3 eje), cabezote)
-      - banda: el tread, la cobertura de la llanta (hdr2, TR866, Defender LTX, lsu, etc)
-      - frente: el tipo de carga del vehiculo (ejemplo: cargaseca, liquidos, gas, cemento, etc)
-      - dimension: medidas de la llanta (ejemplo: 295/80r22.5, 12r22.5, etc)
+La base de datos tiene esta estructura:
+- llanta: número identificador, si dicen dame información sobre la llanta x se refiere a llanta con numero identificador x
+- marca: marca de la llanta (ejemplos: continental, pirelli, bridgestone, etc). Ejemplos: cual es mi rendimiento de conti (continental)
+- costo: costo de la llanta ejemplo: cual es mi llanta mas barata (mas bajo costo), cual es mi costo promedio
+- vida: estado de la llanta (ejemplos: nueva, reencauche, reencauche2, reencauche3, fin, etc) una llanta reencauchada apareced con vida reencauche(1,2,3,etc), ejemplo: cual es mi rendimiento promedio (kilometraje de la llanta, no del vehículo)
+- kilometraje_actual: array con histórico de kilometraje del vehiculo
+- profundidad_int/cen/ext: arrays con histórico de profundidades, *el último valor en este array es la profundidad actual*.
+- kms: array con histórico de kilómetros recorridos por la llanta, se le dice rendimiento tambien. ejemplo: cuanto me duro una llanta, cual es mi rendimiento promedio (cuando sale esta pregunta intentar incluir solo llantas que están en fin en vida), etc.
+- cpk: array con histórico de costo por kilómetro. ejemplo: cual es mi costo por kilometro, cual es mi CPK
+- proact: array con histórico de profundidades actuales. Toma la menor de las tres profundidades de profundidad_int/cen/ext. Ejemplo: Cual es la profundidad actual de mi llanta, cual es mi profundidad promedio por marca, cual es la profundidad promedio de la placa x, cual es el desgaste promedio (profundidad también se conoce como desgaste), *el último valor en este array es el proact actual*.
+- dimension: dimensión de la llanta, ejemplo: cual es mi dimisión mas común/frecuente, cuantas llantas tengo de dimensión/referencia.
+- placa: placa del vehículo, ejemplos: cuantos vehículos tengo, cuantas placas tengo
+- pos: array con histórico de posición, cual es mi promedio de profundidad en dirección (posiciones 1 y 2)
+- eje: eje del carro en el que se encuentra la llanta (ejemplos: direccion, traccion, remolque, etc), ejemplo: cual es mi promedio por eje
+- tipovhc: es el tipo de vehiculo en que esta la llanta (trailer (1,2,3 eje), cabezote), ejemplo cual es mi promedio por trailer
+- banda: el tread, la cobertura de la llanta (hdr2, TR866, Defender LTX, lsu, etc)
+- frente: el tipo de carga del vehiculo (ejemplo: cargaseca, liquidos, gas, cemento, etc), ejemplo: cual es mi promedio por carga (frente también se conoce como tipo de carga)
+- dimension: medidas de la llanta (ejemplo: 295/80r22.5, 12r22.5, etc)
+- cpk_proy: array con histórico de CPK proyectado. Se calcula como: “costo/(kilometros proyectados)”. Ejemplos: cual es mi CPK proyectado para x. Cuantos kilometro puede recorrer la llanta x antes de ser remplazada (calcular kilometros proyectados en este caso = costo/cpk_proy, para encontrar kilómetros proyectados y luego restar a KMS).
+-presion: array con el histórico de presión de la llanta.
 
+IMPORTANTE: Para todos los arrays históricos, el valor actual es siempre el último del array. *Cuando se pregunte por la cantidad de kilómetros que una llanta puede recorrer antes de cambiarla, se debe calcular el valor proyectado usando costo/cpk_proy y luego restarle los kms recorridos. Si el resultado es negativo, indicar que la llanta ya ha superado su vida útil.*
+*Para las preguntas de conteo, usa "count" en el calculation. Para las preguntas de resumen o promedio, usa "average" en el calculation. Para la información de campos específicos usa "info". Para preguntas de comparación entre llantas usa el calculation "compare" y la información que se necesita para hacer la comparación.*
+*Para las preguntas que involucran la profundidad actual, usar el ultimo valor de los arrays proact. Para el proact actual usar el ultimo valor del array proact. Para cualquier pregunta que use 'desgaste' debes obtener la profundidad actual y restarla de la profundidad inicial y obtener la diferencia porcentual en base a la profundidad inicial (ej: (profundidad_inicial - profundidad_actual) / profundidad_inicial * 100). En caso de no tener profundidad_inicial usar la profundidad_inicial de una llanta similar.*
+*Los filtros deben estar en la sección "filters" del json*.
 
-      IMPORTANTE: Para todos los arrays históricos, el valor actual es siempre el último del array.
+Genera un JSON que especifique:
+{
+    "intent": "[count|info|cpk|depth|cost|compare]",
+    "filters": {
+        // filtros específicos como marca, llanta, etc
+    },
+    "calculation": "[latest|average|total|trend|min|max]",
+    "fields": ["campo1", "campo2"],
+    "timeRange": number, // meses para análisis histórico
+    "sort": {
+        "field": "campo",
+        "order": "asc|desc"
+    }
+}
+`;
 
-      Genera un JSON que especifique:
-      {
-        "intent": "[count|info|cpk|depth|cost|compare]",
-        "filters": {
-          // filtros específicos como marca, llanta, etc
-        },
-        "calculation": "[latest|average|total|trend|min|max]",
-        "fields": ["campo1", "campo2"],
-        "timeRange": number, // meses para análisis histórico
-        "sort": {
-          "field": "campo",
-          "order": "asc|desc"
-        }
-      }
-    `;
-
-    const aiQueryResponse = await askGeminiAI(queryPrompt);
+    const aiQueryResponse = await askGeminiAIWithRetries(queryPrompt);
     const queryDetails = sanitizeAIResponse(aiQueryResponse);
+    console.log(queryDetails);
 
     const { intent, filters = {}, calculation, fields = [], timeRange, sort } = queryDetails;
 
@@ -332,7 +337,7 @@ Consulta del usuario: "${userMessage}"
 Datos disponibles: ${JSON.stringify(resultDetails)}
     `;
 
-    const finalResponse = await askGeminiAI(responsePrompt);
+    const finalResponse = await askGeminiAIWithRetries(responsePrompt);
     
     res.json({ 
       message: finalResponse,

@@ -14,7 +14,7 @@ const AnalisisPlacas = () => {
         setError(null);
 
         const response = await axios.post(
-          'http://localhost:5001/api/ai-chat/analyze-by-placa',
+          'https://tirepro.onrender.com/api/ai-chat/analyze-by-placa',
           {}
         );
 
