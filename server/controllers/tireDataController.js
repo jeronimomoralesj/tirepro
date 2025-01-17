@@ -73,7 +73,6 @@ const transformToHistoricalArrayWithDay = (value) => {
   }];
 };
 
-
 // Function to upload tire data and create events
 const uploadTireData = async (req, res) => {
   try {
@@ -147,9 +146,6 @@ const uploadTireData = async (req, res) => {
         proact: transformToHistoricalArrayWithDay(proact),
         eje: normalizeText(row['eje']),
         user: userId,
-        inspeccionador: ['admin'], // Default value
-valoracion: transformToHistoricalArrayWithDay('aprobado'), // Default value
-
       };
     });
 
@@ -218,7 +214,6 @@ valoracion: transformToHistoricalArrayWithDay('aprobado'), // Default value
 
 
 // Update historical fields
-// Update historical fields
 const updateTireField = async (req, res) => {
   try {
     const { tireUpdates } = req.body;
@@ -232,15 +227,7 @@ const updateTireField = async (req, res) => {
       const tire = await TireData.findById(tireId);
       if (!tire) continue;
 
-      // Special case for 'inspeccionador'
-      if (field === 'inspeccionador') {
-        // Directly push the name to the array (must be a string or array of strings)
-        if (Array.isArray(newValue)) {
-          tire.inspeccionador.push(...newValue); // Append all names in the array
-        } else {
-          tire.inspeccionador.push(newValue); // Append a single name
-        }
-      } else if (field === 'images') {
+      if (field === 'images') {
         // Append a new historical entry for images
         tire.images.push({
           day: currentDay,
@@ -267,7 +254,6 @@ const updateTireField = async (req, res) => {
     res.status(500).json({ msg: 'Server error', error: error.message });
   }
 };
-
 
 
 
@@ -378,8 +364,6 @@ const createTire = async (req, res) => {
       profundidad_ext: [normalizeHistoricalValue(tireData.profundidad_ext || 0)],
       kms: [normalizeHistoricalValue(tireData.kms || 0)],
       ultima_inspeccion: currentDate,
-      inspeccionador: ['admin'], // Default value
-  valoracion: [normalizeHistoricalValue('aprobado')], // Default value
     };
 
     // Create and save the tire
