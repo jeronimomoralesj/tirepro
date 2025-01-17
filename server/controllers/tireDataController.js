@@ -73,6 +73,7 @@ const transformToHistoricalArrayWithDay = (value) => {
   }];
 };
 
+
 // Function to upload tire data and create events
 const uploadTireData = async (req, res) => {
   try {
@@ -146,6 +147,9 @@ const uploadTireData = async (req, res) => {
         proact: transformToHistoricalArrayWithDay(proact),
         eje: normalizeText(row['eje']),
         user: userId,
+        inspeccionador: ['admin'], // Default value
+valoracion: transformToHistoricalArrayWithDay('aprobado'), // Default value
+
       };
     });
 
@@ -364,6 +368,8 @@ const createTire = async (req, res) => {
       profundidad_ext: [normalizeHistoricalValue(tireData.profundidad_ext || 0)],
       kms: [normalizeHistoricalValue(tireData.kms || 0)],
       ultima_inspeccion: currentDate,
+      inspeccionador: ['admin'], // Default value
+  valoracion: [normalizeHistoricalValue('aprobado')], // Default value
     };
 
     // Create and save the tire
