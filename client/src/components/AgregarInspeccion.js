@@ -136,7 +136,9 @@ const AgregarInspeccion = () => {
     }
   
     const token = localStorage.getItem('token');
-    const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
+    const userPayload = token ? JSON.parse(atob(token.split('.')[1])) : null;
+    const userId = userPayload?.user?.id || null;
+    const userName = userPayload?.user?.name || 'admin'; // Fallback to 'admin' if name is not present
   
     if (!userId) {
       alert("Usuario no identificado.");
@@ -183,6 +185,12 @@ const AgregarInspeccion = () => {
             { tireId: tire._id, field: 'kms', newValue: newKms },
             { tireId: tire._id, field: 'cpk', newValue: cpk },
             { tireId: tire._id, field: 'cpk_proy', newValue: cpkProy },
+            { tireId: tire._id, field: 'inspeccionador', newValue: userName }, // Add inspector's name
+            { 
+              tireId: tire._id, 
+              field: 'valoracion', 
+              newValue: 'aprobado' // Set valoracion to 'aprobado'
+            },
           ];
   
           if (imageUrl) {
@@ -203,12 +211,14 @@ const AgregarInspeccion = () => {
   
       const tireIds = filteredTires.map((tire) => tire._id);
   
+      // Update inspection date and kilometraje_actual
       await axios.put(
         'https://tirepro.onrender.com/api/tires/update-inspection-date',
         { tireIds, kilometrajeActual: currentKilometrajeActual },
         { headers: { Authorization: `Bearer ${token}` } }
       );
   
+      // Update other fields
       if (updates.flat().length > 0) {
         await axios.put(
           'https://tirepro.onrender.com/api/tires/update-field',
@@ -229,7 +239,7 @@ const AgregarInspeccion = () => {
         console.error("Error updating user's pointcount:", error);
         alert("Datos actualizados, pero hubo un problema al actualizar el puntaje del usuario.");
       }
-      
+  
       setKilometrajeActual('');
       setProfundidadUpdates({});
       setPresionUpdates({});
@@ -243,6 +253,7 @@ const AgregarInspeccion = () => {
       setLoading(false);
     }
   };
+  
   
 
   return (

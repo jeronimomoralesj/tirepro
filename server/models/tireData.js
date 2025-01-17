@@ -16,10 +16,12 @@ const LifeSchema = new mongoose.Schema({
   costo: { type: Number, required: true }, // Cost value
 });
 
+// Main TireData Schema
 const TireDataSchema = new mongoose.Schema(
   {
     llanta: { type: Number, required: false },
     vida: { type: [HistoricalValueSchema], default: [] },
+    valoracion: { type: [HistoricalValueSchema], default: [] }, // New historical field for valoracion
     placa: { type: String, required: true },
     kilometraje_actual: { type: [HistoricalValueSchema], default: [] },
     frente: { type: String, required: true },
@@ -61,6 +63,7 @@ const TireDataSchema = new mongoose.Schema(
       ],
     }, // Default with a predefined image link
     user: { type: String, required: true },
+    inspeccionador: { type: [String], default: ['admin'] }, // Array of strings with default value
   },
   { collection: 'tire_data' }
 );
