@@ -224,28 +224,42 @@ const updateTireField = async (req, res) => {
 
     for (const update of tireUpdates) {
       const { tireId, field, newValue } = update;
-      const tire = await TireData.findById(tireId);
-      if (!tire) continue;
 
+      let updateQuery;
       if (field === 'images') {
-        // Append a new historical entry for images
-        tire.images.push({
-          day: currentDay,
-          month: currentMonth,
-          year: currentYear,
-          value: newValue, // URL of the image
-        });
-      } else if (Array.isArray(tire[field])) {
-        // Append to existing historical fields
-        tire[field].push({
-          day: currentDay,
-          month: currentMonth,
-          year: currentYear,
-          value: newValue,
-        });
+        // For images, push new entry
+        updateQuery = {
+          $push: {
+            [field]: {
+              day: currentDay,
+              month: currentMonth,
+              year: currentYear,
+              value: newValue
+            }
+          }
+        };
+      } else {
+        // For other fields, push new historical entry
+        updateQuery = {
+          $push: {
+            [field]: {
+              day: currentDay,
+              month: currentMonth,
+              year: currentYear,
+              value: newValue
+            }
+          }
+        };
       }
 
-      await tire.save();
+      await TireData.findByIdAndUpdate(
+        tireId,
+        updateQuery,
+        {
+          new: true,
+          runValidators: false // Disable validation
+        }
+      );
     }
 
     res.status(200).json({ msg: 'Tire field values updated successfully.' });
@@ -262,16 +276,17 @@ const updateTireField = async (req, res) => {
 // Update inspection date and kilometraje_actual
 const updateInspectionDate = async (req, res) => {
   try {
-    const { tireIds, kilometrajeActual } = req.body; // Get tire IDs and the new kilometraje_actual
+    const { tireIds, kilometrajeActual } = req.body;
     const currentDate = new Date();
     const currentDay = currentDate.getDate();
-    const currentMonth = currentDate.getMonth() + 1; // JavaScript months are zero-indexed
+    const currentMonth = currentDate.getMonth() + 1;
     const currentYear = currentDate.getFullYear();
 
     if (!kilometrajeActual || isNaN(kilometrajeActual)) {
       return res.status(400).json({ msg: "Invalid kilometraje_actual provided." });
     }
 
+    // Find all tires but don't apply schema validation
     const tires = await TireData.find({ _id: { $in: tireIds } });
 
     if (!tires || tires.length === 0) {
@@ -286,33 +301,55 @@ const updateInspectionDate = async (req, res) => {
       const lastKilometrajeValue = lastKilometrajeEntry?.value || 0;
       const kmsDifference = Math.max(0, kilometrajeActual - lastKilometrajeValue);
 
-      // Update kilometraje_actual historical field
-      if (lastKilometrajeEntry?.day === currentDay && lastKilometrajeEntry?.month === currentMonth && lastKilometrajeEntry?.year === currentYear) {
-        lastKilometrajeEntry.value = kilometrajeActual;
+      // Prepare the update data
+      const updateData = {
+        $set: { ultima_inspeccion: currentDate }
+      };
+
+      // Handle kilometraje_actual update
+      if (lastKilometrajeEntry?.day === currentDay && 
+          lastKilometrajeEntry?.month === currentMonth && 
+          lastKilometrajeEntry?.year === currentYear) {
+        updateData.$set['kilometraje_actual.$[last].value'] = kilometrajeActual;
       } else {
-        tire.kilometraje_actual.push({
+        updateData.$push = {
+          kilometraje_actual: {
+            day: currentDay,
+            month: currentMonth,
+            year: currentYear,
+            value: kilometrajeActual
+          }
+        };
+      }
+
+      // Handle kms update
+      if (lastKmsEntry?.day === currentDay && 
+          lastKmsEntry?.month === currentMonth && 
+          lastKmsEntry?.year === currentYear) {
+        updateData.$set['kms.$[lastKms].value'] = (lastKmsEntry.value || 0) + kmsDifference;
+      } else {
+        if (!updateData.$push) updateData.$push = {};
+        updateData.$push.kms = {
           day: currentDay,
           month: currentMonth,
           year: currentYear,
-          value: kilometrajeActual,
-        });
+          value: kmsDifference
+        };
       }
 
-      // Update kms historical field
-      if (lastKmsEntry?.day === currentDay && lastKmsEntry?.month === currentMonth && lastKmsEntry?.year === currentYear) {
-        lastKmsEntry.value += kmsDifference;
-      } else {
-        tire.kms.push({
-          day: currentDay,
-          month: currentMonth,
-          year: currentYear,
-          value: kmsDifference,
-        });
-      }
-
-      tire.ultima_inspeccion = currentDate;
-
-      await tire.save();
+      // Use findOneAndUpdate with arrayFilters and bypass document validation
+      await TireData.findOneAndUpdate(
+        { _id: tire._id },
+        updateData,
+        {
+          arrayFilters: [
+            { 'last.day': currentDay, 'last.month': currentMonth, 'last.year': currentYear },
+            { 'lastKms.day': currentDay, 'lastKms.month': currentMonth, 'lastKms.year': currentYear }
+          ],
+          new: true,
+          runValidators: false // This prevents validation of required fields
+        }
+      );
     }
 
     res.status(200).json({
@@ -320,7 +357,7 @@ const updateInspectionDate = async (req, res) => {
       updatedCount: tires.length,
     });
   } catch (error) {
-    console.error("Error, intentar de nuevo: ", error);
+    console.error("Error updating inspection date:", error);
     res.status(500).json({ msg: "Server error.", error: error.message });
   }
 };

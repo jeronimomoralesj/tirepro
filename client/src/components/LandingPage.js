@@ -30,7 +30,7 @@ const LandingPage = () => {
       name: "Mateo Morales",
       role: "CEO & Co-Fundador",
       image: "https://media.licdn.com/dms/image/v2/D4D03AQHCGd8UB9m2AA/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1685477838438?e=1742428800&v=beta&t=axZdaXzmpLtmHFEhCdl_1us1r_jwWWDwQNeBcztGf2A",
-      bio: "Con más de 15 años de experiencia en gestión de flotas y tecnología. Anteriormente Director de Operaciones en TransporTech Solutions.",
+      bio: "Con 7 años de experiencia en consultoría en firmas líderes como Cap Gemini y Bain, Mateo aporta una sólida visión estratégica. Actualmente cursa un MBA en MIT y es economista graduado de Purdue.",
       linkedin: "https://www.linkedin.com/in/mateomoralesj/",
       twitter: "#"
     },
@@ -38,7 +38,7 @@ const LandingPage = () => {
       name: "Jeronimo Morales",
       role: "Product development & Co-Fundador",
       image: "https://media.licdn.com/dms/image/v2/D4E03AQFM4BmS6dGm6Q/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1709150478233?e=1742428800&v=beta&t=X7fDQz4sJrPc4w2XvQWdkE63QREy-wFwbmIfSWCDNjs",
-      bio: "Ingeniera de Software con especialización en IA. Lideró equipos de desarrollo en importantes startups tecnológicas.",
+      bio: "Estudiante de Administración de Empresas en el CESA y con experiencia en el sector de las llantas en Merquellantas. Jerónimo es el programador del equipo, con 6 años de experiencia en desarrollo.",
       linkedin: "https://www.linkedin.com/in/jeronimo-morales/",
     }
   ];
