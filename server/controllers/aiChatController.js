@@ -328,7 +328,6 @@ Incluye acciones específicas, como ajustar presión, rotar llantas, realizar un
 Por ejemplo: "Para reducir el CPK proyectado de 176 COP, recomendamos ajustar la presión a 120 PSI y revisar la alineación del eje de dirección."
 Formato de resultados claros:
 
-Incluye siempre la placa del vehículo si está disponible.
 Presenta los costos en COP, usando separadores de miles para claridad. Responde solamente la pregunta de manera corta y concisa no te extiendas
 
 Si los datos incluyen imágenes o valores históricos, utilízalos para respaldar tus recomendaciones.

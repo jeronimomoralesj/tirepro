@@ -3,7 +3,7 @@ import axios from 'axios';
 import Register from './Register';
 import './Ajustes.css';
 
-const MAX_USERS = 10; // Define the maximum number of users allowed
+const MAX_USERS = 10;
 
 const Ajustes = () => {
   const [userData, setUserData] = useState({ 
@@ -30,9 +30,8 @@ const Ajustes = () => {
 
         const userId = decodedToken.user.id;
 
-        // Fetch logged-in user's data
         const userResponse = await axios.get(
-          `https://tirepro.onrender.com//api/auth/users/${userId}`,
+          `https://tirepro.onrender.com/api/auth/users/${userId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -41,10 +40,9 @@ const Ajustes = () => {
         const { name, email, role, company, placa } = userResponse.data;
         setUserData({ name, email, role, company, placa });
 
-        // Fetch all users in the same company for admins
         if (role === 'admin') {
           const allUsersResponse = await axios.get(
-            'https://tirepro.onrender.com//api/auth/users',
+            'https://tirepro.onrender.com/api/auth/users',
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -70,7 +68,7 @@ const Ajustes = () => {
   const handlePlacaChange = async (userId, newPlacas) => {
     try {
       const response = await axios.put(
-        'https://tirepro.onrender.com//api/auth/update-placa',
+        'https://tirepro.onrender.com/api/auth/update-placa',
         {
           userId,
           placa: newPlacas,
@@ -80,14 +78,12 @@ const Ajustes = () => {
         }
       );
 
-      // Update the UI with the new placas
       setCompanyUsers((prevUsers) =>
         prevUsers.map((user) =>
           user._id === userId ? { ...user, placa: response.data.placa } : user
         )
       );
 
-      // Update userData if the current user's placas were updated
       if (userId === decodedToken.user.id) {
         setUserData(prev => ({
           ...prev,
@@ -119,9 +115,8 @@ const Ajustes = () => {
 
   const handleUserCreated = async () => {
     try {
-      // Refresh company users list after new user creation
       const allUsersResponse = await axios.get(
-        'https://tirepro.onrender.com//api/auth/users',
+        'https://tirepro.onrender.com/api/auth/users',
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -245,7 +240,7 @@ const Ajustes = () => {
             <p className="no-users-message">No hay usuarios asociados a esta empresa.</p>
           )}
 
-          {/* Registration Section (Admin Only) - Now with conditional rendering */}
+          {/* Registration Section (Admin Only) */}
           {companyUsers.length < MAX_USERS ? (
             <div className="register-section">
               <h3 className="section-title">Registrar Nuevo Usuario</h3>
