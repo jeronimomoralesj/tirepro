@@ -218,6 +218,7 @@ valoracion: transformToHistoricalArrayWithDay('aprobado'), // Default value
 
 
 // Update historical fields
+// Update historical fields
 const updateTireField = async (req, res) => {
   try {
     const { tireUpdates } = req.body;
@@ -231,7 +232,15 @@ const updateTireField = async (req, res) => {
       const tire = await TireData.findById(tireId);
       if (!tire) continue;
 
-      if (field === 'images') {
+      // Special case for 'inspeccionador'
+      if (field === 'inspeccionador') {
+        // Directly push the name to the array (must be a string or array of strings)
+        if (Array.isArray(newValue)) {
+          tire.inspeccionador.push(...newValue); // Append all names in the array
+        } else {
+          tire.inspeccionador.push(newValue); // Append a single name
+        }
+      } else if (field === 'images') {
         // Append a new historical entry for images
         tire.images.push({
           day: currentDay,
@@ -258,6 +267,7 @@ const updateTireField = async (req, res) => {
     res.status(500).json({ msg: 'Server error', error: error.message });
   }
 };
+
 
 
 

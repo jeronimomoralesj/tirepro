@@ -185,12 +185,7 @@ const AgregarInspeccion = () => {
             { tireId: tire._id, field: 'kms', newValue: newKms },
             { tireId: tire._id, field: 'cpk', newValue: cpk },
             { tireId: tire._id, field: 'cpk_proy', newValue: cpkProy },
-            { tireId: tire._id, field: 'inspeccionador', newValue: userName }, // Add inspector's name
-            { 
-              tireId: tire._id, 
-              field: 'valoracion', 
-              newValue: 'aprobado' // Set valoracion to 'aprobado'
-            },
+            { tireId: tire._id, field: 'valoracion', newValue: 'aprobado' }, // Set valoracion to 'aprobado'
           ];
   
           if (imageUrl) {
@@ -204,6 +199,21 @@ const AgregarInspeccion = () => {
               newValue: presionUpdates[tire._id] || 0,
             });
           }
+  
+          // Handle 'inspeccionador' separately as it is not a historical field
+          await axios.put(
+            'https://tirepro.onrender.com/api/tires/update-field',
+            {
+              tireUpdates: [
+                {
+                  tireId: tire._id,
+                  field: 'inspeccionador',
+                  newValue: [userName], // Pass an array with the user's name
+                },
+              ],
+            },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
   
           return updatesArray;
         })
@@ -227,19 +237,7 @@ const AgregarInspeccion = () => {
         );
       }
   
-      try {
-        // Increment the user's pointcount
-        await axios.put(
-          'https://tirepro.onrender.com/api/auth/update-pointcount',
-          { userId, incrementBy: 1 }, // Pass the userId and incrementBy value
-          { headers: { Authorization: `Bearer ${token}` } }
-        );        
-        alert("Datos actualizados correctamente y punto añadido al usuario.");
-      } catch (error) {
-        console.error("Error updating user's pointcount:", error);
-        alert("Datos actualizados, pero hubo un problema al actualizar el puntaje del usuario.");
-      }
-  
+      alert("Datos actualizados correctamente.");
       setKilometrajeActual('');
       setProfundidadUpdates({});
       setPresionUpdates({});
@@ -253,6 +251,7 @@ const AgregarInspeccion = () => {
       setLoading(false);
     }
   };
+  
   
   
 
