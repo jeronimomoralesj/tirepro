@@ -136,9 +136,7 @@ const AgregarInspeccion = () => {
     }
   
     const token = localStorage.getItem('token');
-    const userPayload = token ? JSON.parse(atob(token.split('.')[1])) : null;
-    const userId = userPayload?.user?.id || null;
-    const userName = userPayload?.user?.name || 'admin'; // Fallback to 'admin' if name is not present
+    const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
   
     if (!userId) {
       alert("Usuario no identificado.");
@@ -185,7 +183,6 @@ const AgregarInspeccion = () => {
             { tireId: tire._id, field: 'kms', newValue: newKms },
             { tireId: tire._id, field: 'cpk', newValue: cpk },
             { tireId: tire._id, field: 'cpk_proy', newValue: cpkProy },
-            { tireId: tire._id, field: 'valoracion', newValue: 'aprobado' }, // Set valoracion to 'aprobado'
           ];
   
           if (imageUrl) {
@@ -200,35 +197,18 @@ const AgregarInspeccion = () => {
             });
           }
   
-          // Handle 'inspeccionador' separately as it is not a historical field
-          await axios.put(
-            'https://tirepro.onrender.com/api/tires/update-field',
-            {
-              tireUpdates: [
-                {
-                  tireId: tire._id,
-                  field: 'inspeccionador',
-                  newValue: [userName], // Pass an array with the user's name
-                },
-              ],
-            },
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-  
           return updatesArray;
         })
       );
   
       const tireIds = filteredTires.map((tire) => tire._id);
   
-      // Update inspection date and kilometraje_actual
       await axios.put(
         'https://tirepro.onrender.com/api/tires/update-inspection-date',
         { tireIds, kilometrajeActual: currentKilometrajeActual },
         { headers: { Authorization: `Bearer ${token}` } }
       );
   
-      // Update other fields
       if (updates.flat().length > 0) {
         await axios.put(
           'https://tirepro.onrender.com/api/tires/update-field',
@@ -237,7 +217,19 @@ const AgregarInspeccion = () => {
         );
       }
   
-      alert("Datos actualizados correctamente.");
+      try {
+        // Increment the user's pointcount
+        await axios.put(
+          'https://tirepro.onrender.com/api/auth/update-pointcount',
+          { userId, incrementBy: 1 }, // Pass the userId and incrementBy value
+          { headers: { Authorization: `Bearer ${token}` } }
+        );        
+        alert("Datos actualizados correctamente y punto añadido al usuario.");
+      } catch (error) {
+        console.error("Error updating user's pointcount:", error);
+        alert("Datos actualizados, pero hubo un problema al actualizar el puntaje del usuario.");
+      }
+      
       setKilometrajeActual('');
       setProfundidadUpdates({});
       setPresionUpdates({});
@@ -251,8 +243,6 @@ const AgregarInspeccion = () => {
       setLoading(false);
     }
   };
-  
-  
   
 
   return (
