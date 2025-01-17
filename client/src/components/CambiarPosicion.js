@@ -37,7 +37,7 @@ const CambiarPosicion = () => {
   
     try {
       const response = await axios.get(
-        `https://tirepro.onrender.com/api/tires/user/${companyId}`,
+        `http://localhost:5001/api/tires/user/${companyId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
   
@@ -130,7 +130,6 @@ const CambiarPosicion = () => {
 
   // Save updates to the backend
   const handleSaveUpdates = async () => {
-    // Check for duplicate placa-pos combinations
     const placaPosSet = new Set();
     let hasDuplicates = false;
   
@@ -138,47 +137,76 @@ const CambiarPosicion = () => {
       const { newPlaca, newPos } = positionUpdates[tireId];
       const key = `${newPlaca}-${newPos}`;
   
-      if (placaPosSet.has(key)) {
-        alert(`Error: Ya existe una llanta en la placa "${newPlaca}" y posición "${newPos}".`);
-        hasDuplicates = true;
-        break;
-      }
-  
-      if (newPlaca && newPos) {
-        placaPosSet.add(key);
+      if (newPlaca !== 'inventario' && newPlaca !== 'fin') {
+        if (placaPosSet.has(key)) {
+          alert(`Error: Ya existe una llanta en la placa "${newPlaca}" y posición "${newPos}".`);
+          hasDuplicates = true;
+          break;
+        }
+        if (newPlaca && newPos) {
+          placaPosSet.add(key);
+        }
       }
     }
   
-    if (hasDuplicates) {
-      return; // Exit the function if duplicates are found
-    }
+    if (hasDuplicates) return;
   
-    const historicalUpdates = [];
     const nonHistoricalUpdates = [];
-    const changes = []; // Track changes for PDF generation
+    const changes = [];
   
     tires.forEach((tire) => {
-      const { newPlaca, newPos, frente, tipoVhc, kilometrajeActual } = positionUpdates[tire._id];
+      const { newPlaca, newPos } = positionUpdates[tire._id];
   
-      if (newPlaca !== tire.placa || newPos !== tire.pos?.at(-1)?.value) {
-        historicalUpdates.push(
-          { tireId: tire._id, field: 'pos', newValue: newPos },
-          { tireId: tire._id, field: 'kilometraje_actual', newValue: kilometrajeActual }
-        );
-  
+      if (newPlaca === 'inventario') {
+        // Send both placa and pos updates through nonHistoricalUpdates
         nonHistoricalUpdates.push(
-          { tireId: tire._id, field: 'placa', newValue: newPlaca },
-          { tireId: tire._id, field: 'frente', newValue: frente },
-          { tireId: tire._id, field: 'tipovhc', newValue: tipoVhc }
+          { 
+            tireId: tire._id, 
+            field: 'placa', 
+            newValue: 'inventario',
+            currentFrente: tire.frente,
+            currentTipovhc: tire.tipovhc
+          },
+          {
+            tireId: tire._id,
+            field: 'pos',
+            newValue: 1,
+            currentFrente: tire.frente,
+            currentTipovhc: tire.tipovhc
+          }
         );
   
-        // Track change for PDF
+        changes.push({
+          tire: tire.llanta,
+          previousPlaca: tire.placa,
+          previousPos: tire.pos?.at(-1)?.value || 'N/A',
+          newPlaca: 'inventario',
+          newPos: 1
+        });
+      } else if (newPlaca !== tire.placa || newPos !== tire.pos?.at(-1)?.value) {
+        nonHistoricalUpdates.push(
+          {
+            tireId: tire._id,
+            field: 'placa',
+            newValue: newPlaca,
+            currentFrente: tire.frente,
+            currentTipovhc: tire.tipovhc
+          },
+          {
+            tireId: tire._id,
+            field: 'pos',
+            newValue: newPos,
+            currentFrente: tire.frente,
+            currentTipovhc: tire.tipovhc
+          }
+        );
+  
         changes.push({
           tire: tire.llanta,
           previousPlaca: tire.placa,
           previousPos: tire.pos?.at(-1)?.value || 'N/A',
           newPlaca,
-          newPos,
+          newPos
         });
       }
     });
@@ -186,24 +214,16 @@ const CambiarPosicion = () => {
     try {
       setIsLoading(true);
   
-      if (historicalUpdates.length > 0) {
-        await axios.put(
-          'https://tirepro.onrender.com/api/tires/update-field',
-          { tireUpdates: historicalUpdates },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-      }
-  
       if (nonHistoricalUpdates.length > 0) {
         await axios.put(
-          'https://tirepro.onrender.com/api/tires/update-nonhistorics',
+          'http://localhost:5001/api/tires/update-nonhistorics',
           { updates: nonHistoricalUpdates },
           { headers: { Authorization: `Bearer ${token}` } }
         );
       }
   
-      setPdfContent(changes); // Store changes for PDF generation
-      setIsPopupVisible(true); // Show popup for downloading the PDF
+      setPdfContent(changes);
+      setIsPopupVisible(true);
   
       alert('Cambios guardados exitosamente.');
       setTires([]);
@@ -216,6 +236,7 @@ const CambiarPosicion = () => {
       setIsLoading(false);
     }
   };
+  
   
 
   // Generate PDF with changes
