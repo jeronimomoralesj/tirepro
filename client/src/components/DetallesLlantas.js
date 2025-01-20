@@ -27,6 +27,7 @@ const DetallesLlantas = ({ tires }) => {
       Dimensión: tire.dimension || 'N/A',
       Banda: tire.banda || 'N/A',
       Costo: tire.costo || 'N/A',
+      Eje: tire.eje || 'N/A',
       Vida: tire.vida?.at(-1)?.value || 'N/A',
       Posición: tire.pos?.at(-1)?.value || 'N/A',
       Kilómetros: tire.kms?.at(-1)?.value || 0,
@@ -81,6 +82,7 @@ const DetallesLlantas = ({ tires }) => {
             <th>Diseño</th>
             <th>Dimensión</th>
             <th>Banda</th>
+            <th>Tipo vehiculo</th>
             <th>Costo</th>
             <th>Vida</th>
             <th>Posición</th>
@@ -119,6 +121,7 @@ const DetallesLlantas = ({ tires }) => {
                   <td>{tire.diseno || 'N/A'}</td>
                   <td>{tire.dimension || 'N/A'}</td>
                   <td>{tire.banda || 'N/A'}</td>
+                  <td>{tire.tipovhc || 'N/A'}</td>
                   <td>{tire.costo || 'N/A'}</td>
                   <td>{latestVida}</td>
                   <td>{latestPos}</td>

@@ -37,7 +37,7 @@ const CambiarPosicion = () => {
   
     try {
       const response = await axios.get(
-        `http://localhost:5001/api/tires/user/${companyId}`,
+        `https://tirepro.onrender.com/api/tires/user/${companyId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
   
@@ -216,7 +216,7 @@ const CambiarPosicion = () => {
   
       if (nonHistoricalUpdates.length > 0) {
         await axios.put(
-          'http://localhost:5001/api/tires/update-nonhistorics',
+          'https://tirepro.onrender.com/api/tires/update-nonhistorics',
           { updates: nonHistoricalUpdates },
           { headers: { Authorization: `Bearer ${token}` } }
         );
