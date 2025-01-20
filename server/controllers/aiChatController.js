@@ -402,7 +402,7 @@ function generatePrompt(placa, tireData) {
     Proporciona recomendaciones basadas en:
     - CPK > 600 COP indica costos operativos altos.
     - Profundidad < 4mm requiere atención inmediata.
-    - Costo > 3,000,000 COP sugiere revisar alternativas.
+    - Costo > 4,000,000 COP sugiere revisar alternativas.
 
     Genera un JSON con este formato:
     {
@@ -461,30 +461,47 @@ const analyzeDataByPlaca = async (req, res) => {
       }));
 
       const analysisPrompt = `
-        Analiza los datos de las siguientes placas y sus llantas:
-        ${JSON.stringify(batchData, null, 2)}
+Analiza los datos de las siguientes placas y sus llantas:
+${JSON.stringify(batchData, null, 2)}
 
-        Basándote en las siguientes reglas:
-        - CPK > 600 COP indica costos operativos altos.
-        - Profundidad < 4mm requiere atención inmediata.
-        - Costo > 3,000,000 COP sugiere revisar alternativas.
+Basándote en las siguientes reglas y mejores prácticas para el análisis y mantenimiento de llantas de flota:
 
-        Si no encuentras problemas críticos, proporciona recomendaciones generales para optimizar el mantenimiento, los costos y el rendimiento.
+1. **Indicadores Críticos:**
+   - CPK > 600 COP indica costos operativos altos. 
+   - Profundidad < 4 mm requiere atención inmediata por riesgo de pérdida de tracción o desempeño. 
+   - Costo > 4,000,000 COP sugiere revisar alternativas de adquisición o recauchado.
 
-        Genera un JSON con este formato:
-        {
-          "results": [
-            {
-              "placa": "placa1",
-              "recommendations": [
-                "recomendación 1",
-                "recomendación 2"
-              ]
-            },
-            ...
-          ]
-        }
-      `;
+2. **Revisión de Estado y Rendimiento:**
+   - Analiza la profundidad del dibujo en las tres zonas (interna, central, externa) para detectar desgaste irregular. Esto puede indicar problemas en la alineación o presión incorrecta.
+   - Evalúa la presión registrada en las llantas para identificar posibles desviaciones de los valores recomendados por el fabricante, ya que la presión afecta el desgaste, la eficiencia de combustible y la seguridad.
+   - Considera la proyección de vida útil basada en el desgaste actual y el patrón de uso.
+
+3. **Factores Operativos y Recomendaciones:**
+   - Cruza la información de diseño y tipo de llanta con el tipo de operación (e.g., carga seca, líquidos, cabezote, remolque) para evaluar si la elección es óptima para las condiciones actuales.
+   - Si la vida útil es baja y los costos son elevados, evalúa si un programa de recauchado sería viable.
+   - Revisa el historial de inspecciones para detectar tendencias o riesgos futuros, como desalineación recurrente o condiciones severas de operación.
+
+4. **Recomendaciones Generales:**
+   - Implementa rotaciones periódicas para uniformar el desgaste y maximizar la vida útil.
+   - Verifica el cumplimiento de las especificaciones de carga y velocidad para evitar fallas prematuras.
+   - Mantén un registro digital detallado de inspecciones, costos y CPK proyectado para optimizar decisiones futuras.
+
+   siempre responde con la llanta de la cual estas hablando
+Genera un JSON con este formato:
+{
+  "results": [
+    {
+      "placa": "placa1",
+      "recommendations": [
+        "Revisión inmediata del desgaste irregular en llanta 2.",
+        "Optimización de presión según especificaciones del fabricante para la operación de carga seca."
+      ]
+    },
+    ...
+  ]
+}
+`;
+
 
       try {
         const aiResponse = await askGeminiAIWithRetries(analysisPrompt);

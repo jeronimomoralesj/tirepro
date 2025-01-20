@@ -243,3 +243,189 @@
     background-color: #2b5b93;
   }
   
+
+
+
+
+
+
+/* edi */
+
+.truck-structure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0;
+  position: relative;
+}
+
+.tipovhc-section {
+  margin: 20px 0;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 90%;
+}
+
+.tipovhc-title {
+  font-size: 20px;
+  color: #34495e;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #dcdcdc;
+  text-align: center;
+}
+
+.tipovhc-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+  position: relative;
+}
+
+.tire-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+
+.axis-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #444;
+  z-index: -1;
+}
+
+.middle-frame {
+  position: relative;
+  width: 90%;
+  height: 60px;
+  background-color: #e9ecef;
+  border-radius: 10px;
+  margin: 10px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.middle-frame::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 100%;
+  width: 2px;
+  background-color: #444;
+}
+
+.side {
+  display: flex;
+  flex-direction: row; /* Ensure tires are arranged horizontally */
+  gap: 10px; /* Add space between tires */
+  justify-content: center;
+  align-items: center;
+  width: 50%; /* Each side occupies half the space */
+}
+
+.tire-icon {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background-color: #4a90e2;
+  color: white;
+  font-size: 18px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.tire-icon:hover {
+  transform: scale(1.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tire-icon.placeholder {
+  background-color: #d3d3d3;
+  color: #777;
+  cursor: not-allowed;
+}
+
+.tire-hover-card {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.tipovhc-separator {
+  margin: 20px 0;
+  border: 0;
+  border-top: 2px dashed #ccc;
+  width: 100%;
+}
+
+/* Dark Mode Support */
+.dark-mode .tipovhc-section {
+  background-color: #2a2a2a;
+}
+
+.dark-mode .tipovhc-title {
+  color: #e0e0e0;
+}
+
+.dark-mode .tipovhc-separator {
+  border-top-color: #444;
+}
+
+.dark-mode .tire-icon {
+  background-color: #444;
+}
+
+.dark-mode .tire-icon.placeholder {
+  background-color: #555;
+  color: #aaa;
+}
+
+.swapped-tires-container {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #f4f6f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  animation: slide-down 0.5s ease-out;
+}
+
+@keyframes slide-down {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.tire-icon.swapped {
+  margin: 5px;
+  background-color: #ffce54;
+  color: #333;
+  border: 2px solid #ffa726;
+}
