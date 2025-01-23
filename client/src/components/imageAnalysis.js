@@ -33,7 +33,7 @@ const ImageAnalysis = () => {
           method: "POST",
           headers: {
             // Replace 'YOUR_HUGGING_FACE_API_TOKEN' with an actual token
-            "Authorization": `Bearer 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`,
+            "Authorization": `Bearer `,
             // Don't set Content-Type, let the browser set it with the FormData
           },
           body: formData
