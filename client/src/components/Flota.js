@@ -153,36 +153,88 @@ const Flota = () => {
   };
 
   const generatePDF = async () => {
-    const doc = new jsPDF();
-    let yOffset = 10;
-
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+  
+    // Set consistent fonts and colors
+    const COLORS = {
+      primary: '#4a90e2',
+      background: '#f4f4f4',
+      text: '#333333'
+    };
+  
+    // Page setup
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 10;
+  
+    // Add header with company logo and report title
+    doc.setFillColor(COLORS.background);
+    doc.rect(margin, margin, pageWidth - 2 * margin, 25, 'F');
+    
     // Add logo
-    const imgWidth = 50;
-    const imgHeight = 20;
-    doc.addImage(logo, 'PNG', 10, yOffset, imgWidth, imgHeight);
-    yOffset += 30;
-
-    // Add title
+    doc.addImage(logo, 'PNG', margin + 5, margin + 2, 40, 20);
+    
+    doc.setTextColor(COLORS.text);
     doc.setFontSize(16);
-    doc.text('TirePro Report', 14, yOffset);
-    yOffset += 10;
-
-    // Add charts and sections
-    const sections = document.querySelectorAll('.cards-container > div');
-    for (let i = 0; i < sections.length; i++) {
-      const canvas = await html2canvas(sections[i]);
+    doc.text('TirePro Reporte', pageWidth / 2, margin + 15, { align: 'center' });
+  
+    // Date of report
+    doc.setFontSize(10);
+    doc.text(new Date().toLocaleDateString(), pageWidth - margin - 10, margin + 10, { align: 'right' });
+  
+    let yOffset = 40;
+  
+    // Summary statistics section
+    doc.setFillColor('#ffffff');
+    doc.rect(margin, yOffset, pageWidth - 2 * margin, 30, 'F');
+    
+    doc.setFontSize(12);
+    doc.setTextColor(COLORS.primary);
+    doc.text('Resumen: ', margin + 10, yOffset + 10);
+    
+    doc.setTextColor(COLORS.text);
+    doc.setFontSize(10);
+    doc.text(`Inversión total: $${totalCost.toLocaleString()}`, margin + 10, yOffset + 20);
+    doc.text(`CPK promedio: $${averageCPK.toFixed(2)}`, margin + 10, yOffset + 26);
+    
+    yOffset += 40;
+  
+    // Capture and add charts with better layout
+    const chartSections = document.querySelectorAll('.cards-container > div');
+    for (let i = 0; i < chartSections.length; i++) {
+      const canvas = await html2canvas(chartSections[i], { 
+        scale: 2,  // Higher resolution
+        useCORS: true 
+      });
       const imgData = canvas.toDataURL('image/png');
-      const imgWidth = 180; // Fit within PDF width
+      
+      const imgWidth = pageWidth - 2 * margin;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      if (yOffset + imgHeight > 280) {
+      
+      // Add page break if needed
+      if (yOffset + imgHeight > pageHeight - margin) {
         doc.addPage();
-        yOffset = 10;
+        yOffset = margin;
       }
-      doc.addImage(imgData, 'PNG', 10, yOffset, imgWidth, imgHeight);
-      yOffset += imgHeight + 10;
+      
+      // Add chart with subtle border
+      doc.setDrawColor(230, 230, 230);
+      doc.rect(margin, yOffset, imgWidth, imgHeight + 5);
+      doc.addImage(imgData, 'PNG', margin, yOffset, imgWidth, imgHeight);
+      
+      yOffset += imgHeight + 15;
     }
-
-    doc.save('TirePro_flota.pdf');
+  
+    // Footer
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Hecho con TirePro', pageWidth / 2, pageHeight - 10, { align: 'center' });
+  
+    doc.save('TirePro_Monthly_Report.pdf');
   };
 
   return (

@@ -190,8 +190,12 @@ const NuevaEmpleado = () => {
       const tireIds = filteredTires.map((tire) => tire._id);
 
       await axios.put(
-        'https://tirepro.onrender.com/api/tires/update-inspection-date',
-        { tireIds, kilometrajeActual: Number(kilometrajeActual) },
+        'http://localhost:5001/api/tires/update-inspection-date',
+        { 
+          tireIds, 
+          kilometrajeActual: currentKilometrajeActual,
+          inspectorName: userId, 
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 

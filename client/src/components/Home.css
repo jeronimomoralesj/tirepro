@@ -291,6 +291,7 @@
   cursor: pointer;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   transition: background-color 0.3s ease;
+  z-index: 9999;
 }
 
 .reset-filters-btn:hover {

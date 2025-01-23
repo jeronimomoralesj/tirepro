@@ -49,6 +49,17 @@ const TireDataSchema = new mongoose.Schema(
     ultima_inspeccion: { type: Date, required: true, default: Date.now },
     primera_vida: { type: [LifeSchema], default: [] }, // Array for primera_vida details
     additional_life: { type: [LifeSchema], default: [] }, // Array for additional life details
+    inspector: {
+      type: [HistoricalValueSchema],
+      default: [
+        {
+          day: new Date().getDate(),
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear(),
+          value: 'primera',
+        },
+      ],
+    },
     images: {
       type: [HistoricalValueSchema],
       default: [

@@ -4,6 +4,7 @@ import CargaMasiva from './CargaMasiva';
 import CargaIndividual from './CargaIndividual';
 import AgregarInspeccion from './AgregarInspeccion';
 import AgregarEvento from './AgregarEvento';
+import ImageAnalysis from './imageAnalysis';
 
 const Nueva = () => {
   const [activeSection, setActiveSection] = useState('');
@@ -37,6 +38,8 @@ const Nueva = () => {
         >
           Evento
         </button>
+
+        <ImageAnalysis />
       </div>
 
       {activeSection === 'masiva' && <CargaMasiva />}

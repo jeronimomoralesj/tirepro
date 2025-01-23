@@ -276,7 +276,7 @@ const updateTireField = async (req, res) => {
 // Update inspection date and kilometraje_actual
 const updateInspectionDate = async (req, res) => {
   try {
-    const { tireIds, kilometrajeActual } = req.body;
+    const { tireIds, kilometrajeActual, inspectorName } = req.body;
     const currentDate = new Date();
     const currentDay = currentDate.getDate();
     const currentMonth = currentDate.getMonth() + 1;
@@ -286,11 +286,15 @@ const updateInspectionDate = async (req, res) => {
       return res.status(400).json({ msg: "Invalid kilometraje_actual provided." });
     }
 
-    // Find all tires but don't apply schema validation
+    // Find all tires
     const tires = await TireData.find({ _id: { $in: tireIds } });
 
     if (!tires || tires.length === 0) {
       return res.status(404).json({ msg: "No tires found for the provided IDs." });
+    }
+
+    if (!inspectorName) {
+      return res.status(400).json({ msg: "Inspector name is required." });
     }
 
     // Update each tire
@@ -301,53 +305,37 @@ const updateInspectionDate = async (req, res) => {
       const lastKilometrajeValue = lastKilometrajeEntry?.value || 0;
       const kmsDifference = Math.max(0, kilometrajeActual - lastKilometrajeValue);
 
-      // Prepare the update data
-      const updateData = {
-        $set: { ultima_inspeccion: currentDate }
-      };
-
-      // Handle kilometraje_actual update
-      if (lastKilometrajeEntry?.day === currentDay && 
-          lastKilometrajeEntry?.month === currentMonth && 
-          lastKilometrajeEntry?.year === currentYear) {
-        updateData.$set['kilometraje_actual.$[last].value'] = kilometrajeActual;
-      } else {
-        updateData.$push = {
-          kilometraje_actual: {
-            day: currentDay,
-            month: currentMonth,
-            year: currentYear,
-            value: kilometrajeActual
-          }
-        };
-      }
-
-      // Handle kms update
-      if (lastKmsEntry?.day === currentDay && 
-          lastKmsEntry?.month === currentMonth && 
-          lastKmsEntry?.year === currentYear) {
-        updateData.$set['kms.$[lastKms].value'] = (lastKmsEntry.value || 0) + kmsDifference;
-      } else {
-        if (!updateData.$push) updateData.$push = {};
-        updateData.$push.kms = {
-          day: currentDay,
-          month: currentMonth,
-          year: currentYear,
-          value: kmsDifference
-        };
-      }
-
-      // Use findOneAndUpdate with arrayFilters and bypass document validation
-      await TireData.findOneAndUpdate(
-        { _id: tire._id },
-        updateData,
+      // Prepare update operations
+      await TireData.findByIdAndUpdate(
+        tire._id,
         {
-          arrayFilters: [
-            { 'last.day': currentDay, 'last.month': currentMonth, 'last.year': currentYear },
-            { 'lastKms.day': currentDay, 'lastKms.month': currentMonth, 'lastKms.year': currentYear }
-          ],
+          $set: { 
+            ultima_inspeccion: currentDate 
+          },
+          $push: {
+            kilometraje_actual: {
+              day: currentDay,
+              month: currentMonth,
+              year: currentYear,
+              value: kilometrajeActual
+            },
+            kms: {
+              day: currentDay,
+              month: currentMonth,
+              year: currentYear,
+              value: kmsDifference
+            },
+            inspector: {
+              day: currentDay,
+              month: currentMonth,
+              year: currentYear,
+              value: inspectorName
+            }
+          }
+        },
+        { 
           new: true,
-          runValidators: false // This prevents validation of required fields
+          runValidators: false 
         }
       );
     }

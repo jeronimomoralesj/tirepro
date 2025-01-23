@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import './Home.css';
@@ -13,6 +13,12 @@ import 'jspdf-autotable';
 import logo from "../img/logo_text.png";
 import html2canvas from 'html2canvas';
 
+// Cache for decoded tokens
+let tokenCache = {
+  token: null,
+  decodedToken: null
+};
+
 const Estado = () => {
   const [tires, setTires] = useState([]);
   const [selectedEje, setSelectedEje] = useState(null);
@@ -23,169 +29,240 @@ const Estado = () => {
   const [averageProjectedCPK, setAverageProjectedCPK] = useState(0);
   const [selectedTire, setSelectedTire] = useState(null);
   const [includeEndOfLife, setIncludeEndOfLife] = useState(false);
-
   const [metrics, setMetrics] = useState({
     expiredInspectionCount: 0,
     placaCount: 0,
     llantasCount: 0,
   });
 
-  // Fetch tire data on mount
+  // Memoized token decoder
+  const getDecodedToken = useCallback(() => {
+    const token = localStorage.getItem('token');
+    if (token === tokenCache.token) {
+      return tokenCache.decodedToken;
+    }
+    const decodedToken = jwtDecode(token);
+    tokenCache = { token, decodedToken };
+    return decodedToken;
+  }, []);
+
+  // Optimized data fetching with AbortController
   useEffect(() => {
+    const abortController = new AbortController();
+
     const fetchTireData = async () => {
       try {
         const token = localStorage.getItem('token');
-        if (token) {
-          const decodedToken = jwtDecode(token);
-          const userId = decodedToken?.user?.id;
+        if (!token) return;
 
-          if (!userId) {
-            console.error("User ID not found in token");
-            return;
-          }
+        const decodedToken = getDecodedToken();
+        const userId = decodedToken?.user?.id;
+        if (!userId) return;
 
-          const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
+        const response = await axios.get(
+          `https://tirepro.onrender.com/api/tires/user/${userId}`,
+          {
             headers: { Authorization: `Bearer ${token}` },
-          });
-          const tireData = response.data;
-          setTires(tireData);
-        }
+            signal: abortController.signal
+          }
+        );
+        setTires(response.data);
       } catch (error) {
-        console.error('Error fetching tire data:', error);
+        if (!axios.isCancel(error)) {
+          console.error('Error fetching tire data:', error);
+        }
       }
     };
 
     fetchTireData();
-  }, []);
+    return () => abortController.abort();
+  }, [getDecodedToken]);
 
-  // Filter tires based on selected filters, toggle `vida` "fin" inclusion, and exclude `placa` equal to "inventario"
+  // Memoized tire filtering
   const filteredTires = useMemo(() => {
     return tires.filter((tire) => {
-      // Exclude tires with `placa` equal to "inventario"
-      if (tire.placa === "inventario") {
-        return false;
-      }
-
+      if (tire.placa === "inventario") return false;
+      
       const minDepth = Math.min(
         ...tire.profundidad_int.map((p) => p.value),
         ...tire.profundidad_cen.map((p) => p.value),
         ...tire.profundidad_ext.map((p) => p.value)
       );
 
-      const matchesEje = selectedEje ? tire.eje === selectedEje : true;
-      const matchesCondition = selectedCondition
-        ? selectedCondition === 'buenEstado' && minDepth > 7 ||
-          selectedCondition === 'dias60' && minDepth <= 7 && minDepth > 6 ||
-          selectedCondition === 'dias30' && minDepth <= 6 && minDepth > 5 ||
-          selectedCondition === 'cambioInmediato' && minDepth <= 5
-        : true;
-      const matchesVida = selectedVida
-        ? tire.vida?.at(-1)?.value === selectedVida
-        : true;
+      if (!includeEndOfLife && tire.vida?.at(-1)?.value === "fin") return false;
+      if (selectedEje && tire.eje !== selectedEje) return false;
+      
+      if (selectedCondition) {
+        if (selectedCondition === 'buenEstado' && minDepth <= 7) return false;
+        if (selectedCondition === 'dias60' && (minDepth > 7 || minDepth <= 6)) return false;
+        if (selectedCondition === 'dias30' && (minDepth > 6 || minDepth <= 5)) return false;
+        if (selectedCondition === 'cambioInmediato' && minDepth > 5) return false;
+      }
 
-      // Apply or exclude tires with `vida` equal to "fin" based on toggle state
-      const isVidaNotFin = includeEndOfLife || tire.vida?.at(-1)?.value !== "fin";
+      if (selectedVida && tire.vida?.at(-1)?.value !== selectedVida) return false;
 
-      return matchesEje && matchesCondition && matchesVida && isVidaNotFin;
+      return true;
     });
   }, [tires, selectedEje, selectedCondition, selectedVida, includeEndOfLife]);
 
-  // Calculate summary metrics including CPK and CPK Proyectado
+  // Optimized metrics calculation
   useEffect(() => {
-    const calculateMetrics = () => {
-      let validCPKCount = 0;
-      let validProjectedCPKCount = 0;
-      let totalCPK = 0;
-      let totalProjectedCPK = 0;
+    const now = new Date();
+    const {
+      expiredCount,
+      uniquePlacas,
+      cpkStats,
+      totalCostValue
+    } = filteredTires.reduce((acc, tire) => {
+      // Check inspection date
+      if (new Date(tire.ultima_inspeccion) < now) {
+        acc.expiredCount++;
+      }
 
-      const totalCost = filteredTires.reduce((sum, tire) => sum + tire.costo, 0);
-      setTotalCost(totalCost);
+      // Track unique placas
+      acc.uniquePlacas.add(tire.placa);
 
-      filteredTires.forEach((tire) => {
-        const latestCPK = tire.cpk?.at(-1)?.value || 0;
-        const latestProjectedCPK = tire.cpk_proy?.at(-1)?.value || 0;
+      // Calculate CPK stats
+      const latestCPK = tire.cpk?.at(-1)?.value || 0;
+      const latestProjectedCPK = tire.cpk_proy?.at(-1)?.value || 0;
 
-        if (latestCPK > 0) {
-          totalCPK += latestCPK;
-          validCPKCount++;
-        }
+      if (latestCPK > 0) {
+        acc.cpkStats.totalCPK += latestCPK;
+        acc.cpkStats.validCPKCount++;
+      }
 
-        if (latestProjectedCPK > 0) {
-          totalProjectedCPK += latestProjectedCPK;
-          validProjectedCPKCount++;
-        }
-      });
+      if (latestProjectedCPK > 0) {
+        acc.cpkStats.totalProjectedCPK += latestProjectedCPK;
+        acc.cpkStats.validProjectedCPKCount++;
+      }
 
-      setAverageCPK(validCPKCount ? totalCPK / validCPKCount : 0);
-      setAverageProjectedCPK(validProjectedCPKCount ? totalProjectedCPK / validProjectedCPKCount : 0);
+      acc.totalCostValue += tire.costo;
 
-      const expiredInspectionCount = filteredTires.filter((tire) => {
-        const lastInspectionDate = new Date(tire.ultima_inspeccion);
-        return lastInspectionDate < new Date();
-      }).length;
+      return acc;
+    }, {
+      expiredCount: 0,
+      uniquePlacas: new Set(),
+      cpkStats: {
+        totalCPK: 0,
+        totalProjectedCPK: 0,
+        validCPKCount: 0,
+        validProjectedCPKCount: 0
+      },
+      totalCostValue: 0
+    });
 
-      const uniquePlacas = new Set(filteredTires.map((tire) => tire.placa)).size;
-      const llantasCount = filteredTires.length;
+    setMetrics({
+      expiredInspectionCount: expiredCount,
+      placaCount: uniquePlacas.size,
+      llantasCount: filteredTires.length,
+    });
 
-      setMetrics({
-        expiredInspectionCount,
-        placaCount: uniquePlacas,
-        llantasCount,
-      });
-    };
-
-    calculateMetrics();
+    setTotalCost(totalCostValue);
+    setAverageCPK(cpkStats.validCPKCount ? cpkStats.totalCPK / cpkStats.validCPKCount : 0);
+    setAverageProjectedCPK(cpkStats.validProjectedCPKCount ? cpkStats.totalProjectedCPK / cpkStats.validProjectedCPKCount : 0);
   }, [filteredTires]);
 
-  // Reset filters function
-  const resetFilters = () => {
+  // Memoized PDF generation
+  const generatePDF = async () => {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+  
+    // Set consistent fonts and colors
+    const COLORS = {
+      primary: '#4a90e2',
+      background: '#f4f4f4',
+      text: '#333333'
+    };
+  
+    // Page setup
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 10;
+  
+    // Add header with company logo and report title
+    doc.setFillColor(COLORS.background);
+    doc.rect(margin, margin, pageWidth - 2 * margin, 25, 'F');
+    
+    // Add logo
+    doc.addImage(logo, 'PNG', margin + 5, margin + 2, 40, 20);
+    
+    doc.setTextColor(COLORS.text);
+    doc.setFontSize(16);
+    doc.text('TirePro Reporte', pageWidth / 2, margin + 15, { align: 'center' });
+  
+    // Date of report
+    doc.setFontSize(10);
+    doc.text(new Date().toLocaleDateString(), pageWidth - margin - 10, margin + 10, { align: 'right' });
+  
+    let yOffset = 40;
+  
+    // Summary statistics section
+    doc.setFillColor('#ffffff');
+    doc.rect(margin, yOffset, pageWidth - 2 * margin, 30, 'F');
+    
+    doc.setFontSize(12);
+    doc.setTextColor(COLORS.primary);
+    doc.text('Resumen: ', margin + 10, yOffset + 10);
+    
+    doc.setTextColor(COLORS.text);
+    doc.setFontSize(10);
+    doc.text(`Inversión total: $${totalCost.toLocaleString()}`, margin + 10, yOffset + 20);
+    doc.text(`CPK promedio: $${averageCPK.toFixed(2)}`, margin + 10, yOffset + 26);
+    
+    yOffset += 40;
+  
+    // Capture and add charts with better layout
+    const chartSections = document.querySelectorAll('.cards-container > div');
+    for (let i = 0; i < chartSections.length; i++) {
+      const canvas = await html2canvas(chartSections[i], { 
+        scale: 2,  // Higher resolution
+        useCORS: true 
+      });
+      const imgData = canvas.toDataURL('image/png');
+      
+      const imgWidth = pageWidth - 2 * margin;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      // Add page break if needed
+      if (yOffset + imgHeight > pageHeight - margin) {
+        doc.addPage();
+        yOffset = margin;
+      }
+      
+      // Add chart with subtle border
+      doc.setDrawColor(230, 230, 230);
+      doc.rect(margin, yOffset, imgWidth, imgHeight + 5);
+      doc.addImage(imgData, 'PNG', margin, yOffset, imgWidth, imgHeight);
+      
+      yOffset += imgHeight + 15;
+    }
+  
+    // Footer
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Hecho con TirePro', pageWidth / 2, pageHeight - 10, { align: 'center' });
+  
+    doc.save('TirePro_Monthly_Report.pdf');
+  };
+
+  const resetFilters = useCallback(() => {
     setSelectedEje(null);
     setSelectedCondition(null);
     setSelectedVida(null);
-  };
+  }, []);
 
-  const generatePDF = async () => {
-    const doc = new jsPDF();
-    let yOffset = 10;
-
-    // Add logo
-    const imgWidth = 50;
-    const imgHeight = 20;
-    doc.addImage(logo, 'PNG', 10, yOffset, imgWidth, imgHeight);
-    yOffset += 30;
-
-    // Add title
-    doc.setFontSize(16);
-    doc.text('TirePro Report', 14, yOffset);
-    yOffset += 10;
-
-    // Add charts and sections
-    const sections = document.querySelectorAll('.cards-container > div');
-    for (let i = 0; i < sections.length; i++) {
-      const canvas = await html2canvas(sections[i]);
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = 180; // Fit within PDF width
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      if (yOffset + imgHeight > 280) {
-        doc.addPage();
-        yOffset = 10;
-      }
-      doc.addImage(imgData, 'PNG', 10, yOffset, imgWidth, imgHeight);
-      yOffset += imgHeight + 10;
-    }
-
-    doc.save('TirePro_estado.pdf');
-  };
-
+  // Keep the exact same JSX structure
   return (
     <div className="home">
       <header className="home-header">
-      <button className="generate-pdf-btn" onClick={generatePDF}>
+        <button className="generate-pdf-btn" onClick={generatePDF}>
           Generar PDF
         </button>
       </header>
 
-      {/* Summary Section */}
       <div className="sales-card">
         <h2 className="sales-title">Mi Estado</h2>
         <div className="sales-stats">
@@ -216,8 +293,7 @@ const Estado = () => {
           </div>
         </div>
 
-<br />
-        {/* Toggle Include End-of-Life Tires Button */}
+        <br />
         <button
           className="toggle-filter-btn"
           onClick={() => setIncludeEndOfLife((prev) => !prev)}
@@ -226,22 +302,18 @@ const Estado = () => {
         </button>
       </div>
 
-      {/* Reset Filters Button */}
       {(selectedEje || selectedCondition || selectedVida) && (
         <button className="reset-filters-btn" onClick={resetFilters}>
           Eliminar Filtros
         </button>
       )}
 
-      {/* Cards Container */}
       <div className="cards-container">
         <SemaforoTabla
           filteredTires={filteredTires}
           onTireSelect={(placa, pos) => {
             const selected = tires.find(
-              (tire) =>
-                tire.placa === placa &&
-                tire.pos?.at(-1)?.value === pos
+              (tire) => tire.placa === placa && tire.pos?.at(-1)?.value === pos
             );
             setSelectedTire(selected);
           }}
@@ -264,7 +336,6 @@ const Estado = () => {
           onSelectEje={setSelectedEje}
           selectedEje={selectedEje}
         />
-        
       </div>
     </div>
   );

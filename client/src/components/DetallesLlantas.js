@@ -29,6 +29,7 @@ const DetallesLlantas = ({ tires }) => {
       Costo: tire.costo || 'N/A',
       Eje: tire.eje || 'N/A',
       Vida: tire.vida?.at(-1)?.value || 'N/A',
+      TipoVhc: tire.tipovhc || 'N/A',
       Posición: tire.pos?.at(-1)?.value || 'N/A',
       Kilómetros: tire.kms?.at(-1)?.value || 0,
       CPK: tire.cpk?.at(-1)?.value?.toFixed(2) || 'N/A',

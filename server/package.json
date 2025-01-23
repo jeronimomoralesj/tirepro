@@ -26,6 +26,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@gradio/client": "^1.10.0",
     "nodemon": "^3.1.7"
   }
 }

@@ -1,277 +1,281 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './CambiarPosicion.css';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+
+// Predefined vehicle structures
+const VEHICLE_STRUCTURES = {
+  'CABEZOTE': {
+    axes: 2,
+    axleConfig: [
+      { axle: 1, left: 1, right: 1 }, // First axle: 2 tires (positions 1-2)
+      { axle: 2, left: 2, right: 2 }  // Second axle: 4 tires (positions 3-6)
+    ],
+    totalTires: 6,
+    startPosition: 1 // Cabezote starts at position 1
+  },
+  'TRAILER': {
+    axes: 3,
+    axleConfig: [
+      { axle: 1, left: 2, right: 2 }, // First axle: 4 tires (positions 7-10)
+      { axle: 2, left: 2, right: 2 }, // Second axle: 4 tires (positions 11-14)
+      { axle: 3, left: 2, right: 2 }  // Third axle: 4 tires (positions 15-18)
+    ],
+    totalTires: 12,
+    startPosition: 7 // Trailer starts at position 7
+  },
+  'DEFAULT': {
+    axes: 2,
+    axleConfig: [
+      { axle: 1, left: 1, right: 1 },
+      { axle: 2, left: 2, right: 2 }
+    ],
+    totalTires: 6,
+    startPosition: 1
+  }
+};
 
 const CambiarPosicion = () => {
-  const [placas, setPlacas] = useState(['']); // Array of placas
-  const [tires, setTires] = useState([]); // Tires fetched for placas
-  const [positionUpdates, setPositionUpdates] = useState({});
-  const [previousValues, setPreviousValues] = useState({}); // Store previous values for swapping
-  const [errorMessage, setErrorMessage] = useState('');
+  const [placas, setPlacas] = useState(['']);
+  const [tires, setTires] = useState([]);
+  const [swappedTires, setSwappedTires] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [uniquePlacas, setUniquePlacas] = useState([]);
-  const [pdfContent, setPdfContent] = useState(null); // PDF content for download
-  const [isPopupVisible, setIsPopupVisible] = useState(false); // Popup visibility
-
+  const [hoveredTire, setHoveredTire] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [changes, setChanges] = useState([]);
+  const [vehicleConfigs, setVehicleConfigs] = useState({});
+  
   const token = localStorage.getItem('token');
   const decodedToken = token ? JSON.parse(atob(token.split('.')[1])) : null;
   const companyId = decodedToken?.user?.companyId;
 
-  
-  // Add a new empty placa input
   const handleAddPlaca = () => setPlacas([...placas, '']);
 
-  // Update the placa array
   const handlePlacaChange = (index, value) => {
     const updatedPlacas = [...placas];
     updatedPlacas[index] = value;
     setPlacas(updatedPlacas);
   };
 
-  // Fetch tires for entered placas
   const handleSearch = async () => {
     setIsLoading(true);
-    setErrorMessage('');
-  
     try {
       const response = await axios.get(
         `https://tirepro.onrender.com/api/tires/user/${companyId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-  
-      const fetchedTires = response.data;
-  
-      // Extract unique `placas`, excluding "fin"
-      const placasList = [
-        ...new Set(
-          fetchedTires
-            .map((tire) => tire.placa.toLowerCase())
-            .filter((placa) => placa !== 'fin') // Exclude "fin"
-        ),
-      ];
-  
-      setUniquePlacas([...placasList, 'inventario']); // Add "inventario"
-  
-      // Filter tires based on the entered `placas`
-      const filteredTires = fetchedTires
-        .filter((tire) =>
-          placas.some((enteredPlaca) => tire.placa.toLowerCase() === enteredPlaca.toLowerCase())
-        )
-        .sort((a, b) => {
-          const posA = a.pos?.at(-1)?.value || 0;
-          const posB = b.pos?.at(-1)?.value || 0;
-          return posA - posB; // Ascending order
-        });
-  
-      if (filteredTires.length > 0) {
-        setTires(filteredTires);
-  
-        setPreviousValues(
-          filteredTires.reduce((acc, tire) => {
-            const key = `${tire.placa}-${tire.pos?.at(-1)?.value}`;
-            acc[key] = {
-              frente: tire.frente,
-              tipoVhc: tire.tipovhc,
-              kilometrajeActual: tire.kilometraje_actual?.at(-1)?.value || 0,
-            };
-            return acc;
-          }, {})
-        );
-  
-        setPositionUpdates(
-          filteredTires.reduce((acc, tire) => {
-            acc[tire._id] = {
-              newPlaca: tire.placa,
-              newPos: tire.pos?.at(-1)?.value || '',
-            };
-            return acc;
-          }, {})
-        );
-      } else {
-        setErrorMessage('No se encontraron llantas asociadas con las placas ingresadas.');
-      }
+
+      const fetchedTires = response.data.filter((tire) =>
+        placas.some((placa) => tire.placa.toLowerCase() === placa.toLowerCase())
+      );
+
+      const newConfigs = {};
+      fetchedTires.forEach(tire => {
+        if (!newConfigs[tire.placa]) {
+          newConfigs[tire.placa] = {};
+        }
+        if (!newConfigs[tire.placa][tire.tipovhc]) {
+          newConfigs[tire.placa][tire.tipovhc] = VEHICLE_STRUCTURES[tire.tipovhc.toUpperCase()] || VEHICLE_STRUCTURES.DEFAULT;
+        }
+      });
+
+      setVehicleConfigs(newConfigs);
+      setTires(fetchedTires);
+      setSwappedTires([]);
+      setChanges([]);
     } catch (error) {
       console.error('Error fetching tires:', error);
-      setErrorMessage('Error al buscar llantas.');
     } finally {
       setIsLoading(false);
     }
   };
-  
 
+  const calculateTirePosition = (tipovhc, axleNumber, side, index) => {
+    const structure = VEHICLE_STRUCTURES[tipovhc.toUpperCase()];
+    if (!structure) return null;
 
-  // Swap values between tires correctly
-  const handleValueTransfer = (tireId, targetPlaca, targetPos) => {
-    const newKey = `${targetPlaca}-${targetPos}`;
-    const oldKey = `${positionUpdates[tireId]?.newPlaca}-${positionUpdates[tireId]?.newPos}`;
+    const axleStartPosition = structure.startPosition + 
+      structure.axleConfig
+        .slice(0, axleNumber - 1)
+        .reduce((acc, curr) => acc + (curr.left + curr.right), 0);
 
-    const inheritedValues = previousValues[newKey] || {};
-    const currentValues = previousValues[oldKey] || {};
-
-    setPreviousValues((prev) => ({
-      ...prev,
-      [oldKey]: { ...currentValues }, // Store current tire's values to its old position
-      [newKey]: { ...currentValues }, // Pass values to the new position
-    }));
-
-    setPositionUpdates((prev) => ({
-      ...prev,
-      [tireId]: {
-        newPlaca: targetPlaca,
-        newPos: targetPos,
-        frente: inheritedValues.frente || '',
-        tipoVhc: inheritedValues.tipoVhc || '',
-        kilometrajeActual: inheritedValues.kilometrajeActual || 0,
-      },
-    }));
+    return side === 'left' ? 
+      axleStartPosition + index :
+      axleStartPosition + structure.axleConfig[axleNumber - 1].left + index;
   };
 
-  // Save updates to the backend
-  const handleSaveUpdates = async () => {
-    const placaPosSet = new Set();
-    let hasDuplicates = false;
-  
-    for (const tireId in positionUpdates) {
-      const { newPlaca, newPos } = positionUpdates[tireId];
-      const key = `${newPlaca}-${newPos}`;
-  
-      if (newPlaca !== 'inventario' && newPlaca !== 'fin') {
-        if (placaPosSet.has(key)) {
-          alert(`Error: Ya existe una llanta en la placa "${newPlaca}" y posición "${newPos}".`);
-          hasDuplicates = true;
-          break;
-        }
-        if (newPlaca && newPos) {
-          placaPosSet.add(key);
-        }
-      }
-    }
-  
-    if (hasDuplicates) return;
-  
-    const nonHistoricalUpdates = [];
-    const changes = [];
-  
-    tires.forEach((tire) => {
-      const { newPlaca, newPos } = positionUpdates[tire._id];
-  
-      if (newPlaca === 'inventario') {
-        // Send both placa and pos updates through nonHistoricalUpdates
-        nonHistoricalUpdates.push(
-          { 
-            tireId: tire._id, 
-            field: 'placa', 
-            newValue: 'inventario',
-            currentFrente: tire.frente,
-            currentTipovhc: tire.tipovhc
-          },
-          {
-            tireId: tire._id,
-            field: 'pos',
-            newValue: 1,
-            currentFrente: tire.frente,
-            currentTipovhc: tire.tipovhc
-          }
-        );
-  
-        changes.push({
-          tire: tire.llanta,
-          previousPlaca: tire.placa,
-          previousPos: tire.pos?.at(-1)?.value || 'N/A',
-          newPlaca: 'inventario',
-          newPos: 1
-        });
-      } else if (newPlaca !== tire.placa || newPos !== tire.pos?.at(-1)?.value) {
-        nonHistoricalUpdates.push(
-          {
-            tireId: tire._id,
-            field: 'placa',
-            newValue: newPlaca,
-            currentFrente: tire.frente,
-            currentTipovhc: tire.tipovhc
-          },
-          {
-            tireId: tire._id,
-            field: 'pos',
-            newValue: newPos,
-            currentFrente: tire.frente,
-            currentTipovhc: tire.tipovhc
-          }
-        );
-  
-        changes.push({
-          tire: tire.llanta,
-          previousPlaca: tire.placa,
-          previousPos: tire.pos?.at(-1)?.value || 'N/A',
-          newPlaca,
-          newPos
-        });
-      }
-    });
-  
-    try {
-      setIsLoading(true);
-  
-      if (nonHistoricalUpdates.length > 0) {
-        await axios.put(
-          'https://tirepro.onrender.com/api/tires/update-nonhistorics',
-          { updates: nonHistoricalUpdates },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-      }
-  
-      setPdfContent(changes);
-      setIsPopupVisible(true);
-  
-      alert('Cambios guardados exitosamente.');
-      setTires([]);
-      setPlacas(['']);
-      setPositionUpdates({});
-    } catch (error) {
-      console.error('Error saving updates:', error);
-      alert('Error al guardar los cambios.');
-    } finally {
-      setIsLoading(false);
-    }
+  const handleDragStart = (e, tire) => {
+    setIsDragging(true);
+    e.dataTransfer.setData('tireId', tire._id);
+    e.dataTransfer.setData('tipovhc', tire.tipovhc);
+    e.dataTransfer.setData('placa', tire.placa);
+    e.dataTransfer.setData('sourcePosition', tire.pos?.at(-1)?.value || 'inventory');
   };
-  
-  
 
-  // Generate PDF with changes
-  const generatePDF = () => {
-    if (!pdfContent) {
-      alert('No hay cambios para generar el PDF.');
+  const handleDragEnd = () => setIsDragging(false);
+
+  const handleDrop = (e, newPos, tipovhc, targetPlaca) => {
+    e.preventDefault();
+    const tireId = e.dataTransfer.getData('tireId');
+    const draggedTireType = e.dataTransfer.getData('tipovhc');
+    const sourcePlaca = e.dataTransfer.getData('placa');
+    const sourcePosition = e.dataTransfer.getData('sourcePosition');
+
+    if (draggedTireType.toUpperCase() !== tipovhc.toUpperCase()) {
+      alert('Las llantas solo pueden moverse dentro del mismo tipo de vehículo.');
       return;
     }
 
-    const doc = new jsPDF();
+    const draggedTire = [...tires, ...swappedTires].find(t => t._id === tireId);
+    if (!draggedTire) return;
 
-    doc.setFontSize(16);
-    doc.text('Reporte de Cambios de Posición de Llantas', 10, 10);
+    const existingTire = tires.find(
+      t => t.pos?.at(-1)?.value === newPos && 
+          t.tipovhc.toUpperCase() === tipovhc.toUpperCase() && 
+          t.placa === targetPlaca
+    );
 
-    const tableData = pdfContent.map((change) => [
-      change.tire,
-      change.previousPlaca,
-      change.previousPos,
-      change.newPlaca,
-      change.newPos,
-    ]);
-
-    doc.autoTable({
-      head: [['Llanta', 'Placa Anterior', 'Posición Anterior', 'Nueva Placa', 'Nueva Posición']],
-      body: tableData,
-      startY: 20,
+    setTires(prevTires => {
+      const newTires = prevTires.filter(t => 
+        t._id !== draggedTire._id && 
+        (existingTire ? t._id !== existingTire._id : true)
+      );
+      return [...newTires, { 
+        ...draggedTire, 
+        pos: [{ value: newPos }],
+        placa: targetPlaca
+      }];
     });
 
-    doc.save('cambios_posicion_llantas.pdf');
+    if (existingTire) {
+      setSwappedTires(prev => [...prev, { ...existingTire, pos: [{ value: null }] }]);
+    } else {
+      setSwappedTires(prev => prev.filter(t => t._id !== draggedTire._id));
+    }
+
+    setChanges(prev => [...prev, {
+      tireId: draggedTire._id,
+      from: sourcePosition,
+      to: newPos,
+      fromPlaca: sourcePlaca,
+      toPlaca: targetPlaca
+    }]);
   };
 
-  const handleDeletePlaca = (index) => {
-    setPlacas((prevPlacas) => prevPlacas.filter((_, i) => i !== index));
+  const handleInventoryDrop = (e) => {
+    e.preventDefault();
+    const tireId = e.dataTransfer.getData('tireId');
+    const sourcePosition = e.dataTransfer.getData('sourcePosition');
+    const sourcePlaca = e.dataTransfer.getData('placa');
+
+    const draggedTire = tires.find(t => t._id === tireId);
+    if (!draggedTire) return;
+
+    setTires(prev => prev.filter(t => t._id !== tireId));
+    setSwappedTires(prev => [...prev, { ...draggedTire, pos: [{ value: null }] }]);
+    setChanges(prev => [...prev, {
+      tireId: draggedTire._id,
+      from: sourcePosition,
+      to: 'inventory',
+      fromPlaca: sourcePlaca,
+      toPlaca: null
+    }]);
   };
-  
+
+  const saveChanges = async () => {
+    try {
+      const updatedPositions = [...tires, ...swappedTires].map(tire => ({
+        tireId: tire._id,
+        position: tire.pos?.at(-1)?.value || null,
+        placa: tire.placa
+      }));
+
+      await axios.post(
+        `https://tirepro.onrender.com/api/tires/update-positions`,
+        { positions: updatedPositions },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setChanges([]);
+    } catch (error) {
+      console.error('Error saving tire positions:', error);
+    }
+  };
+
+  const renderAxle = (axleConfig, tiresForTipovhc, tipovhc, axleNumber, placa) => {
+    return (
+      <div key={axleNumber} className="axis">
+        <div className="tire-group">
+          <div className="side left-side">
+            {Array(axleConfig.left).fill(null).map((_, i) => {
+              const position = calculateTirePosition(tipovhc, axleNumber, 'left', i);
+              const tire = tiresForTipovhc.find(t => t.pos?.at(-1)?.value === position);
+              return (
+                <div
+                  key={`left-${i}`}
+                  className={`tire-icon ${!tire ? 'placeholder' : ''} ${isDragging ? 'droppable' : ''}`}
+                  draggable={!!tire}
+                  onDragStart={(e) => tire && handleDragStart(e, tire)}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => handleDrop(e, position, tipovhc, placa)}
+                  onMouseEnter={() => setHoveredTire(tire || null)}
+                  onMouseLeave={() => setHoveredTire(null)}
+                >
+                  {tire ? '🛞' : '○'}
+                  <span className="position-indicator">{position}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="middle-frame">
+            <div className="axis-line" />
+          </div>
+
+          <div className="side right-side">
+            {Array(axleConfig.right).fill(null).map((_, i) => {
+              const position = calculateTirePosition(tipovhc, axleNumber, 'right', i);
+              const tire = tiresForTipovhc.find(t => t.pos?.at(-1)?.value === position);
+              return (
+                <div
+                  key={`right-${i}`}
+                  className={`tire-icon ${!tire ? 'placeholder' : ''} ${isDragging ? 'droppable' : ''}`}
+                  draggable={!!tire}
+                  onDragStart={(e) => tire && handleDragStart(e, tire)}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => handleDrop(e, position, tipovhc, placa)}
+                  onMouseEnter={() => setHoveredTire(tire || null)}
+                  onMouseLeave={() => setHoveredTire(null)}
+                >
+                  {tire ? '🛞' : '○'}
+                  <span className="position-indicator">{position}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderVehicleType = (placa, tipovhc) => {
+    const structure = VEHICLE_STRUCTURES[tipovhc.toUpperCase()] || VEHICLE_STRUCTURES.DEFAULT;
+    const tiresForType = tires.filter(t => 
+      t.placa === placa && 
+      t.tipovhc.toUpperCase() === tipovhc.toUpperCase()
+    );
+
+    return (
+      <div key={`${placa}-${tipovhc}`} className="vehicle-type">
+        <h4>{tipovhc}</h4>
+        <div className="axles-container">
+          {structure.axleConfig.map((axleConfig, index) => 
+            renderAxle(axleConfig, tiresForType, tipovhc, index + 1, placa)
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="container">
@@ -283,115 +287,65 @@ const CambiarPosicion = () => {
         <button onClick={handleSearch} className="search-button" disabled={isLoading}>
           {isLoading ? 'Buscando...' : 'Buscar'}
         </button>
+        {changes.length > 0 && (
+          <button onClick={saveChanges} className="save-button">
+            Guardar Cambios
+          </button>
+        )}
       </div>
 
       <div className="placas-row">
-  {placas.map((placa, index) => (
-    <div key={index} className="placa-column">
-      <h4>Placa: {placa}</h4>
-      <input
-        type="text"
-        placeholder={`Placa ${index + 1}`}
-        value={placa}
-        onChange={(e) => handlePlacaChange(index, e.target.value)}
-        className="placa-input"
-      />
-      <button
-        onClick={() => handleDeletePlaca(index)}
-        className="delete-placa-button"
-        disabled={placas.length <= 1} // Disable delete if there's only one placa left
+        {placas.map((placa, index) => (
+          <div key={index} className="placa-column">
+            <h4>Placa: {placa}</h4>
+            <input
+              type="text"
+              placeholder={`Placa ${index + 1}`}
+              value={placa}
+              onChange={(e) => handlePlacaChange(index, e.target.value)}
+              className="placa-input"
+            />
+            <div className="vehicles-container">
+              {Object.keys(vehicleConfigs[placa] || {}).map(tipovhc => 
+                renderVehicleType(placa, tipovhc)
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div 
+        className="swapped-tires-container"
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleInventoryDrop}
       >
-        Eliminar
-      </button>
-      <div className="tire-cards">
-        {tires
-          .filter((tire) => tire.placa === placa)
-          .map((tire) => (
-            <div key={tire._id} className="tire-card">
-              <p><strong>Llanta:</strong> {tire.llanta}</p>
-              <p><strong>Marca:</strong> {tire.marca}</p>
-              <p><strong>Posición actual: </strong> {tire.pos?.at(-1)?.value || 'N/A'}</p>
-              <p>
-  <strong>Placa:</strong>
-  <select
-    value={positionUpdates[tire._id]?.newPlaca}
-    onChange={(e) => {
-      const selectedPlaca = e.target.value;
-      const isInventario = selectedPlaca === 'inventario';
-
-      // Update position if "inventario" is selected
-      setPositionUpdates((prev) => ({
-        ...prev,
-        [tire._id]: {
-          ...prev[tire._id],
-          newPlaca: selectedPlaca,
-          newPos: isInventario ? 1 : prev[tire._id]?.newPos,
-        },
-      }));
-    }}
-    className="tire-dropdown"
-  >
-    <option value="" disabled>Selecciona una placa</option>
-    {uniquePlacas.map((placa) => (
-      <option key={placa} value={placa}>
-        {placa}
-      </option>
-    ))}
-  </select>
-</p>
-
-
-<p>
-  <strong>Posición:</strong>
-  <input
-    type="number"
-    value={positionUpdates[tire._id]?.newPos}
-    disabled={positionUpdates[tire._id]?.newPlaca === 'inventario'} // Disable editing for "inventario"
-    onBlur={() =>
-      handleValueTransfer(
-        tire._id,
-        positionUpdates[tire._id]?.newPlaca,
-        positionUpdates[tire._id]?.newPos
-      )
-    }
-    onChange={(e) =>
-      setPositionUpdates((prev) => ({
-        ...prev,
-        [tire._id]: { ...prev[tire._id], newPos: parseInt(e.target.value, 10) || 0 },
-      }))
-    }
-    className="tire-input"
-  />
-</p>
-
-
+        <h4>Inventario</h4>
+        <div className="swapped-tires">
+          {swappedTires.map((tire, index) => (
+            <div
+              key={index}
+              className="tire-icon swapped"
+              draggable
+              onDragStart={(e) => handleDragStart(e, tire)}
+              onDragEnd={handleDragEnd}
+            >
+              🛞
+              <div className="tire-info">
+                <span>{tire.llanta}</span>
+                <span>{tire.marca}</span>
+              </div>
             </div>
           ))}
-      </div>
-    </div>
-  ))}
-</div>
-
-
-      <div className="save-button-container">
-        <button onClick={handleSaveUpdates} className="save-button" disabled={isLoading}>
-          {isLoading ? 'Guardando...' : 'Guardar Cambios'}
-        </button>
+        </div>
       </div>
 
-      {/* Popup for PDF Download */}
-      {isPopupVisible && (
-        <div className="popup-overlay">
-          <div className="popup-content">
-            <h3>Cambios guardados</h3>
-            <p>Descarga el reporte de cambios:</p>
-            <button onClick={generatePDF} className="download-pdf-button">
-              Descargar PDF
-            </button>
-            <button onClick={() => setIsPopupVisible(false)} className="close-button">
-              Cerrar
-            </button>
-          </div>
+      {hoveredTire && (
+        <div className="tire-hover-card">
+          <p><strong>Pos:</strong> {hoveredTire.pos?.at(-1)?.value || 'N/A'}</p>
+          <p><strong>Llanta:</strong> {hoveredTire.llanta}</p>
+          <p><strong>Marca:</strong> {hoveredTire.marca}</p>
+          <p><strong>Placa:</strong> {hoveredTire.placa}</p>
+          <p><strong>Tipo:</strong> {hoveredTire.tipovhc}</p>
         </div>
       )}
     </div>

@@ -12,6 +12,7 @@ const Uso = () => {
   const [proactValues, setProactValues] = useState([]);
   const [cpkValues, setCpkValues] = useState([]);
   const [cpkProyValues, setCpkProyValues] = useState([]);
+  const [inspectorValues, setInspectorValues] = useState([]);
 
   const fetchTires = async () => {
     try {
@@ -89,10 +90,12 @@ const Uso = () => {
         setCpkValues(matchingTire.cpk || []);
         setCpkProyValues(matchingTire.cpk_proy || []);
         setSelectedTire(matchingTire); // Set the full tire data including `images`
+        setInspectorValues(matchingTire.inspector || []);
       } else {
         setProactValues([]);
         setCpkValues([]);
         setCpkProyValues([]);
+        setInspectorValues([]);
         setSelectedTire(null);
       }
     } catch (error) {
@@ -157,6 +160,7 @@ const Uso = () => {
       cpk: cpkValues[index]?.value ? Number(cpkValues[index].value).toFixed(2) : 'N/A',
       cpkProy: cpkProyValues[index]?.value ? Number(cpkProyValues[index].value).toFixed(2) : 'N/A',
       image: selectedTire.images?.[index]?.value || null, // Include image URL
+      inspector: inspectorValues[index]?.value || null,
     }));
   
     inspections.sort((a, b) => b.date - a.date);
@@ -172,6 +176,7 @@ const Uso = () => {
               <th>CPK</th>
               <th>CPK Proy</th>
               <th>Imagen</th>
+              <th>Inspeccionador</th>
             </tr>
           </thead>
           <tbody>
@@ -194,6 +199,7 @@ const Uso = () => {
                     'No Disponible'
                   )}
                 </td>
+                <td>{inspection.inspector}</td>
               </tr>
             ))}
           </tbody>

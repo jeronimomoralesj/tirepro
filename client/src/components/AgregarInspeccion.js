@@ -137,7 +137,8 @@ const AgregarInspeccion = () => {
   
     const token = localStorage.getItem('token');
     const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
-  
+    const userName = token ? JSON.parse(atob(token.split('.')[1])).user.name : null; // Get user's name
+
     if (!userId) {
       alert("Usuario no identificado.");
       return;
@@ -204,8 +205,10 @@ const AgregarInspeccion = () => {
       const tireIds = filteredTires.map((tire) => tire._id);
   
       await axios.put(
-        'https://tirepro.onrender.com/api/tires/update-inspection-date',
-        { tireIds, kilometrajeActual: currentKilometrajeActual },
+        'http://localhost:5001/api/tires/update-inspection-date',
+        { tireIds, kilometrajeActual: currentKilometrajeActual,
+          inspectorName: userId,
+         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
   

@@ -5,42 +5,46 @@ import './recomendaciones.css';
 const Recomendaciones = () => {
   const recommendations = [
     {
-      title: "Revisión de Presión de Inflado",
+      title: "Placa: abc123",
       details: [
-        "Verifica que todas las llantas estén infladas a las presiones recomendadas por el fabricante para las condiciones de carga actuales (particularmente para vehículos de carga seca como tu 'Cabezote').",
-        "Usa un manómetro calibrado y ajusta las presiones según la carga transportada.",
+        "Llanta 2: Profundidad < 4 mm. Inspección y reemplazo inmediato.",
+        "Llanta 6: CPK alto (561.89 COP). Evaluar recauchado o llantas más económicas.",
+        "Llantas 15-18 (Kapsen): CPK muy alto (1075 COP). Analizar alternativas para reducir costos.",
       ],
     },
     {
-      title: "Inspección Física",
+      title: "Placa: dec342",
       details: [
-        "Revisa cada llanta para identificar desgaste irregular, cortes, abultamientos o cualquier daño estructural.",
-        "Evalúa la alineación de los ejes si observas desgaste desigual.",
+        "Llantas 19-22: CPK alto (860 COP). Investigar reducción de costos.",
+        "Llantas 23-24: Desgaste irregular. Revisar alineación y presión.",
+        "Llanta 28: Desgaste irregular. Inspeccionar y corregir causas.",
       ],
     },
     {
-      title: "Rotación de Llantas",
+      title: "Placa: sec192",
       details: [
-        "Realiza una rotación entre posiciones direccionales, de tracción y soporte si no se ha hecho en los últimos 20,000-25,000 km. Esto ayudará a uniformar el desgaste.",
+        "Llanta 33: Profundidad de 2 mm. Reemplazo inmediato.",
+        "Llantas 35-47: CPK > 600 COP. Evaluar recauchado o alternativas más económicas.",
       ],
     },
     {
-      title: "Profundidad de Banda",
+      title: "Placa: rer565",
       details: [
-        "Mide las profundidades actuales de la banda (centro, lados internos y externos).",
-        "Cambia las llantas que tengan una profundidad menor a 2 mm, como exige la normativa colombiana.",
+        "Llanta 59: Profundidad alta y uso ineficiente. Rotar para optimizar.",
+        "Llanta 59: CPK alto (> 600 COP). Considerar recauchado o alternativas más económicas.",
       ],
     },
     {
-      title: "Planificación de Reemplazo",
+      title: "Placa: inventario",
       details: [
-        "Identifica las llantas cercanas al final de su vida útil (menor a 3 mm de profundidad) y planifica su reemplazo anticipado.",
+        "Llanta 99: Profundidad inusualmente alta (22 mm). Verificar datos y mantener en inventario.",
       ],
     },
     {
-      title: "Monitoreo Regular",
+      title: "Placa: jer123",
       details: [
-        "Establece un calendario para inspecciones visuales semanales y mantenimiento mensual (presión, alineación, etc.).",
+        "Llanta 5863: Excelente CPK (19.61 COP). Monitorear desgaste y rotar.",
+        "Falta información sobre carga y especificaciones para evaluación completa.",
       ],
     },
   ];
