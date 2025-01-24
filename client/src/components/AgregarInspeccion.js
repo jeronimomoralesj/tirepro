@@ -205,7 +205,7 @@ const AgregarInspeccion = () => {
       const tireIds = filteredTires.map((tire) => tire._id);
   
       await axios.put(
-        'http://localhost:5001/api/tires/update-inspection-date',
+        'https://tirepro.onrender.com/api/tires/update-inspection-date',
         { tireIds, kilometrajeActual: currentKilometrajeActual,
           inspectorName: userId,
          },

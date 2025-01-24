@@ -1,41 +1,46 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import './Nueva.css';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import "./Nueva.css";
 
 const NuevaEmpleado = () => {
   const [filteredTires, setFilteredTires] = useState([]);
   const [profundidadUpdates, setProfundidadUpdates] = useState({});
   const [presionUpdates, setPresionUpdates] = useState({});
-  const [kilometrajeActual, setKilometrajeActual] = useState('');
+  const [kilometrajeActual, setKilometrajeActual] = useState("");
   const [loading, setLoading] = useState(false);
   const [addPressure, setAddPressure] = useState(false);
   const [placas, setPlacas] = useState([]);
-  const [selectedPlaca, setSelectedPlaca] = useState('');
+  const [selectedPlaca, setSelectedPlaca] = useState("");
   const [selectedFiles, setSelectedFiles] = useState({});
-  const token = localStorage.getItem('token');
-  const decodedToken = token ? JSON.parse(atob(token.split('.')[1])) : null;
-  const companyId = decodedToken?.user?.companyId;
-  const userId = decodedToken?.user?.id; // Extract userId from the decodedToken
 
+  // Retrieve token and decode it
+  const token = localStorage.getItem("token");
+  const decodedToken = token ? JSON.parse(atob(token.split(".")[1])) : null;
+  const companyId = decodedToken?.user?.companyId;
+  const userId = decodedToken?.user?.id;
+
+  // Fetch Placas on Component Load
   useEffect(() => {
     const fetchPlacas = async () => {
       try {
         const response = await axios.get(
-          `https://tirepro.onrender.com/api/auth/users/${decodedToken.user.id}`,
+          `https://tirepro.onrender.com/api/auth/users/${userId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setPlacas(response.data.placa || []);
       } catch (error) {
-        console.error('Error fetching placas:', error);
-        alert('Error al obtener las placas.');
+        console.error("Error fetching placas:", error);
+        alert("Error al obtener las placas.");
       }
     };
-    fetchPlacas();
-  }, [token, decodedToken]);
 
+    if (userId) fetchPlacas();
+  }, [token, userId]);
+
+  // Handle Search
   const handleSearch = async () => {
     if (!selectedPlaca) {
-      alert('Por favor selecciona una placa.');
+      alert("Por favor selecciona una placa.");
       return;
     }
 
@@ -45,20 +50,20 @@ const NuevaEmpleado = () => {
         `https://tirepro.onrender.com/api/tires/user/${companyId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       const tires = response.data.filter((tire) => tire.placa === selectedPlaca);
       setFilteredTires(tires);
     } catch (error) {
-      console.error('Error fetching tire data:', error);
-      alert('Error al obtener datos.');
+      console.error("Error fetching tire data:", error);
+      alert("Error al obtener datos.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Validate Fields
   const validateFields = () => {
-    if (!kilometrajeActual.trim()) {
-      alert("Por favor, ingresa el kilometraje actual.");
+    if (!kilometrajeActual.trim() || isNaN(Number(kilometrajeActual))) {
+      alert("Por favor, ingresa un kilometraje válido.");
       return false;
     }
 
@@ -95,6 +100,7 @@ const NuevaEmpleado = () => {
     return true;
   };
 
+  // Calculation Helpers
   const calculateKms = (lastKilometraje, currentKilometraje, lastKms) => {
     const difference = Math.max(0, currentKilometraje - (lastKilometraje || 0));
     return lastKms + difference;
@@ -108,33 +114,30 @@ const NuevaEmpleado = () => {
     return projectedKms > 0 ? costo / projectedKms : 0;
   };
 
+  // Upload Image to S3
   const uploadImageToS3 = async (tireId, file) => {
     try {
-      const { data } = await axios.post('https://tirepro.onrender.com/api/s3/presigned-url', {
-        tireId,
-        fileName: file.name,
-      });
+      const { data } = await axios.post(
+        "https://tirepro.onrender.com/api/s3/presigned-url",
+        { tireId, fileName: file.name },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-      await axios.put(data.url, file, {
-        headers: {
-          'Content-Type': file.type,
-        },
-      });
-
-      return data.url.split('?')[0];
+      await axios.put(data.url, file, { headers: { "Content-Type": file.type } });
+      return data.url.split("?")[0];
     } catch (error) {
-      console.error('Error uploading image:', error);
-      alert('Error al subir imagen.');
+      console.error("Error uploading image:", error);
+      alert("Error al subir imagen.");
       return null;
     }
   };
 
+  // Save Updates
   const handleSaveUpdates = async () => {
     if (!validateFields()) return;
 
+    setLoading(true);
     try {
-      setLoading(true);
-
       const updates = await Promise.all(
         filteredTires.map(async (tire) => {
           const profundidades = profundidadUpdates[tire._id] || {};
@@ -162,23 +165,23 @@ const NuevaEmpleado = () => {
             : null;
 
           const updatesArray = [
-            { tireId: tire._id, field: 'profundidad_int', newValue: profundidades.profundidad_int },
-            { tireId: tire._id, field: 'profundidad_cen', newValue: profundidades.profundidad_cen },
-            { tireId: tire._id, field: 'profundidad_ext', newValue: profundidades.profundidad_ext },
-            { tireId: tire._id, field: 'proact', newValue: minProfundidad },
-            { tireId: tire._id, field: 'kms', newValue: newKms },
-            { tireId: tire._id, field: 'cpk', newValue: cpk },
-            { tireId: tire._id, field: 'cpk_proy', newValue: cpkProy },
+            { tireId: tire._id, field: "profundidad_int", newValue: profundidades.profundidad_int },
+            { tireId: tire._id, field: "profundidad_cen", newValue: profundidades.profundidad_cen },
+            { tireId: tire._id, field: "profundidad_ext", newValue: profundidades.profundidad_ext },
+            { tireId: tire._id, field: "proact", newValue: minProfundidad },
+            { tireId: tire._id, field: "kms", newValue: newKms },
+            { tireId: tire._id, field: "cpk", newValue: cpk },
+            { tireId: tire._id, field: "cpk_proy", newValue: cpkProy },
           ];
 
           if (imageUrl) {
-            updatesArray.push({ tireId: tire._id, field: 'images', newValue: imageUrl });
+            updatesArray.push({ tireId: tire._id, field: "images", newValue: imageUrl });
           }
 
           if (addPressure) {
             updatesArray.push({
               tireId: tire._id,
-              field: 'presion',
+              field: "presion",
               newValue: presionUpdates[tire._id],
             });
           }
@@ -190,46 +193,28 @@ const NuevaEmpleado = () => {
       const tireIds = filteredTires.map((tire) => tire._id);
 
       await axios.put(
-        'http://localhost:5001/api/tires/update-inspection-date',
-        { 
-          tireIds, 
-          kilometrajeActual: currentKilometrajeActual,
-          inspectorName: userId, 
-        },
+        "https://tirepro.onrender.com/api/tires/update-inspection-date",
+        { tireIds, kilometrajeActual, inspectorName: userId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (updates.flat().length > 0) {
         await axios.put(
-          'https://tirepro.onrender.com/api/tires/update-field',
+          "https://tirepro.onrender.com/api/tires/update-field",
           { tireUpdates: updates.flat() },
           { headers: { Authorization: `Bearer ${token}` } }
         );
       }
-
-      try {
-        // Increment the user's pointcount
-        await axios.put(
-          'https://tirepro.onrender.com/api/auth/update-pointcount',
-          { userId, incrementBy: 1 }, // Pass the userId and incrementBy value
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        alert("Datos actualizados correctamente y punto añadido al usuario.");
-      } catch (error) {
-        console.error("Error updating user's pointcount:", error);
-        alert("Datos actualizados, pero hubo un problema al actualizar los puntos del usuario.");
-      }
-      
 
       alert("Datos actualizados correctamente.");
       setFilteredTires([]);
       setProfundidadUpdates({});
       setPresionUpdates({});
       setSelectedFiles({});
-      setKilometrajeActual('');
+      setKilometrajeActual("");
     } catch (error) {
-      console.error('Error saving updates:', error);
-      alert('Error al guardar los datos.');
+      console.error("Error saving updates:", error);
+      alert("Error al guardar los datos.");
     } finally {
       setLoading(false);
     }
@@ -252,82 +237,82 @@ const NuevaEmpleado = () => {
         ))}
       </select>
       <button onClick={handleSearch} className="search-button" disabled={loading}>
-        {loading ? 'Buscando...' : 'Buscar'}
+        {loading ? "Buscando..." : "Buscar"}
       </button>
       {filteredTires.length > 0 && (
         <div className="filtered-tires-container">
-          <button             className="add-pressure-button"
+          <button
+            className="add-pressure-button"
             onClick={() => setAddPressure((prev) => !prev)}
           >
-            {addPressure ? 'Quitar Presión' : 'Agregar Presión'}
+            {addPressure ? "Quitar Presión" : "Agregar Presión"}
           </button>
-          {filteredTires.map((tire) => {
-            const currentProfundidades = {
-              int: tire.profundidad_int?.[tire.profundidad_int.length - 1]?.value || 0,
-              cen: tire.profundidad_cen?.[tire.profundidad_cen.length - 1]?.value || 0,
-              ext: tire.profundidad_ext?.[tire.profundidad_ext.length - 1]?.value || 0,
-            };
-            return (
-              <div key={tire._id} className="tire-card">
-                <p><strong>Placa:</strong> {tire.placa}</p>
-                <p><strong>Llanta:</strong> {tire.llanta}</p>
-                <p><strong>Marca:</strong> {tire.marca}</p>
-                {['profundidad_int', 'profundidad_cen', 'profundidad_ext'].map((field) => (
-                  <div key={field}>
-                    <label>{field.replace('_', ' ')}</label>
-                    <input
-                      type="number"
-                      value={profundidadUpdates[tire._id]?.[field] || ''}
-                      onChange={(e) => {
-                        const value = Math.max(
-                          0,
-                          Math.min(currentProfundidades[field.split('_')[1]], Number(e.target.value))
-                        );
-                        setProfundidadUpdates((prev) => ({
-                          ...prev,
-                          [tire._id]: {
-                            ...prev[tire._id],
-                            [field]: value,
-                          },
-                        }));
-                      }}
-                      className="input-field"
-                    />
-                  </div>
-                ))}
-                {addPressure && (
-                  <div>
-                    <label>Presión de Llanta</label>
-                    <input
-                      type="number"
-                      value={presionUpdates[tire._id] || ''}
-                      onChange={(e) => {
-                        const value = Math.max(0, Number(e.target.value));
-                        setPresionUpdates((prev) => ({
-                          ...prev,
-                          [tire._id]: value,
-                        }));
-                      }}
-                      className="input-field"
-                    />
-                  </div>
-                )}
-                <div>
-                  <label>Subir Imagen</label>
+          {filteredTires.map((tire) => (
+            <div key={tire._id} className="tire-card">
+              <p>
+                <strong>Placa:</strong> {tire.placa}
+              </p>
+              <p>
+                <strong>Llanta:</strong> {tire.llanta}
+              </p>
+              <p>
+                <strong>Marca:</strong> {tire.marca}
+              </p>
+              {["profundidad_int", "profundidad_cen", "profundidad_ext"].map((field) => (
+                <div key={field}>
+                  <label>{field.replace("_", " ")}</label>
                   <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      setSelectedFiles((prev) => ({
+                    type="number"
+                    value={profundidadUpdates[tire._id]?.[field] || ""}
+                    onChange={(e) => {
+                      const value = Math.max(
+                        0,
+                        Number(e.target.value)
+                      );
+                      setProfundidadUpdates((prev) => ({
                         ...prev,
-                        [tire._id]: e.target.files[0],
-                      }))
-                    }
+                        [tire._id]: {
+                          ...prev[tire._id],
+                          [field]: value,
+                        },
+                      }));
+                    }}
+                    className="input-field"
                   />
                 </div>
+              ))}
+              {addPressure && (
+                <div>
+                  <label>Presión de Llanta</label>
+                  <input
+                    type="number"
+                    value={presionUpdates[tire._id] || ""}
+                    onChange={(e) => {
+                      const value = Math.max(0, Number(e.target.value));
+                      setPresionUpdates((prev) => ({
+                        ...prev,
+                        [tire._id]: value,
+                      }));
+                    }}
+                    className="input-field"
+                  />
+                </div>
+              )}
+              <div>
+                <label>Subir Imagen</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    setSelectedFiles((prev) => ({
+                      ...prev,
+                      [tire._id]: e.target.files[0],
+                    }))
+                  }
+                />
               </div>
-            );
-          })}
+            </div>
+          ))}
           <input
             type="number"
             placeholder="Kilometraje Actual"
@@ -335,8 +320,8 @@ const NuevaEmpleado = () => {
             onChange={(e) => setKilometrajeActual(e.target.value)}
             className="input-field"
           />
-          <button className="save-button" onClick={handleSaveUpdates} disabled={loading}>
-            {loading ? 'Guardando...' : 'Guardar'}
+          <button onClick={handleSaveUpdates} className="save-button" disabled={loading}>
+            {loading ? "Guardando..." : "Guardar"}
           </button>
         </div>
       )}

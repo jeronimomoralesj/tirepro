@@ -3,7 +3,9 @@ const jwt = require('jsonwebtoken');
 const TireData = require('../models/tireData');
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+const genAI_2 = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY_2);
 const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+const model_2 = genAI_2.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
 // Helper to get latest value from historical array
 function getLatestValue(arr) {
@@ -23,7 +25,7 @@ function getLastNMonthsValues(arr, months) {
 async function askGeminiAIWithRetries(prompt, retries = 3) {
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      const result = await model.generateContent(prompt);
+      const result = await model_2.generateContent(prompt);
       const responseText = result.response.text();
 
       console.log(`AI Response on attempt ${attempt + 1}:`, responseText);
