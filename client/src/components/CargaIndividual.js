@@ -3,6 +3,9 @@ import axios from 'axios';
 import './Nueva.css';
 import './CargaIndividual.css';
 
+const DEFAULT_TIRE_IMAGE = 'https://media.istockphoto.com/id/135170090/photo/four-black-car-tires-stacked-on-top-of-one-another.jpg?s=612x612&w=0&k=20&c=jI2XKopUST-0MvSmj2VKkzihuzg6zbsDS8D-AqAPV0Y=';
+
+
 const CargaIndividual = () => {
   const [individualTire, setIndividualTire] = useState({
     llanta: '',
@@ -225,7 +228,9 @@ const CargaIndividual = () => {
               : 0
             : 0;
   
-        const imageUrl = imageFile ? await uploadImageToS3(imageFile) : null;
+        const imageUrl = imageFile 
+        ? await uploadImageToS3(imageFile) 
+        : DEFAULT_TIRE_IMAGE;
   
         const newTire = {
           ...individualTire,

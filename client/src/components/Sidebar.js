@@ -43,7 +43,7 @@ const Sidebar = ({ darkMode, setDarkMode }) => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    navigate('/login', { replace: true });
+    navigate('/', { replace: true });
   };
 
   const toggleMenu = () => {
@@ -88,14 +88,22 @@ const Sidebar = ({ darkMode, setDarkMode }) => {
           const { name, role } = response.data;
           setUserName(name.length > 16 ? name.substring(0, 16) + '...' : name);
           setUserRole(role);
+
+          // If role is neither admin nor regular, redirect to login
+          if (role !== 'admin' && role !== 'regular') {
+            localStorage.removeItem('token');
+            navigate('/', { replace: true });
+          }
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
+        localStorage.removeItem('token');
+        navigate('/', { replace: true });
       }
     };
 
     fetchUserDetails();
-  }, []);
+  }, [navigate]);
 
   const renderMenuItem = (path, icon, text) => (
     <Link
@@ -136,19 +144,19 @@ const Sidebar = ({ darkMode, setDarkMode }) => {
       </div>
 
       <nav className={`menu ${isMenuOpen ? 'menu-open' : ''}`}>
-  {userRole === 'admin' ? (
-    <>
-      {renderMenuItem('/home', 'bx-home', 'Resumen')}
-      {renderMenuItem('/flota', 'bx-car', 'Flota')}
-      {renderMenuItem('/estado', 'bx-pie-chart-alt-2', 'Semáforo')}
-      {renderMenuItem('/uso', 'bx-search', 'Buscar')}
-      {renderMenuItem('/nueva', 'bx-plus', 'Agregar')}
-      {renderMenuItem('/analista', 'bx-glasses', 'Analista')} {/* Updated path here */}
-    </>
-  ) : (
-    renderMenuItem('/nuevanormal', 'bx-plus', 'Nueva')
-  )}
-</nav>
+        {userRole === 'admin' ? (
+          <>
+            {renderMenuItem('/home', 'bx-home', 'Resumen')}
+            {renderMenuItem('/flota', 'bx-car', 'Flota')}
+            {renderMenuItem('/estado', 'bx-pie-chart-alt-2', 'Semáforo')}
+            {renderMenuItem('/uso', 'bx-search', 'Buscar')}
+            {renderMenuItem('/nueva', 'bx-plus', 'Agregar')}
+            {renderMenuItem('/analista', 'bx-glasses', 'Analista')}
+          </>
+        ) : userRole === 'regular' ? (
+          renderMenuItem('/nuevanormal', 'bx-plus', 'Inspección')
+        ) : null}
+      </nav>
 
 
       <div className="profile-section">

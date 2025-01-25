@@ -67,7 +67,7 @@ const TireDataSchema = new mongoose.Schema(
           day: new Date().getDate(),
           month: new Date().getMonth() + 1,
           year: new Date().getFullYear(),
-          value: 'https://d1bat1ruswunxz.cloudfront.net/app/uploads/2020/11/tire.png',
+          value: 'https://media.istockphoto.com/id/135170090/photo/four-black-car-tires-stacked-on-top-of-one-another.jpg?s=612x612&w=0&k=20&c=jI2XKopUST-0MvSmj2VKkzihuzg6zbsDS8D-AqAPV0Y=',
         },
       ],
     }, // Default with a predefined image link

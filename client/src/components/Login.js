@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import logo from "../img/logo_text.png";
 import './Login.css';
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
   const handleChange = (e) =>
@@ -15,18 +17,16 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMessage('');
+
     try {
-      // API call for login
       const res = await axios.post('https://tirepro.onrender.com/api/auth/login', formData);
       const token = res.data.token;
       localStorage.setItem('token', token);
 
-      // Decode the token
       const decodedToken = jwtDecode(token);
-
       const userId = decodedToken.user.id;
 
-      // Fetch additional user data
       const userRes = await axios.get(`https://tirepro.onrender.com/api/auth/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -34,7 +34,6 @@ const Login = () => {
       const userRole = userRes.data.role;
       const companyId = userRes.data.companyId;
 
-      // Navigate based on role
       if (userRole === 'admin') {
         navigate('/home');
       } else {
@@ -42,7 +41,7 @@ const Login = () => {
       }
     } catch (err) {
       console.error('Error during login:', err);
-      alert('Error during login. Please try again.');
+      setErrorMessage('Invalid email or password. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -51,32 +50,47 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-card">
-        <h2 className="login-title">Bienvenido</h2>
+        <div className="login-header">
+          <img src={logo} alt="Company Logo" className="login-logo" />
+          <h2 className="login-title">Inicia sesión</h2>
+        </div>
+        {errorMessage && <div className="error-message">{errorMessage}</div>}
         {isLoading ? (
           <div className="loading-spinner"></div>
         ) : (
           <form onSubmit={handleSubmit}>
-            <input
-              type="email"
-              name="email"
-              placeholder="Correo electrónico"
-              onChange={handleChange}
-              required
-              className="login-input"
-            />
-            <input
-              type="password"
-              name="password"
-              placeholder="Contraseña"
-              onChange={handleChange}
-              required
-              className="login-input"
-            />
+            <div className="input-group">
+              <label htmlFor="email">correo</label>
+              <input
+                id="email"
+                type="email"
+                name="email"
+                placeholder="ingresa tu correo"
+                onChange={handleChange}
+                required
+                className="login-input"
+              />
+            </div>
+            <div className="input-group">
+              <label htmlFor="password">contraseña</label>
+              <input
+                id="password"
+                type="password"
+                name="password"
+                placeholder="ingresa tu contraseña"
+                onChange={handleChange}
+                required
+                className="login-input"
+              />
+            </div>
             <button type="submit" className="login-button">
-              Iniciar sesión
+              Ingresar
             </button>
           </form>
         )}
+        <div className="signup-link">
+          ¿No tienes cuenta? <a href="/signup">Contáctanos</a>
+        </div>
       </div>
     </div>
   );

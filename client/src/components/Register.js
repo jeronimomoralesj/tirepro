@@ -46,7 +46,7 @@ const Register = ({ companyId, token, companyName, onUserCreated }) => {
       };
 
       const res = await axios.post(
-        'https://tirepro.onrender.com//api/auth/register',
+        'https://tirepro.onrender.com/api/auth/register',
         requestData,
         {
           headers: { 

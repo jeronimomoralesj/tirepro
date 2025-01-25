@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "cfca1b49-538d-4e50-b66e-8e7777d18f02"
+      }
+    },
+    "android": {
+      "package": "com.jeronimomoralesj.tireplus"
+    }
+  }
+}

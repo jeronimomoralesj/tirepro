@@ -13,6 +13,7 @@ import "./LandingPage.css"
 import LandingImg from "../img/Landing.png"
 import LogoText from "../img/logo_text.png"
 import AppImg from "../img/app.png"
+import Footer from './Footer';
 
 const LandingPage = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
@@ -315,32 +316,11 @@ const LandingPage = () => {
               </div>
             ))}
           </div>
-
-          <div className="about__stats">
-            <div className="about__stat">
-              <div className="about__stat-value">5+ años</div>
-              <div className="about__stat-label">De Experiencia</div>
-            </div>
-          </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="stats">
-        <div className="stats__container">
-          {[
-            { label: 'Clientes Activos', value: '3+' },
-            { label: 'Vehículos Monitoreados', value: '30+' },
-            { label: 'Ahorro Promedio', value: '30%' },
-            { label: 'Satisfacción', value: '100%' }
-          ].map((stat, index) => (
-            <div key={index} className="stat-card">
-              <div className="stat-card__value">{stat.value}</div>
-              <div className="stat-card__label">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
+{/* Footer */}
+      <Footer />
 
     </div>
   );

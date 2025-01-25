@@ -137,7 +137,17 @@ const Ajustes = () => {
   }
 
   if (error) {
-    return <div className="ajustes-container">{error}</div>;
+    return (
+      <div className="ajustes-container error-container">
+        <p>Por seguridad necesitamos que recargues!</p>
+        <button 
+          className="add-placa-btn" 
+          onClick={() => window.location.reload()}
+        >
+          Recargar Página
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -160,20 +170,8 @@ const Ajustes = () => {
               {userData.placa.map((placa) => (
                 <span key={placa} className="placa-tag">
                   {placa}
-                  <button
-                    className="delete-placa-btn"
-                    onClick={() => handleDeletePlaca(decodedToken.user.id, placa)}
-                  >
-                    &times;
-                  </button>
                 </span>
               ))}
-              <button
-                className="add-placa-btn"
-                onClick={() => handleAddPlaca(decodedToken.user.id)}
-              >
-                Agregar Placa
-              </button>
             </div>
           </div>
         )}

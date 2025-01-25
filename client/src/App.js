@@ -16,6 +16,8 @@ import Soporte from './components/Soporte';
 import Ajustes from './components/Ajustes';
 import NuevaEmpleado from './components/NuevaEmpleado';
 import Analista from './components/Analista';
+import ProteccionDatos from './components/ProteccionDatos';
+import TerminosCondiciones from './components/TerminosCondiciones';
 
 function App() {
   return (
@@ -27,6 +29,22 @@ function App() {
           element={
             <PublicRoute>
               <LandingPage />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/politica-datos"
+          element={
+            <PublicRoute>
+              <ProteccionDatos />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/terminos-condiciones"
+          element={
+            <PublicRoute>
+              <TerminosCondiciones />
             </PublicRoute>
           }
         />
