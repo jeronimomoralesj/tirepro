@@ -8,8 +8,12 @@ const UserSchema = new mongoose.Schema({
   company: { type: String, required: true },
   role: { type: String, default: 'regular' },
   companyId: { type: String, required: false },
-  placa: { type: [String], default: [] }, // Array of placas
-  pointcount: { type: Number, default: 0 }, // New field for tracking points
+  placa: { type: [String], default: [] }, 
+  pointcount: { type: Number, default: 0 },
+  profileImage: {  
+    type: String,
+    default: 'https://images.pexels.com/photos/12261472/pexels-photo-12261472.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'  // Default image
+  },
 });
 
 // Method to check password validity

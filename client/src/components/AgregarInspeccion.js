@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import './Nueva.css';
+import './AgregarInspeccion.css';
 
 const AgregarInspeccion = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -268,7 +269,7 @@ const AgregarInspeccion = () => {
             className="add-pressure-button"
             onClick={() => setAddPressure((prev) => !prev)}
           >
-            {addPressure ? 'Quitar Presión' : 'Agregar Presión'}
+            {addPressure ? 'Quitar Presión' : 'Incluir Presión'}
           </button>
           {filteredTires.map((tire) => {
             const currentProfundidades = {

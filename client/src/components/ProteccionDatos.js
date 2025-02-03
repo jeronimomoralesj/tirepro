@@ -9,11 +9,11 @@ const ProteccionDatos = () => {
       <section>
         <h2>1. Identificación del Responsable del Tratamiento de Datos</h2>
         <p>
-          TirePro, identificada con NIT [NIT], con domicilio en [DIRECCIÓN], Bogotá, Colombia, es responsable del tratamiento de los datos personales recogidos a través de la plataforma. Puede contactarnos para cualquier consulta o ejercicio de derechos en:
+          TirePro, identificada con C.C 1016912013, con domicilio en Carrera 80 #170-60, Bogotá, Colombia, es responsable del tratamiento de los datos personales recogidos a través de la plataforma. Puede contactarnos para cualquier consulta o ejercicio de derechos en:
         </p>
         <ul>
-          <li><strong>Correo electrónico:</strong> [CORREO]</li>
-          <li><strong>Teléfono:</strong> [TELÉFONO]</li>
+          <li><strong>Correo electrónico:</strong> jeronimo.morales@merquellantas.com</li>
+          <li><strong>Teléfono:</strong> 3106605563</li>
         </ul>
       </section>
 

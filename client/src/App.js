@@ -18,6 +18,8 @@ import NuevaEmpleado from './components/NuevaEmpleado';
 import Analista from './components/Analista';
 import ProteccionDatos from './components/ProteccionDatos';
 import TerminosCondiciones from './components/TerminosCondiciones';
+import EliminacionDatos from './components/EliminacionDatos';
+import IntentoIMG from './components/IntentoIMG';
 
 function App() {
   return (
@@ -41,10 +43,26 @@ function App() {
           }
         />
         <Route
+          path="/intento-img"
+          element={
+            <PublicRoute>
+              <IntentoIMG />
+            </PublicRoute>
+          }
+        />
+        <Route
           path="/terminos-condiciones"
           element={
             <PublicRoute>
               <TerminosCondiciones />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/eliminar-datos"
+          element={
+            <PublicRoute>
+              <EliminacionDatos />
             </PublicRoute>
           }
         />

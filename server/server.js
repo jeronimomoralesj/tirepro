@@ -5,7 +5,6 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
 const tireDataRoutes = require('./routes/tireDataRoutes');
-const historicsRoutes = require('./routes/historicsRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const s3Routes = require('./routes/s3Routes');
 const aiChatRoutes = require('./routes/aiChatRoutes'); // Import the AI chat routes
@@ -22,7 +21,6 @@ connectDB();
 
 app.use('/api/auth', authRoutes);
 app.use('/api/tires', tireDataRoutes);
-app.use('/api/historics', historicsRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api', s3Routes);
 app.use('/api/ai-chat', aiChatRoutes); // Use the AI chat routes

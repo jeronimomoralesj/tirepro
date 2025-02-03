@@ -9,11 +9,11 @@ const TerminosCondiciones = () => {
       <section>
         <h2>1. Identificación de la Entidad Responsable</h2>
         <p>
-          TirePro, identificada con NIT [NIT], con domicilio en [DIRECCIÓN], Bogotá, Colombia, es la entidad responsable de proporcionar la plataforma y los servicios relacionados. TirePro está registrada bajo las leyes de la República de Colombia y cumple con todas las normativas aplicables en materia de protección de datos, comercio electrónico y derechos de los consumidores. Para consultas, puede contactarnos mediante los siguientes canales:
+          TirePro, identificada con NIT 1016912013, con domicilio en Carrera 80 #170-60, Bogotá, Colombia, es la entidad responsable de proporcionar la plataforma y los servicios relacionados. TirePro está registrada bajo las leyes de la República de Colombia y cumple con todas las normativas aplicables en materia de protección de datos, comercio electrónico y derechos de los consumidores. Para consultas, puede contactarnos mediante los siguientes canales:
         </p>
         <ul>
-          <li><strong>Correo electrónico:</strong> [CORREO]</li>
-          <li><strong>Teléfono:</strong> [TELÉFONO]</li>
+          <li><strong>Correo electrónico:</strong> jeronimo.morales@merquellantas.com</li>
+          <li><strong>Teléfono:</strong> 3106605563</li>
           <li><strong>Horario de atención:</strong> lunes a viernes de 8:00 a.m. a 5:00 p.m. (hora local).</li>
           <li><strong>Formulario de contacto:</strong> Disponible en nuestra plataforma.</li>
         </ul>
@@ -232,9 +232,9 @@ const TerminosCondiciones = () => {
           Para cualquier consulta, comentario o solicitud relacionada con estos Términos y Condiciones, puede ponerse en contacto con nosotros a través de los siguientes medios:
         </p>
         <ul>
-          <li><strong>Correo electrónico:</strong> [CORREO]</li>
-          <li><strong>Teléfono:</strong> [TELÉFONO]</li>
-          <li><strong>Dirección:</strong> [DIRECCIÓN]</li>
+          <li><strong>Correo electrónico:</strong> jeronimo.morales@merquellantas.com</li>
+          <li><strong>Teléfono:</strong> 3106605563</li>
+          <li><strong>Dirección:</strong> carrera 80 #170-60</li>
         </ul>
       </section>
 

@@ -18,22 +18,24 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage('');
-
+  
     try {
       const res = await axios.post('https://tirepro.onrender.com/api/auth/login', formData);
       const token = res.data.token;
       localStorage.setItem('token', token);
-
+  
       const decodedToken = jwtDecode(token);
       const userId = decodedToken.user.id;
-
+  
+      // Get full user details, including profile image
       const userRes = await axios.get(`https://tirepro.onrender.com/api/auth/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      const userRole = userRes.data.role;
-      const companyId = userRes.data.companyId;
-
+  
+      const { role: userRole, companyId, profileImage } = userRes.data;
+localStorage.setItem('userImage', profileImage);  // Store the image in localStorage
+  
+      // Redirect based on role
       if (userRole === 'admin') {
         navigate('/home');
       } else {
@@ -46,6 +48,7 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <div className="login-container">
@@ -89,7 +92,7 @@ const Login = () => {
           </form>
         )}
         <div className="signup-link">
-          ¿No tienes cuenta? <a href="/signup">Contáctanos</a>
+          ¿No tienes cuenta? <a href="mailto:jeronimo.morales@merquellantas.com">Contáctanos</a>
         </div>
       </div>
     </div>

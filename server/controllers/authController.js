@@ -3,7 +3,6 @@ const bcrypt = require('bcryptjs');
 const { generateToken } = require('../utils/authUtils');
 
 // Registration controller
-// Registration controller
 const registerUser = async (req, res) => {
   const { name, email, password, company, role, placa, companyId } = req.body;
 
@@ -41,6 +40,9 @@ const registerUser = async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Default profile image
+    const defaultProfileImage = 'https://images.pexels.com/photos/12261472/pexels-photo-12261472.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+
     // Create and save the new user
     const newUser = new User({
       name,
@@ -50,7 +52,8 @@ const registerUser = async (req, res) => {
       companyId,
       role: userRole,
       placa: placasArray,
-      pointcount: 0
+      pointcount: 0,
+      profileImage: defaultProfileImage
     });
 
     await newUser.save();
@@ -60,8 +63,6 @@ const registerUser = async (req, res) => {
     res.status(500).json({ msg: 'Server error' });
   }
 };
-
-
 
 // Login controller
 const loginUser = async (req, res) => {
@@ -83,11 +84,37 @@ const loginUser = async (req, res) => {
   }
 };
 
+const updateProfileImage = async (req, res) => {
+  try {
+    const { userId, imageUrl } = req.body;
+
+    if (!userId || !imageUrl) {
+      return res.status(400).json({ msg: 'User ID and image URL are required.' });
+    }
+
+    // Find the user by ID and update the profile image
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found.' });
+    }
+
+    user.profileImage = imageUrl;
+    await user.save();
+
+    res.status(200).json({ msg: 'Profile image updated successfully.', profileImage: user.profileImage });
+  } catch (error) {
+    console.error('Error updating profile image:', error.message);
+    res.status(500).json({ msg: 'Server error.' });
+  }
+};
 
 // Get user by ID controller
 const getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.userId).select('name role email company companyId placa pointcount');
+    const user = await User.findById(req.params.userId).select(
+      'name role email company companyId placa pointcount profileImage'
+    );
+    
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
@@ -98,7 +125,8 @@ const getUserById = async (req, res) => {
       company: user.company,
       companyId: user.companyId,
       placa: user.placa,
-      pointcount: user.pointcount, // Include pointcount in response
+      pointcount: user.pointcount,
+      profileImage: user.profileImage,
     });
   } catch (error) {
     console.error('Error fetching user:', error.message);
@@ -173,4 +201,5 @@ module.exports = {
   updatePointCount, // Export the function
   getAllUsers,
   updatePlaca,
+  updateProfileImage,
 };

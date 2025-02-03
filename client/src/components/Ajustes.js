@@ -6,14 +6,17 @@ import './Ajustes.css';
 const MAX_USERS = 10;
 
 const Ajustes = () => {
-  const [userData, setUserData] = useState({ 
-    name: '', 
-    email: '', 
+  const [userData, setUserData] = useState({
+    name: '',
+    email: '',
     role: '',
     company: '',
-    placa: [] 
+    placa: [],
+    profileImage: '', // New state for profile image
   });
   const [companyUsers, setCompanyUsers] = useState([]);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -27,19 +30,32 @@ const Ajustes = () => {
         if (!token) {
           throw new Error('No token found');
         }
-
+  
+        // Fetch user data
         const userId = decodedToken.user.id;
-
         const userResponse = await axios.get(
           `https://tirepro.onrender.com/api/auth/users/${userId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-
-        const { name, email, role, company, placa } = userResponse.data;
-        setUserData({ name, email, role, company, placa });
-
+  
+        const { name, email, role, company, placa, profileImage } = userResponse.data;
+  
+        // Debug log for profile image
+        console.log('Fetched profileImage from backend:', profileImage);
+  
+        // Validate and fallback to default if needed
+        const validProfileImage = profileImage && profileImage.startsWith('http') 
+          ? profileImage 
+          : 'https://images.pexels.com/photos/12261472/pexels-photo-12261472.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+  
+        console.log('Final profileImage being used:', validProfileImage);
+  
+        // Update user data in state
+        setUserData({ name, email, role, company, placa, profileImage: validProfileImage });
+  
+        // Fetch company users if user is admin
         if (role === 'admin') {
           const allUsersResponse = await axios.get(
             'https://tirepro.onrender.com/api/auth/users',
@@ -47,11 +63,11 @@ const Ajustes = () => {
               headers: { Authorization: `Bearer ${token}` },
             }
           );
-
+  
           const usersWithSameCompany = allUsersResponse.data.filter(
             (user) => user.companyId === companyId
           );
-
+  
           setCompanyUsers(usersWithSameCompany);
         }
       } catch (error) {
@@ -61,40 +77,10 @@ const Ajustes = () => {
         setLoading(false);
       }
     };
-
+  
     fetchData();
   }, [companyId, token, decodedToken]);
-
-  const handlePlacaChange = async (userId, newPlacas) => {
-    try {
-      const response = await axios.put(
-        'https://tirepro.onrender.com/api/auth/update-placa',
-        {
-          userId,
-          placa: newPlacas,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      setCompanyUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          user._id === userId ? { ...user, placa: response.data.placa } : user
-        )
-      );
-
-      if (userId === decodedToken.user.id) {
-        setUserData(prev => ({
-          ...prev,
-          placa: response.data.placa
-        }));
-      }
-    } catch (error) {
-      console.error('Error updating placa:', error.message);
-      setError('Error updating placa. Please try again.');
-    }
-  };
+  
 
   const handleAddPlaca = (userId) => {
     const newPlaca = prompt('Enter the new placa:');
@@ -121,14 +107,94 @@ const Ajustes = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
+  
       const usersWithSameCompany = allUsersResponse.data.filter(
         (user) => user.companyId === companyId
       );
-
+  
       setCompanyUsers(usersWithSameCompany);
     } catch (error) {
       console.error('Error refreshing users list:', error.message);
+    }
+  };
+
+  const handlePlacaChange = async (userId, newPlacas) => {
+    try {
+      const response = await axios.put(
+        'https://tirepro.onrender.com/api/auth/update-placa',
+        {
+          userId,
+          placa: newPlacas,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+  
+      // Update the state with the modified user's placas
+      setCompanyUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user._id === userId ? { ...user, placa: response.data.placa } : user
+        )
+      );
+  
+      // Update current user's data if applicable
+      if (userId === decodedToken.user.id) {
+        setUserData((prev) => ({
+          ...prev,
+          placa: response.data.placa,
+        }));
+      }
+    } catch (error) {
+      console.error('Error updating placa:', error.message);
+      setError('Error updating placa. Please try again.');
+    }
+  };
+  
+
+  const handleFileChange = (e) => {
+    setSelectedFile(e.target.files[0]);
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      setMessage('Please select a file to upload.');
+      return;
+    }
+
+    try {
+      // Get pre-signed URL for S3
+const { data } = await axios.post('https://tirepro.onrender.com/api/s3/presigned-url', {
+  userId: decodedToken.user.id,
+  fileName: selectedFile.name,
+  uploadType: 'profile',  // Make sure this is consistent with the backend logic
+});
+
+
+      // Upload image to S3
+      await axios.put(data.url, selectedFile, {
+        headers: {
+          'Content-Type': selectedFile.type,
+        },
+      });
+
+      // Update the profile image in the backend
+      await axios.put(
+        'https://tirepro.onrender.com/api/auth/update-profile-image',
+        {
+          userId: decodedToken.user.id,
+          imageUrl: data.imageUrl || data.publicUrl,  // Ensure the correct URL is passed
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );      
+      
+
+      // Update the local state with the new profile image
+      setUserData((prev) => ({ ...prev, profileImage: data.imageUrl }));
+      setMessage('Profile image updated successfully.');
+    } catch (error) {
+      console.error('Error uploading profile image:', error);
+      setMessage('Failed to upload profile image.');
     }
   };
 
@@ -162,6 +228,25 @@ const Ajustes = () => {
         <p><strong>Empresa:</strong> {userData.company}</p>
         <p><strong>Rol:</strong> {userData.role === 'admin' ? 'Administrador' : 'Usuario'}</p>
         
+        <div className="profile-image-section">
+          <h4>Imagen de Perfil</h4>
+          <img 
+            src={userData.profileImage} 
+            alt="Profile" 
+            className="profile-image" 
+            style={{
+              height:"150px",
+              width:"150px"
+            }}
+          />
+          <input type="file" onChange={handleFileChange} accept="image/*" />
+          <button onClick={handleUpload} className="upload-btn">
+            Actualizar Imagen de Perfil
+          </button>
+        </div>
+
+        {message && <p className="upload-message">{message}</p>}
+
         {/* Display user's placas if they are a regular user */}
         {userData.role === 'regular' && (
           <div className="user-placas">

@@ -214,3 +214,30 @@
 .dark-mode .scrollbar {
   scrollbar-color: #4a90e2 #1a1a1a;
 }
+
+
+
+.economic-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.economic-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2; /* Increased z-index */
+}
+
+.economic-table tbody tr td:first-child,
+.economic-table thead tr th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+.economic-table-container {
+  overflow: auto;
+  max-width: 600px;
+  max-height: 500px;
+}

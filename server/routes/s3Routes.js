@@ -13,22 +13,29 @@ const s3Client = new S3Client({
 });
 
 router.post('/s3/presigned-url', async (req, res) => {
-  const { tireId, fileName } = req.body;
+  const { userId, fileName, uploadType } = req.body;
 
-  if (!tireId || !fileName) {
-    return res.status(400).send('Tire ID and file name are required');
+  if (!userId || !fileName) {
+    return res.status(400).send('User ID and file name are required');
   }
 
   try {
+    let key;
+    if (uploadType === 'profile') {
+      key = `users/${userId}/profile/${fileName}`;
+    } else {
+      key = `tires/${userId}/${fileName}`; // Existing logic for tires
+    }
+
     const command = new PutObjectCommand({
       Bucket: process.env.AWS_BUCKET_NAME,
-      Key: `tires/${tireId}/${fileName}`,
+      Key: key,
       ContentType: 'image/jpeg',
-      ACL: 'public-read', // Make file publicly readable
+      ACL: 'public-read',
     });
 
     const url = await getSignedUrl(s3Client, command, { expiresIn: 60 });
-    res.json({ url });
+    res.json({ url, imageUrl: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}` });
   } catch (error) {
     console.error('Error generating pre-signed URL:', error);
     res.status(500).send('Error generating pre-signed URL');

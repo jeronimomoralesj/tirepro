@@ -16,7 +16,6 @@ body {
   padding: 0;
   font-family: 'Inter', sans-serif;
   color: var(--color-text);
-  background: var(--color-background);
   line-height: 1.5;
 }
 
@@ -693,5 +692,214 @@ body {
   .app-section__store-image {
     width: 150px;
     height: 50px;
+  }
+}
+
+
+/* Add these styles to your LandingPage.css file */
+
+.data-deletion {
+  padding: 100px 0;
+  background: var(--color-white);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.data-deletion__container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.data-deletion__content {
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.data-deletion__title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: var(--color-text);
+}
+
+.data-deletion__description {
+  font-size: 1.25rem;
+  color: var(--color-secondary);
+  margin-bottom: 1.5rem;
+  line-height: 1.7;
+}
+
+.data-deletion__info {
+  font-size: 1.1rem;
+  color: var(--color-secondary);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.data-deletion__form {
+  margin-bottom: 2rem;
+}
+
+.data-deletion__form-group {
+  margin-bottom: 1.5rem;
+}
+
+.data-deletion__input {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.75rem;
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+}
+
+.data-deletion__button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.data-deletion__button:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-2px);
+}
+
+.data-deletion__button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.data-deletion__message {
+  margin-top: 1rem;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .data-deletion {
+    padding: 60px 0;
+  }
+
+  .data-deletion__title {
+    font-size: 2rem;
+  }
+
+  .data-deletion__description {
+    font-size: 1.1rem;
+  }
+
+  .data-deletion__info {
+    font-size: 1rem;
+  }
+}
+
+/* Add this to your existing CSS, replacing or supplementing dark mode styles */
+:root {
+  --color-dark-background: #121212;
+  --color-dark-surface: #1E1E1E;
+  --color-dark-text: #E0E0E0;
+  --color-dark-secondary: #A0A0A0;
+}
+
+/* Dark mode global styles */
+body.dark-mode {
+  background-color: var(--color-dark-background);
+  color: var(--color-dark-text);
+}
+
+/* Dark mode specific adjustments */
+.dark-mode {
+  /* Navigation */
+  .nav {
+    background: rgba(30, 30, 30, 0.9);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .nav__link {
+    color: var(--color-dark-secondary);
+  }
+
+  .nav__link:hover {
+    color: var(--color-dark-text);
+  }
+
+  /* Hero Section */
+  .hero__description {
+    color: var(--color-dark-secondary);
+  }
+
+  .hero__highlight {
+    background: linear-gradient(to right, #4f46e5, #6366f1);
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  /* Features Section */
+  .features {
+    background: var(--color-dark-background);
+  }
+
+  .feature-card {
+    background: var(--color-dark-surface);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .feature-card__description {
+    color: var(--color-dark-secondary);
+  }
+
+  /* Pricing Section */
+  .pricing-card {
+    background: var(--color-dark-surface);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .pricing-card__description,
+  .pricing-card__period {
+    color: var(--color-dark-secondary);
+  }
+
+  /* About Section */
+  .about {
+    background: var(--color-dark-background);
+  }
+
+  .founder-card {
+    background: var(--color-dark-surface);
+  }
+
+  .founder-card__name {
+    color: var(--color-dark-text);
+  }
+
+  .founder-card__role {
+    color: #6366f1; /* Adjusted primary color for dark mode */
+  }
+
+  .founder-card__bio {
+    color: var(--color-dark-secondary);
+  }
+
+  /* App Section */
+  .app-section {
+    background: var(--color-dark-background);
+  }
+
+  .app-section__title {
+    color: var(--color-dark-text);
+  }
+
+  .app-section__description {
+    color: var(--color-dark-secondary);
   }
 }

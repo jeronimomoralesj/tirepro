@@ -38,6 +38,7 @@ const Sidebar = ({ darkMode, setDarkMode }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userName, setUserName] = useState('');
   const [userRole, setUserRole] = useState('');
+  const [profileImage, setProfileImage] = useState(''); // Store user profile image
 
   const isActive = (path) => location.pathname === path;
 
@@ -54,26 +55,6 @@ const Sidebar = ({ darkMode, setDarkMode }) => {
     setDarkMode(!darkMode);
   };
 
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      const sidebar = document.querySelector('.sidebar');
-      const burgerIcon = document.querySelector('.burger-icon');
-      
-      if (isMenuOpen && sidebar && !sidebar.contains(event.target) && !burgerIcon.contains(event.target)) {
-        setIsMenuOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isMenuOpen]);
-
-  // Close menu when route changes
-  useEffect(() => {
-    setIsMenuOpen(false);
-  }, [location]);
-
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
@@ -82,12 +63,20 @@ const Sidebar = ({ darkMode, setDarkMode }) => {
           const decodedToken = jwtDecode(token);
           const userId = decodedToken.user.id;
 
-          const response = await axios.get(`https://tirepro.onrender.com/api/auth/users/${userId}`, {
+          const response = await axios.get(`http://localhost:5001/api/auth/users/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
-          const { name, role } = response.data;
+          const { name, role, profileImage } = response.data;
+
           setUserName(name.length > 16 ? name.substring(0, 16) + '...' : name);
           setUserRole(role);
+
+          // Use either the fetched profile image or fallback to the default
+          const validProfileImage = profileImage && profileImage.startsWith('http') 
+            ? profileImage 
+            : 'https://images.pexels.com/photos/12261472/pexels-photo-12261472.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+
+          setProfileImage(validProfileImage);
 
           // If role is neither admin nor regular, redirect to login
           if (role !== 'admin' && role !== 'regular') {
@@ -125,7 +114,7 @@ const Sidebar = ({ darkMode, setDarkMode }) => {
             <img src={logo_text} alt="Logo text" style={{ height: '20px' }} />
           </span>
         </div>
-        
+
         <div className="mobile-actions">
           <div className="theme-toggle" onClick={toggleDarkMode}>
             <i className={`bx ${darkMode ? 'bx-sun' : 'bx-moon'}`}></i>
@@ -158,11 +147,10 @@ const Sidebar = ({ darkMode, setDarkMode }) => {
         ) : null}
       </nav>
 
-
       <div className="profile-section">
         <div className="profile">
           <img
-            src="https://images.pexels.com/photos/12261472/pexels-photo-12261472.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+            src={profileImage}
             alt="User"
             className="profile-image"
           />
