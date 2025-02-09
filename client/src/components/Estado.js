@@ -58,9 +58,11 @@ const Estado = () => {
         const decodedToken = getDecodedToken();
         const userId = decodedToken?.user?.id;
         if (!userId) return;
+        const companyId = decodedToken?.user?.companyId;
+      if (!companyId) return;
 
         const response = await axios.get(
-          `https://tirepro.onrender.com/api/tires/user/${userId}`,
+          `https://tirepro.onrender.com/api/tires/user/${companyId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
             signal: abortController.signal

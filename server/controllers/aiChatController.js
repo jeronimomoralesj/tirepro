@@ -357,7 +357,6 @@ Datos disponibles: ${JSON.stringify(resultDetails)}
 
 
 
-
 // Cache to store analysis results for repeated queries
 const analysisCache = new Map();
 

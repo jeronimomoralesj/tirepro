@@ -36,9 +36,11 @@ const [selectedBanda, setSelectedBanda] = useState('');
         const decodedToken = jwtDecode(token);
         const userId = decodedToken?.user?.id;
         if (!userId) return console.error('User ID not found in token');
+        const companyId = decodedToken?.user?.companyId;  // Changed from userId to companyId
+      if (!companyId) return console.error('Company ID not found in token');
   
         // Fetch tire data
-        const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
+        const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${companyId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
   

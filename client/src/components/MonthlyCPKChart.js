@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import './MonthlyCPKChart.css';
@@ -15,15 +15,15 @@ const MonthlyCPKChart = () => {
       try {
         const token = localStorage.getItem('token');
         const decoded = jwtDecode(token);
-        const userId = decoded.user.id;
+        const companyId = decoded.user.companyId;  // Get companyId from token
 
-        console.log(`Attempting to update CPK data for user ${userId}`);
+        console.log(`Attempting to update CPK data for company ${companyId}`);
 
         // Trigger update in backend
-        await axios.post('https://tirepro.onrender.com/api/historics/update', { user: userId });
+        await axios.post('https://tirepro.onrender.com/api/historics/update', { company: companyId });
 
-        // Fetch updated CPK data
-        const response = await axios.get(`https://tirepro.onrender.com/api/historics/${userId}`);
+        // Fetch updated CPK data for the company
+        const response = await axios.get(`https://tirepro.onrender.com/api/historics/company/${companyId}`);
         const sortedData = response.data.cpk_mes
           .sort((a, b) => new Date(b.date) - new Date(a.date))
           .slice(0, 5)
@@ -35,6 +35,7 @@ const MonthlyCPKChart = () => {
         console.error("Error fetching CPK data:", error);
       }
     };
+
     fetchCPKData();
   }, []);
 

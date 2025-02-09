@@ -213,7 +213,7 @@ const Uso = () => {
     <div className="uso-container">
       <h2 className="uso-title">Buscar Llanta por ID o Placa</h2>
       <div className="search-bar">
-        <FaSearch className="search-icon" />
+
         <input
           type="text"
           placeholder="Llanta ID o Placa..."

@@ -62,6 +62,7 @@ const CargaIndividual = () => {
     try {
       const token = localStorage.getItem('token');
       const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
+      const companyId = token ? JSON.parse(atob(token.split('.')[1])).user.companyId : null;
 
       if (!userId) {
         alert('Usuario no identificado.');
@@ -69,7 +70,7 @@ const CargaIndividual = () => {
       }
 
       const response = await axios.get(
-        `https://tirepro.onrender.com/api/tires/user/${userId}`,
+        `https://tirepro.onrender.com/api/tires/user/${companyId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -132,6 +133,7 @@ const CargaIndividual = () => {
   
     const token = localStorage.getItem('token');
     const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
+    const companyId = token ? JSON.parse(atob(token.split('.')[1])).user.companyId : null;
   
     if (!userId) {
       alert('Usuario no identificado.');
@@ -140,7 +142,7 @@ const CargaIndividual = () => {
   
     try {
       const response = await axios.get(
-        `https://tirepro.onrender.com/api/tires/user/${userId}`,
+        `https://tirepro.onrender.com/api/tires/user/${companyId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
   
@@ -188,6 +190,7 @@ const CargaIndividual = () => {
   const handleSingleTireUpload = async () => {
     const token = localStorage.getItem('token');
     const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
+    const companyId = token ? JSON.parse(atob(token.split('.')[1])).user.companyId : null;
   
     if (!userId) {
       alert('Usuario no identificado.');

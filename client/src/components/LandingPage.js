@@ -87,54 +87,26 @@ const LandingPage = () => {
         </div>
 
         <div className="hero__image">
-          <img 
-            src={LandingImg} 
-            alt="Dashboard Preview" 
-            className="hero__dashboard"
-          />
+        <img 
+  src={LandingImg} 
+  alt="Vista previa del dashboard de gestión de flotas de Tire Pro" 
+  className="hero__dashboard"
+/>
+
           <div className="hero__image-overlay"></div>
         </div>
       </section>
 
       {/* Features Section */}
       <section className="features">
-        <div className="features__container">
-          <div className="features__header">
-            <h2 className="features__title">Funcionalidades Principales</h2>
-            <p className="features__subtitle">
-              Todo lo que necesita para gestionar su flota de manera eficiente
-            </p>
-          </div>
+  <div className="features__header">
+    <h2 className="features__title">Características Clave para la Gestión de Llantas</h2>
+    <p className="features__subtitle">
+      Todo lo necesario para gestionar su flota de manera más eficiente
+    </p>
+  </div>
+</section>
 
-          <div className="features__grid">
-            {[
-              {
-                icon: <Truck />,
-                title: 'Monitoreo en Tiempo Real',
-                description: 'Seguimiento continuo del estado y rendimiento de su flota con actualizaciones instantáneas.'
-              },
-              {
-                icon: <GitBranch />,
-                title: 'Análisis Predictivo',
-                description: 'Anticipe necesidades de mantenimiento y optimice la vida útil de sus neumáticos.'
-              },
-              {
-                icon: <Activity />,
-                title: 'Reportes Detallados',
-                description: 'Informes completos y personalizables para una mejor toma de decisiones.'
-              }
-            ].map((feature, index) => (
-              <div key={index} className="feature-card">
-                <div className="feature-card__icon">
-                  {feature.icon}
-                </div>
-                <h3 className="feature-card__title">{feature.title}</h3>
-                <p className="feature-card__description">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
 
       {/* Pricing Section */}
@@ -257,7 +229,7 @@ const LandingPage = () => {
         decisiones informadas al instante.
       </p>
       <div className="app-section__buttons">
-        <a href="#" className="app-section__store-button">
+        <a href="https://apps.apple.com/us/app/tire-pro/id6741497732" className="app-section__store-button">
           <img 
             src="https://cdn.pixabay.com/photo/2021/09/22/16/07/app-store-6647240_1280.png" 
             alt="Download on App Store" 

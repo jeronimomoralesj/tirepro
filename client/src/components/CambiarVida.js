@@ -25,9 +25,10 @@ const CambiarVida = () => {
 
       const decodedToken = JSON.parse(atob(token.split('.')[1]));
       const userId = decodedToken?.user?.id;
+      const companyId = decodedToken?.user?.companyId;
 
       // Fetch tire data by user and `llanta`
-      const tireResponse = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
+      const tireResponse = await axios.get(`https://tirepro.onrender.com/api/tires/user/${companyId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -44,7 +45,7 @@ const CambiarVida = () => {
       }
 
       // Fetch event data for the same tire
-      const eventResponse = await axios.get(`https://tirepro.onrender.com/api/events/user/${userId}`, {
+      const eventResponse = await axios.get(`https://tirepro.onrender.com/api/events/user/${companyId}`, {
         params: { llanta: searchTerm },
         headers: { Authorization: `Bearer ${token}` },
       });

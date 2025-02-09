@@ -22,9 +22,10 @@ const CambiarOtherEvents = () => {
 
       const decodedToken = JSON.parse(atob(token.split('.')[1]));
       const userId = decodedToken?.user?.id;
+      const companyId = decodedToken?.user?.companyId;
 
       // Fetch tire data
-      const tireResponse = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
+      const tireResponse = await axios.get(`https://tirepro.onrender.com/api/tires/user/${companyId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -39,7 +40,7 @@ const CambiarOtherEvents = () => {
       }
 
       // Fetch event data
-      const eventResponse = await axios.get(`https://tirepro.onrender.com/api/events/user/${userId}`, {
+      const eventResponse = await axios.get(`https://tirepro.onrender.com/api/events/user/${companyId}`, {
         params: { llanta: searchTerm },
         headers: { Authorization: `Bearer ${token}` },
       });

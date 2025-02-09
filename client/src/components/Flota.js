@@ -38,13 +38,19 @@ const Flota = () => {
         if (token) {
           const decodedToken = jwtDecode(token);
           const userId = decodedToken?.user?.id;
+          const companyId = decodedToken?.user?.companyId;  // Get companyId from token
+
+        if (!companyId) {
+          console.error("Company ID not found in token");
+          return;
+        }
 
           if (!userId) {
             console.error("User ID not found in token");
             return;
           }
 
-          const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
+          const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${companyId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
 

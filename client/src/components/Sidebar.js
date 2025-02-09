@@ -63,7 +63,7 @@ const Sidebar = ({ darkMode, setDarkMode }) => {
           const decodedToken = jwtDecode(token);
           const userId = decodedToken.user.id;
 
-          const response = await axios.get(`http://localhost:5001/api/auth/users/${userId}`, {
+          const response = await axios.get(`https://tirepro.onrender.com/api/auth/users/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           const { name, role, profileImage } = response.data;

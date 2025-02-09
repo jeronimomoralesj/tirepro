@@ -22,15 +22,21 @@ const AgregarInspeccion = () => {
     setLoading(true);
     const token = localStorage.getItem('token');
     const userId = token ? JSON.parse(atob(token.split('.')[1])).user.id : null;
-
+    const companyId = token ? JSON.parse(atob(token.split('.')[1])).user.companyId : null;  // Changed to companyId
     if (!userId) {
       alert("Usuario no identificado.");
       setLoading(false);
       return;
     }
 
+    if (!companyId) {
+      alert("ID de la empresa no encontrado.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
+      const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${companyId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

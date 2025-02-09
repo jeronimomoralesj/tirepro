@@ -32,7 +32,18 @@ const Home = () => {
   const [charts, setCharts] = useState([{ id: 0 }]); // Array to store chart configurations
   const [includeEndOfLife, setIncludeEndOfLife] = useState(false); // New state for including "fin" tires
 
-  // Fetch tire data on mount
+  const calculateCambioInmediatoCount = (tires) => {
+    return tires.filter((tire) => {
+      const minDepth = Math.min(
+        ...tire.profundidad_int.map((p) => p.value),
+        ...tire.profundidad_cen.map((p) => p.value),
+        ...tire.profundidad_ext.map((p) => p.value)
+      );
+      return minDepth <= 5 && tire.placa !== "fin"; // Exclude tires with "placa" equal to "fin"
+    }).length;
+  };
+
+  // Fetch tire data and perform necessary calculations
   useEffect(() => {
     const fetchTireData = async () => {
       try {
@@ -40,18 +51,30 @@ const Home = () => {
         if (token) {
           const decodedToken = jwtDecode(token);
           const userId = decodedToken?.user?.id;
-    
+          const companyId = decodedToken?.user?.companyId; 
+
           if (!userId) {
             console.error('User ID not found in token');
             return;
           }
-    
-          const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${userId}`, {
+
+          if (!companyId) {
+            console.error('Company ID not found in token');
+            return;
+          }
+
+          // Fetch tire data
+          const response = await axios.get(`https://tirepro.onrender.com/api/tires/user/${companyId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
+
           const tireData = response.data;
           setTires(tireData);
-    
+
+          // Calculate and set "Cambio Inmediato" count
+          const cambioInmediatoCount = calculateCambioInmediatoCount(tireData);
+          setCambioInmediatoCount(cambioInmediatoCount);
+
           // Calculate "Inversión Mes"
           const currentMonth = new Date().getMonth() + 1;
           const currentYear = new Date().getFullYear();
@@ -62,18 +85,17 @@ const Home = () => {
               latestVida.month === currentMonth &&
               latestVida.year === currentYear
             ) {
-              return sum + tire.costo; // Add the tire's cost if the latest `vida` entry is in the same month/year
+              return sum + tire.costo; // Sum cost if `vida` matches current month/year
             }
             return sum;
           }, 0);
-    
+
           setLastMonthInvestment(investmentThisMonth);
         }
       } catch (error) {
         console.error('Error fetching tire data:', error);
       }
     };
-    
 
     fetchTireData();
   }, []);
@@ -257,7 +279,9 @@ const Home = () => {
         >
           Notificaciones (
           {cambioInmediatoCount > 0 && (
-            <span style={{color:"red"}} className="notification-badge">{cambioInmediatoCount}</span>
+            <span className="notification-badge">
+              {cambioInmediatoCount}
+            </span>
           )}
           )
         </button>
@@ -284,7 +308,7 @@ const Home = () => {
           <div className="stat-box">
             <span className="stat-value">${totalCost.toLocaleString()}</span>
             <br />
-            <span className="stat-label">Inversión Mes</span>
+            <span className="stat-label">Gasto Mes</span>
           </div>
           <div className="stat-box">
             <span className="stat-value">${totalCost.toLocaleString()}</span>
