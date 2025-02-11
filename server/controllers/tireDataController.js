@@ -211,8 +211,6 @@ const uploadTireData = async (req, res) => {
   }
 };
 
-
-
 // Update historical fields
 const updateTireField = async (req, res) => {
   try {

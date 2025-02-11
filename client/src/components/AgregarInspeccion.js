@@ -114,27 +114,29 @@ const AgregarInspeccion = () => {
     return projectedKms > 0 ? costo / projectedKms : 0;
   };
 
-  const uploadImageToS3 = async (tireId, file) => {
+  const uploadImageToS3 = async (userId, file, uploadType = 'tires') => {
     try {
       const { data } = await axios.post('https://tirepro.onrender.com/api/s3/presigned-url', {
-        tireId,
+        userId,           // Correct field
         fileName: file.name,
+        uploadType,       // Set default as 'tires', can be 'profile' if needed
       });
   
-      // Upload the file to the S3 presigned URL
+      // Upload the file to the S3 pre-signed URL
       await axios.put(data.url, file, {
         headers: {
           'Content-Type': file.type,
         },
       });
   
-      return data.url.split('?')[0]; // Return the uploaded file URL without query parameters
+      return data.imageUrl; // Return the uploaded file URL
     } catch (error) {
       console.error('Error uploading image:', error);
       alert('Error al subir imagen.');
       return null;
     }
   };
+  
   
 
   const handleSaveUpdates = async () => {
@@ -180,8 +182,8 @@ const AgregarInspeccion = () => {
   
           // Upload the image and get the URL
           const imageUrl = selectedFiles[tire._id]
-            ? await uploadImageToS3(tire._id, selectedFiles[tire._id])
-            : null;
+  ? await uploadImageToS3(userId, selectedFiles[tire._id], 'tires')  // Correct params
+  : null;
   
           const updatesArray = [
             { tireId: tire._id, field: 'profundidad_int', newValue: profundidades.profundidad_int || 0 },

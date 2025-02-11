@@ -64,6 +64,13 @@ const Flota = () => {
     fetchTireData();
   }, []);
 
+  const stripTime = (date) => {
+    const strippedDate = new Date(date);
+    strippedDate.setHours(0, 0, 0, 0); // Set time to 00:00:00
+    return strippedDate;
+  };
+  
+
   // Filter tires based on selected filters and toggle `vida` "fin" inclusion
   const filteredTires = useMemo(() => {
     return tires.filter((tire) => {
@@ -131,10 +138,12 @@ const Flota = () => {
       setAverageCPK(validCPKCount ? totalCPK / validCPKCount : 0);
       setAverageProjectedCPK(validProjectedCPKCount ? totalProjectedCPK / validProjectedCPKCount : 0);
 
-      const expiredInspectionCount = filteredTires.filter((tire) => {
-        const inspectionDate = new Date(tire.ultima_inspeccion);
-        return inspectionDate < new Date();
-      }).length;
+      const currentDate = stripTime(new Date());
+const expiredInspectionCount = filteredTires.filter((tire) => {
+  const lastInspectionDate = stripTime(new Date(tire.ultima_inspeccion));
+  return lastInspectionDate < currentDate;
+}).length;
+
 
       const placaCount = new Set(filteredTires.map((tire) => tire.placa)).size;
       const llantasCount = filteredTires.length;
