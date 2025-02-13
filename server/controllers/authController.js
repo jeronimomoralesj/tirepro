@@ -69,7 +69,7 @@ const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email }).select('id companyId password');
+    const user = await User.findOne({ email }).select('id companyId name role email password');
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ msg: 'Invalid email or password' });
     }

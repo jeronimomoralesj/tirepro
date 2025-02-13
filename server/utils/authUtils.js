@@ -30,13 +30,3 @@ module.exports = {
   generateToken,
   verifyToken,
 };
-
-
-
-
-
-
-
-
-
-
