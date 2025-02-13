@@ -168,24 +168,28 @@ const CargaIndividual = () => {
   const uploadImageToS3 = async (file) => {
     try {
       const token = localStorage.getItem('token');
-      const { data } = await axios.post('https://tirepro.onrender.com/api/s3/presigned-url', {
-        tireId: individualTire.llanta,
-        fileName: file.name,
-      }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+      const { data } = await axios.post(
+        'https://tirepro.onrender.com/api/s3/presigned-url',
+        {
+          userId: individualTire.llanta || 'default',  // Use llanta as userId or fallback to 'default'
+          fileName: file.name,
+          uploadType: 'tires',
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+  
       await axios.put(data.url, file, {
         headers: { 'Content-Type': file.type },
       });
-
-      return data.url.split('?')[0]; // Return the uploaded file URL without query parameters
+  
+      return data.imageUrl;  // Return the uploaded image URL
     } catch (error) {
       console.error('Error uploading image:', error);
       alert('Error al subir imagen.');
       return null;
     }
   };
+  
 
   const handleSingleTireUpload = async () => {
     const token = localStorage.getItem('token');
@@ -231,9 +235,10 @@ const CargaIndividual = () => {
               : 0
             : 0;
   
-        const imageUrl = imageFile 
-        ? await uploadImageToS3(imageFile) 
-        : DEFAULT_TIRE_IMAGE;
+            const imageUrl = imageFile 
+            ? await uploadImageToS3(imageFile) 
+            : DEFAULT_TIRE_IMAGE;
+          
   
         const newTire = {
           ...individualTire,

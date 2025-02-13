@@ -7,7 +7,8 @@ const {
   updateInspectionDate,
   createTire,
   updateNonHistorics,
-  addPrimeraVidaDetails, // Import the function
+  addPrimeraVidaDetails,
+  updateTirePositions
 } = require('../controllers/tireDataController');
 const router = express.Router();
 const multer = require('multer');
@@ -36,5 +37,8 @@ router.put('/update-nonhistorics', updateNonHistorics);
 
 // Add primera_vida details
 router.post('/add-primera-vida', addPrimeraVidaDetails); // New route
+
+router.put('/update-positions', updateTirePositions);
+
 
 module.exports = router;

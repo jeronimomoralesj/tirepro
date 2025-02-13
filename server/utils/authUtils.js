@@ -7,6 +7,9 @@ const generateToken = (user) => {
       user: {
         id: user._id.toString(),
         companyId: user.companyId, // Add companyId to the payload
+        email: user.email,
+        name: user.name,  
+        role: user.role,
       },
     },
     process.env.JWT_SECRET,

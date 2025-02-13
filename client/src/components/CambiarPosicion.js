@@ -183,22 +183,36 @@ const CambiarPosicion = () => {
 
   const saveChanges = async () => {
     try {
-      const updatedPositions = [...tires, ...swappedTires].map(tire => ({
+      const updatedPositions = tires.map((tire) => ({
         tireId: tire._id,
-        position: tire.pos?.at(-1)?.value || null,
-        placa: tire.placa
+        position: tire.pos?.at(-1)?.value || 1, // Set to 1 if missing
+        placa: tire.placa || 'inventario', // Move to inventory if no placa
       }));
-
-      await axios.post(
-        `https://tirepro.onrender.com/api/tires/update-positions`,
-        { positions: updatedPositions },
+  
+      // Ensure swapped tires are correctly moved to inventory
+      const inventoryPositions = swappedTires.map((tire) => ({
+        tireId: tire._id,
+        position: 1, // Always 1 in inventory
+        placa: 'inventario',
+      }));
+  
+      const finalPositions = [...updatedPositions, ...inventoryPositions];
+  
+      await axios.put(
+        'https://tirepro.onrender.com/api/tires/update-positions',
+        { positions: finalPositions },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+  
+      window.alert('Éxito', 'Las posiciones de las llantas han sido actualizadas.');
       setChanges([]);
     } catch (error) {
       console.error('Error saving tire positions:', error);
+      window.alert('Error', 'No se pudieron guardar los cambios.');
     }
   };
+  
+  
 
   const renderAxle = (axleConfig, tiresForTipovhc, tipovhc, axleNumber, placa) => {
     return (

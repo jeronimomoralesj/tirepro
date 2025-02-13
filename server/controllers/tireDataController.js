@@ -211,6 +211,70 @@ const uploadTireData = async (req, res) => {
   }
 };
 
+const updateTirePositions = async (req, res) => {
+  try {
+    const { positions } = req.body;
+
+    if (!Array.isArray(positions) || positions.length === 0) {
+      return res.status(400).json({ msg: "Invalid positions array." });
+    }
+
+    const currentDate = new Date();
+    const day = currentDate.getDate();
+    const month = currentDate.getMonth() + 1; // Months are 0-based
+    const year = currentDate.getFullYear();
+
+    const updatePromises = positions.map(async (pos) => {
+      const { tireId, position, placa } = pos;
+      if (!tireId || position === undefined || !placa) return null;
+
+      // ✅ 1️⃣ Get latest kilometraje_actual & frente from other tires in the same placa
+      const otherTires = await TireData.find({ placa, _id: { $ne: tireId } }).lean();
+      
+      let latestKilometraje = 0;
+      let latestFrente = null;
+
+      if (otherTires.length > 0) {
+        // Find the tire with the most recent kilometraje_actual entry
+        latestKilometraje = otherTires
+          .map(t => t.kilometraje_actual?.at(-1)?.value || 0)
+          .reduce((max, cur) => Math.max(max, cur), 0);
+
+        // Find any valid frente value
+        latestFrente = otherTires.find(t => t.frente)?.frente || null;
+      }
+
+      // ✅ 2️⃣ Update the tire's position, placa, kilometraje_actual & frente
+      return await TireData.findByIdAndUpdate(
+        tireId,
+        {
+          $push: {
+            pos: { day, month, year, value: position } // ✅ Append historical position
+          },
+          $set: {
+            placa, // ✅ Update the placa
+            kilometraje_actual: latestKilometraje > 0 
+              ? [{ day, month, year, value: latestKilometraje }] 
+              : [], // ✅ If no valid value, reset it
+            frente: latestFrente || "" // ✅ If no valid value, reset it
+          }
+        },
+        { new: true }
+      );
+    });
+
+    await Promise.all(updatePromises);
+
+    res.status(200).json({ msg: "Tire positions updated successfully with updated kilometraje_actual and frente." });
+  } catch (error) {
+    console.error("Error updating tire positions:", error);
+    res.status(500).json({ msg: "Server error.", error: error.message });
+  }
+};
+
+
+
+
 // Update historical fields
 const updateTireField = async (req, res) => {
   try {
@@ -499,4 +563,5 @@ module.exports = {
   updateNonHistorics,
   getTireDataByCompany,
   addPrimeraVidaDetails,
+  updateTirePositions
 };
