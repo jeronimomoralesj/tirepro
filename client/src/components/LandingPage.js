@@ -59,7 +59,7 @@ const LandingPage = () => {
             <a onClick={() => scrollToSection('pricing')} className="nav__link">Precios</a>
             <a onClick={() => scrollToSection('about')} className="nav__link">Nosotros</a>
             <Link to="/login" className="nav__link">Iniciar Sesión</Link>
-            <Link to="/signup" className="nav__button">
+            <Link to="mailto:jeronimo.morales@merquellantas.com" className="nav__button">
               Quiero iniciar
               <ChevronRight className="icon" />
             </Link>
@@ -71,17 +71,16 @@ const LandingPage = () => {
       <section className="hero">
         <div className="hero__container">
           <h1 className="hero__title">
-            Gestione su Flota con <span className="hero__highlight">Inteligencia</span>
+          Gestión <span className="hero__highlight">Inteligente de Llantas </span>para tu Flota
           </h1>
           <p className="hero__description">
-            Optimice el rendimiento de sus llantas y reduzca costos operativos con nuestra 
-            plataforma integral de gestión de flotas.
+          Optimice el rendimiento de sus llantas y reduzca costos operativos con nuestra plataforma integral de gestión de flotas.  TirePro le brinda el control total.
           </p>
           <div className="hero__buttons">
-            <button className="button button--primary">
+            <a href='mailto:jeronimo.morales@merquellantas.com'><button className="button button--primary">
               Comenzar Ahora
               <ChevronRight className="icon" />
-            </button>
+            </button></a>
 
           </div>
         </div>
@@ -100,9 +99,9 @@ const LandingPage = () => {
       {/* Features Section */}
       <section className="features">
   <div className="features__header">
-    <h2 className="features__title">Características Clave para la Gestión de Llantas</h2>
+    <h2 className="features__title">Características Clave para la Gestión Eficaz de Llantas</h2>
     <p className="features__subtitle">
-      Todo lo necesario para gestionar su flota de manera más eficiente
+    Todo lo que necesita para maximizar la vida útil de sus llantas y optimizar su flota.
     </p>
   </div>
 </section>
@@ -124,8 +123,8 @@ const LandingPage = () => {
               <div className="pricing-card__header">
                 <h3 className="pricing-card__title">Básico</h3>
                 <div className="pricing-card__price">
-                  <span className="pricing-card__amount">$1,000,000</span>
-                  <span className="pricing-card__period">/mes</span>
+                  <span className="pricing-card__amount">$29,000</span>
+                  <span className="pricing-card__period">/llanta mes</span>
                 </div>
                 <p className="pricing-card__description">
                   Perfecto para flotas pequeñas
@@ -142,7 +141,7 @@ const LandingPage = () => {
                 </div>
                 <div className="pricing-card__feature">
                   <CheckCircle className="pricing-card__icon" />
-                  <span>Reportes mensuales</span>
+                  <span>Reportes de inspección</span>
                 </div>
               </div>
               <button className="pricing-card__button">Seleccionar Plan</button>
@@ -153,8 +152,8 @@ const LandingPage = () => {
               <div className="pricing-card__header">
                 <h3 className="pricing-card__title">Profesional</h3>
                 <div className="pricing-card__price">
-                  <span className="pricing-card__amount">$4,000,000</span>
-                  <span className="pricing-card__period">/mes</span>
+                  <span className="pricing-card__amount">$21,000</span>
+                  <span className="pricing-card__period">/llanta mes</span>
                 </div>
                 <p className="pricing-card__description">
                   Para flotas en crecimiento
@@ -163,7 +162,7 @@ const LandingPage = () => {
               <div className="pricing-card__features">
                 <div className="pricing-card__feature">
                   <CheckCircle className="pricing-card__icon" />
-                  <span>Hasta 50 Usuarios</span>
+                  <span>Todo lo del modelo Básico</span>
                 </div>
                 <div className="pricing-card__feature">
                   <CheckCircle className="pricing-card__icon" />
@@ -171,11 +170,11 @@ const LandingPage = () => {
                 </div>
                 <div className="pricing-card__feature">
                   <CheckCircle className="pricing-card__icon" />
-                  <span>Reportes semanales</span>
+                  <span>Hasta 50 Usuarios</span>
                 </div>
                 <div className="pricing-card__feature">
                   <CheckCircle className="pricing-card__icon" />
-                  <span>Soporte prioritario</span>
+                  <span>Chat IA</span>
                 </div>
               </div>
               <button className="pricing-card__button">Seleccionar Plan</button>
@@ -194,19 +193,15 @@ const LandingPage = () => {
               <div className="pricing-card__features">
                 <div className="pricing-card__feature">
                   <CheckCircle className="pricing-card__icon" />
+                  <span>Todo lo del modelo Profesional</span>
+                </div>
+                <div className="pricing-card__feature">
+                  <CheckCircle className="pricing-card__icon" />
                   <span>Flotas ilimitadas</span>
                 </div>
                 <div className="pricing-card__feature">
                   <CheckCircle className="pricing-card__icon" />
-                  <span>API personalizada</span>
-                </div>
-                <div className="pricing-card__feature">
-                  <CheckCircle className="pricing-card__icon" />
-                  <span>Soporte 24/7</span>
-                </div>
-                <div className="pricing-card__feature">
-                  <CheckCircle className="pricing-card__icon" />
-                  <span>Implementación dedicada</span>
+                  <span>Connecciones externas</span>
                 </div>
               </div>
               <button className="pricing-card__button">Contactar Ventas</button>

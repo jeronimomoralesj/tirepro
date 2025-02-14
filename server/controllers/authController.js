@@ -53,7 +53,8 @@ const registerUser = async (req, res) => {
       role: userRole,
       placa: placasArray,
       pointcount: 0,
-      profileImage: defaultProfileImage
+      profileImage: defaultProfileImage,
+      periodicity: "Daily"
     });
 
     await newUser.save();
@@ -64,7 +65,7 @@ const registerUser = async (req, res) => {
   }
 };
 
-// Login controller
+// Login controllerperiodicity
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
@@ -112,7 +113,7 @@ const updateProfileImage = async (req, res) => {
 const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.userId).select(
-      'name role email company companyId placa pointcount profileImage'
+      'name role email company companyId placa pointcount profileImage periodicity'
     );
     
     if (!user) {

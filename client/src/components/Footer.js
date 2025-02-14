@@ -23,7 +23,7 @@ const Footer = () => {
           <ul>
             <li>
               <Mail size={16} />
-              <a href="mailto:jeronimo.morales@merquellantas.com">jeronimo.morales@merquellantas.com</a>
+              <a href="mailto:jeronimo.morales@merquellantas.com">Correo TirePro</a>
             </li>
             <li>
               <Phone size={16} />
@@ -39,13 +39,13 @@ const Footer = () => {
         <div className="footer-section social">
           <h3 className="footer-heading">Síguenos</h3>
           <div className="social-icons">
-            <a href="https://twitter.com/tirepro" target="_blank" rel="noopener noreferrer">
+            <a href="https://twitter.com/" target="_blank" rel="noopener noreferrer">
               <Twitter />
             </a>
-            <a href="https://linkedin.com/company/tirepro" target="_blank" rel="noopener noreferrer">
+            <a href="https://linkedin.com/company/" target="_blank" rel="noopener noreferrer">
               <Linkedin />
             </a>
-            <a href="https://instagram.com/tirepro" target="_blank" rel="noopener noreferrer">
+            <a href="https://instagram.com/" target="_blank" rel="noopener noreferrer">
               <Instagram />
             </a>
           </div>

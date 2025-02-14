@@ -12,14 +12,14 @@ const Ajustes = () => {
     role: '',
     company: '',
     placa: [],
-    profileImage: '', // New state for profile image
+    profileImage: '',
+    periodicity: '',
   });
   const [companyUsers, setCompanyUsers] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const token = localStorage.getItem('token');
   const decodedToken = token ? JSON.parse(atob(token.split('.')[1])) : null;
   const companyId = decodedToken?.user?.companyId;
@@ -40,7 +40,7 @@ const Ajustes = () => {
           }
         );
   
-        const { name, email, role, company, placa, profileImage } = userResponse.data;
+        const { name, email, role, company, placa, profileImage, periodicity } = userResponse.data;
   
         // Debug log for profile image
         console.log('Fetched profileImage from backend:', profileImage);
@@ -53,7 +53,7 @@ const Ajustes = () => {
         console.log('Final profileImage being used:', validProfileImage);
   
         // Update user data in state
-        setUserData({ name, email, role, company, placa, profileImage: validProfileImage });
+        setUserData({ name, email, role, company, placa, profileImage: validProfileImage, periodicity });
   
         // Fetch company users if user is admin
         if (role === 'admin') {
@@ -227,6 +227,7 @@ const { data } = await axios.post('https://tirepro.onrender.com/api/s3/presigned
         <p><strong>Email:</strong> {userData.email}</p>
         <p><strong>Empresa:</strong> {userData.company}</p>
         <p><strong>Rol:</strong> {userData.role === 'admin' ? 'Administrador' : 'Usuario'}</p>
+        <p><strong>Periodicidad de inspecciones: </strong>{userData.periodicity}</p>
         
         <div className="profile-image-section">
           <h4>Imagen de Perfil</h4>
