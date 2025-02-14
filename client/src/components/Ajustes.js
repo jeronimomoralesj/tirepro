@@ -91,6 +91,24 @@ const Ajustes = () => {
     }
   };
 
+  const handlePeriodicityTranslation = (periodicity) =>{
+    if (userData.periodicity == "Daily") {
+      const periodicitySpanish = "Diario"
+    }
+    else if (userData.periodicity == "Weekly") {
+      const periodicitySpanish = "Semanal"
+    }
+    else if (userData.periodicity == "Monthly") {
+      const periodicitySpanish = "Mensual"
+    }
+    else if (userData.periodicity == "Yearly") {
+      const periodicitySpanish = "Anual"
+    }
+    else if (userData.periodicity == "TwiceMonth") {
+      const periodicitySpanish = "Bi Mensual"
+    }
+  }
+
   const handleDeletePlaca = (userId, placaToDelete) => {
     const user = companyUsers.find((u) => u._id === userId);
     const updatedPlacas = (user.placa || []).filter(

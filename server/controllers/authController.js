@@ -4,7 +4,7 @@ const { generateToken } = require('../utils/authUtils');
 
 // Registration controller
 const registerUser = async (req, res) => {
-  const { name, email, password, company, role, placa, companyId } = req.body;
+  const { name, email, password, company, role, placa, companyId, periodicity } = req.body;
 
   try {
     // Check if user already exists
@@ -70,7 +70,7 @@ const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email }).select('id companyId name role email password');
+    const user = await User.findOne({ email }).select('id companyId name role email password periodicity');
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ msg: 'Invalid email or password' });
     }
@@ -128,6 +128,7 @@ const getUserById = async (req, res) => {
       placa: user.placa,
       pointcount: user.pointcount,
       profileImage: user.profileImage,
+      periodicity: user.periodicity,
     });
   } catch (error) {
     console.error('Error fetching user:', error.message);
