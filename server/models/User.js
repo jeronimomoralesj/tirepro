@@ -14,7 +14,7 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: 'https://images.pexels.com/photos/12261472/pexels-photo-12261472.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'  // Default image
   },
-  periodicity: { type: Number, default: "daily" }
+  periodicity: { type: String, default: "daily" }
 });
 
 // Method to check password validity
