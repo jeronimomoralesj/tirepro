@@ -1,6 +1,6 @@
 const express = require('express');
-const { registerUser, loginUser, getUserById, updatePointCount, getAllUsers, updatePlaca,updateProfileImage } = require('../controllers/authController');
-const authMiddleware = require('../middleware/authMiddleware'); // Import middleware
+const { registerUser, loginUser, getUserById, updatePointCount, getAllUsers, updatePlaca,updateProfileImage, updatePeriodicity } = require('../controllers/authController');
+const authMiddleware = require('../middleware/authMiddleware'); 
 
 const router = express.Router();
 
@@ -11,5 +11,6 @@ router.put('/update-pointcount', updatePointCount); // Route for updating pointc
 router.get('/users', authMiddleware, getAllUsers); // Add authentication middleware
 router.put('/update-placa', authMiddleware, updatePlaca); // No adminMiddleware here
 router.put('/update-profile-image', updateProfileImage);
+router.put('/update-periodicity', updatePeriodicity);
 
 module.exports = router;

@@ -85,6 +85,32 @@ const loginUser = async (req, res) => {
   }
 };
 
+//update the user periodicity
+
+const updatePeriodicity = async (req, res) => {
+  try {
+    const { userId, frequency } = req.body
+
+    if (!userId || !frequency ) {
+      return res.status(400).json ({ msg: 'User ID or Periodicity not found' })
+    }
+
+    const user = await User.findById(userId)
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found.' });
+    }
+
+    user.periodicity = frequency
+    await user.save()
+
+    res.status(200).json({ msg: 'Periodicity updated' })
+  }
+  catch (error) {
+    console.error('Error updating profile image:', error.message);
+    res.status(500).json({ msg: 'Server error.' });
+  }
+}
+
 const updateProfileImage = async (req, res) => {
   try {
     const { userId, imageUrl } = req.body;
@@ -204,4 +230,5 @@ module.exports = {
   getAllUsers,
   updatePlaca,
   updateProfileImage,
+  updatePeriodicity
 };

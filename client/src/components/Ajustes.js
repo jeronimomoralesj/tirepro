@@ -91,22 +91,25 @@ const Ajustes = () => {
     }
   };
 
+  let periodicitySpanish = ""
+
   const handlePeriodicityTranslation = (periodicity) =>{
     if (userData.periodicity == "Daily") {
-      const periodicitySpanish = "Diario"
+      periodicitySpanish = "Diario"
     }
     else if (userData.periodicity == "Weekly") {
-      const periodicitySpanish = "Semanal"
+      periodicitySpanish = "Semanal"
     }
     else if (userData.periodicity == "Monthly") {
-      const periodicitySpanish = "Mensual"
+      periodicitySpanish = "Mensual"
     }
     else if (userData.periodicity == "Yearly") {
-      const periodicitySpanish = "Anual"
+      periodicitySpanish = "Anual"
     }
     else if (userData.periodicity == "TwiceMonth") {
-      const periodicitySpanish = "Bi Mensual"
+      periodicitySpanish = "Bi Mensual"
     }
+    return periodicitySpanish
   }
 
   const handleDeletePlaca = (userId, placaToDelete) => {
@@ -216,6 +219,24 @@ const { data } = await axios.post('https://tirepro.onrender.com/api/s3/presigned
     }
   };
 
+  const handleUpdatePeriodicity = async () => {
+    try {
+      const userId = decodedToken.user.id;
+
+      await axios.put(
+        'https://tirepro.onrender.com/api/auth/update-periodicity',
+        { userId, frequency: selectedPeriodicity }, // Send selected periodicity
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setUserData((prev) => ({ ...prev, periodicity: selectedPeriodicity }));
+      alert('Periodicidad actualizada con éxito');
+    } catch (error) {
+      console.error('Error updating periodicity:', error.message);
+      alert('Error al actualizar la periodicidad.');
+    }
+  };
+
   if (loading) {
     return <div className="ajustes-container">Cargando...</div>;
   }
@@ -245,7 +266,27 @@ const { data } = await axios.post('https://tirepro.onrender.com/api/s3/presigned
         <p><strong>Email:</strong> {userData.email}</p>
         <p><strong>Empresa:</strong> {userData.company}</p>
         <p><strong>Rol:</strong> {userData.role === 'admin' ? 'Administrador' : 'Usuario'}</p>
-        <p><strong>Periodicidad de inspecciones: </strong>{userData.periodicity}</p>
+        
+        <div className="periodicity-section">
+          <label><strong>Periodicidad de inspecciones:</strong></label>
+          <select
+            value={selectedPeriodicity}
+            onChange={(e) => setSelectedPeriodicity(e.target.value)}
+            className="periodicity-dropdown"
+          >
+            <option value="Daily">Diario</option>
+            <option value="Weekly">Semanal</option>
+            <option value="TwiceMonth">Bi-Mensual</option>
+            <option value="Monthly">Mensual</option>
+            <option value="Yearly">Anual</option>
+          </select>
+          <button
+            onClick={handleUpdatePeriodicity}
+            className="update-periodicity-btn"
+          >
+            Actualizar Periodicidad
+          </button>
+        </div>
         
         <div className="profile-image-section">
           <h4>Imagen de Perfil</h4>
